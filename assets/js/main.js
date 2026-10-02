@@ -1,12 +1,12 @@
 /**
  * main.js — Shared initialization for all GSPN Website Tools pages
- * Handles tab switching, bottom nav highlighting, and general page setup.
+ * Handles dropdown navigation, tab switching, active highlighting, and page setup.
  */
 
 (function() {
   'use strict';
 
-  // ── Tab Switching (tools.html) ─────────────────────────────────────────────
+  // ── Tab Switching (tools.html & custom-template.html) ─────────────────────────
   var pageTabs = document.querySelectorAll('.page-tab');
   if (pageTabs.length > 0) {
     pageTabs.forEach(function(tab) {
@@ -33,24 +33,134 @@
     });
   }
 
-  // ── Bottom Nav Active Highlight ────────────────────────────────────────────
-  var currentPage = window.location.pathname.split('/').pop() || 'index.html';
-  var navItems = document.querySelectorAll('.bottom-nav-item');
-  navItems.forEach(function(item) {
+  // ── Dropdown Navigation System ──────────────────────────────────────────────
+  var dropdowns = document.querySelectorAll('.nav-dropdown');
+
+  dropdowns.forEach(function(dd) {
+    var btn = dd.querySelector('.nav-dropdown-btn');
+    if (!btn) return;
+
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var wasOpen = dd.classList.contains('open');
+
+      // Close all other dropdowns
+      dropdowns.forEach(function(other) {
+        if (other !== dd) {
+          other.classList.remove('open');
+          var otherBtn = other.querySelector('.nav-dropdown-btn');
+          if (otherBtn) otherBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Toggle this one
+      if (wasOpen) {
+        dd.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      } else {
+        dd.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.nav-dropdown')) {
+      dropdowns.forEach(function(dd) {
+        dd.classList.remove('open');
+        var btn = dd.querySelector('.nav-dropdown-btn');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      });
+    }
+  });
+
+  // Close dropdowns on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      dropdowns.forEach(function(dd) {
+        dd.classList.remove('open');
+        var btn = dd.querySelector('.nav-dropdown-btn');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      });
+    }
+  });
+
+  // ── Navigation Active Highlight ─────────────────────────────────────────────
+  var currentPath = window.location.pathname;
+  var currentPage = currentPath.split('/').pop() || 'index.html';
+  if (currentPath.indexOf('/context/') !== -1) {
+    currentPage = 'context/' + currentPage;
+  }
+
+  // Define route-to-group mappings
+  var routeMap = {
+    'tools': ['tools.html', 'custom-template.html'],
+    'reports': ['openPending.html', 'reportMaking.html', 'masterCloser.html', 'reports.html'],
+    'context': ['Context.html', 'formats.html', 'context/formats.html', 'context/index.html']
+  };
+
+  // 1. Highlight Top Nav links
+  var topNavLinks = document.querySelectorAll('.nav-link:not(.nav-dropdown-btn)');
+  topNavLinks.forEach(function(link) {
+    var href = link.getAttribute('href') || '';
+    var pageName = href.split('/').pop();
+    link.classList.remove('active');
+    if (pageName === currentPage || (currentPage === 'index.html' && (pageName === 'index.html' || href === '/'))) {
+      link.classList.add('active');
+    }
+  });
+
+  // 2. Highlight Top Nav Dropdowns
+  var toolsDd = document.getElementById('dropdownTools');
+  var reportsDd = document.getElementById('dropdownReports');
+  var contextDd = document.getElementById('dropdownContext');
+
+  var plainPage = currentPage.replace('context/', '');
+
+  if (toolsDd && routeMap.tools.indexOf(plainPage) !== -1) {
+    var b = toolsDd.querySelector('.nav-dropdown-btn');
+    if (b) b.classList.add('active');
+    toolsDd.classList.add('active');
+  }
+
+  if (reportsDd && routeMap.reports.indexOf(plainPage) !== -1) {
+    var b = reportsDd.querySelector('.nav-dropdown-btn');
+    if (b) b.classList.add('active');
+    reportsDd.classList.add('active');
+  }
+
+  if (contextDd && (routeMap.context.indexOf(currentPage) !== -1 || routeMap.context.indexOf(plainPage) !== -1)) {
+    var b = contextDd.querySelector('.nav-dropdown-btn');
+    if (b) b.classList.add('active');
+    contextDd.classList.add('active');
+  }
+
+  // 3. Highlight specific dropdown items
+  var dropdownItems = document.querySelectorAll('.dropdown-item');
+  dropdownItems.forEach(function(item) {
     var href = item.getAttribute('href') || '';
-    item.classList.remove('active');
-    if (href === currentPage || (currentPage === '' && href === 'index.html')) {
+    var itemPage = href.split('/').pop();
+    if (itemPage === plainPage || (currentPage.indexOf('formats') !== -1 && itemPage.indexOf('formats') !== -1)) {
       item.classList.add('active');
     }
   });
 
-  // Also highlight top nav
-  var topNavLinks = document.querySelectorAll('.nav-link');
-  topNavLinks.forEach(function(link) {
-    var href = link.getAttribute('href') || '';
-    link.classList.remove('active');
-    if (href === currentPage || (currentPage === '' && href === 'index.html')) {
-      link.classList.add('active');
+  // 4. Highlight Bottom Nav
+  var bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+  bottomNavItems.forEach(function(item) {
+    var href = item.getAttribute('href') || '';
+    var itemPage = href.split('/').pop();
+    item.classList.remove('active');
+
+    if (itemPage === plainPage || (plainPage === 'index.html' && itemPage === 'index.html')) {
+      item.classList.add('active');
+    } else if (item.id === 'navMaster' && (plainPage === 'openPending.html' || plainPage === 'reportMaking.html')) {
+      item.classList.add('active');
+    } else if (item.id === 'navSvcReports' && plainPage === 'reports.html') {
+      item.classList.add('active');
+    } else if (item.id === 'navContext' && (plainPage === 'Context.html' || plainPage === 'formats.html')) {
+      item.classList.add('active');
     }
   });
 

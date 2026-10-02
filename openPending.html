@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RC-GD Pendency & Service Operations Report</title>
   
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="/assets/css/main.css">
+  
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -105,8 +108,8 @@
 </head>
 <body class="min-h-screen pb-16">
 
-  <!-- Toast Notification Container -->
-  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+  <!-- Toast Notification Container (z-index 999999 so alerts appear above all modals) -->
+  <div id="toastContainer" class="fixed top-5 right-5 flex flex-col gap-2 pointer-events-none" style="z-index: 999999;"></div>
 
   <!-- Top Executive Navigation Bar -->
   <header class="bg-white text-slate-900 shadow-sm border-b border-slate-200 sticky top-0 z-30 no-print">
@@ -130,22 +133,110 @@
           </div>
         </div>
 
-        <!-- Quick Header Action Buttons -->
+        <!-- Global Dropdown Navigation & Quick Header Action Buttons -->
         <div class="flex items-center space-x-2">
-          <!-- Home Navigation Button -->
-          <a href="index.html" class="inline-flex items-center px-3 py-1.5 border border-slate-300 rounded text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 shadow-sm transition focus:outline-none" title="Return to GSPN Tools Home">
-            <svg class="w-3.5 h-3.5 mr-1.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <!-- Standard Dropdown Navigation -->
+          <nav class="hidden xl:flex items-center space-x-1 mr-2 border-r border-slate-200 pr-3">
+            <a href="/index.html" class="nav-link text-xs py-1.5 px-2.5" id="navHome">Home</a>
+
+            <!-- Tools Dropdown -->
+            <div class="nav-dropdown" id="dropdownTools">
+              <button type="button" class="nav-dropdown-btn text-xs py-1 px-2.5" aria-haspopup="true" aria-expanded="false">
+                <span>Tools</span>
+                <svg class="dropdown-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="dropdown-menu">
+                <a href="/tools.html" class="dropdown-item">
+                  <div class="dropdown-icon icon-blue"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+                  <div class="dropdown-text"><span class="dropdown-title">Data Extraction</span><span class="dropdown-desc">Print Command &amp; Management Lite</span></div>
+                </a>
+                <a href="/custom-template.html" class="dropdown-item">
+                  <div class="dropdown-icon icon-cyan"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
+                  <div class="dropdown-text"><span class="dropdown-title">Template Builder</span><span class="dropdown-desc">Custom columns &amp; profiles</span></div>
+                </a>
+              </div>
+            </div>
+
+            <!-- Reports Dropdown (Two Options: Master Reports & SVC Reports) -->
+            <div class="nav-dropdown active" id="dropdownReports">
+              <button type="button" class="nav-dropdown-btn text-xs py-1 px-2.5 active" aria-haspopup="true" aria-expanded="false">
+                <span>Reports</span>
+                <svg class="dropdown-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="dropdown-menu dropdown-menu-wide">
+                <!-- Master Reports Section -->
+                <div class="dropdown-section">
+                  <div class="dropdown-section-header">
+                    <span class="section-tag master-tag">Master Reports</span>
+                    <span class="section-sub">Executive &amp; Operations</span>
+                  </div>
+                  <a href="/openPending.html" class="dropdown-item active">
+                    <div class="dropdown-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+                    <div class="dropdown-text">
+                      <div class="dropdown-title-row">
+                        <span class="dropdown-title">Open Pending Report</span>
+                        <span class="badge-mini-live">Live</span>
+                      </div>
+                      <span class="dropdown-desc">RC-GD daily tracking &amp; aging</span>
+                    </div>
+                  </a>
+                  <a href="/reportMaking.html" class="dropdown-item">
+                    <div class="dropdown-icon icon-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
+                    <div class="dropdown-text"><span class="dropdown-title">Report Maker</span><span class="dropdown-desc">Multi-SVC service reporter &amp; mail</span></div>
+                  </a>
+                  <a href="/masterCloser.html" class="dropdown-item">
+                    <div class="dropdown-icon icon-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                    <div class="dropdown-text">
+                      <div class="dropdown-title-row">
+                        <span class="dropdown-title">Master Closer</span>
+                        <span class="badge-mini-live" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0;">Closer %</span>
+                      </div>
+                      <span class="dropdown-desc">Morning vs Inflow vs Current Closer %</span>
+                    </div>
+                  </a>
+                </div>
+
+                <div class="dropdown-divider"></div>
+
+                <!-- SVC Reports Section -->
+                <div class="dropdown-section">
+                  <div class="dropdown-section-header">
+                    <span class="section-tag svc-tag">SVC (Service Center)</span>
+                    <span class="section-sub">Center Analytics</span>
+                  </div>
+                  <a href="/reports.html" class="dropdown-item">
+                    <div class="dropdown-icon icon-orange"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+                    <div class="dropdown-text"><span class="dropdown-title">SVC Reports &amp; Analytics</span><span class="dropdown-desc">Center TAT &amp; call aging</span></div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Context Dropdown -->
+            <div class="nav-dropdown" id="dropdownContext">
+              <button type="button" class="nav-dropdown-btn text-xs py-1 px-2.5" aria-haspopup="true" aria-expanded="false">
+                <span>Context</span>
+                <svg class="dropdown-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="dropdown-menu">
+                <a href="/Context.html" class="dropdown-item">
+                  <div class="dropdown-icon icon-purple"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+                  <div class="dropdown-text"><span class="dropdown-title">Context &amp; Dictionary</span><span class="dropdown-desc">28 Standard GGN fields</span></div>
+                </a>
+                <a href="/context/formats.html" class="dropdown-item">
+                  <div class="dropdown-icon icon-green"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                  <div class="dropdown-text"><span class="dropdown-title">Formats &amp; Templates</span><span class="dropdown-desc">ML &amp; Print Command specs</span></div>
+                </a>
+              </div>
+            </div>
+          </nav>
+
+          <!-- Home Navigation Button (Visible on smaller screens) -->
+          <a href="/index.html" class="inline-flex xl:hidden items-center px-2.5 py-1.5 border border-slate-300 rounded text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 shadow-sm transition focus:outline-none" title="Return to GSPN Tools Home">
+            <svg class="w-3.5 h-3.5 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
             Home
-          </a>
-
-          <!-- Report Maker Navigation Button -->
-          <a href="reportMaking.html" class="inline-flex items-center px-3 py-1.5 border border-blue-300 rounded text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 shadow-sm transition focus:outline-none" title="Open Report Making Page">
-            <svg class="w-3.5 h-3.5 mr-1.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-            </svg>
-            Report Maker
           </a>
 
           <!-- Excel Upload Button -->
@@ -156,12 +247,26 @@
             Upload Excel
           </button>
 
+          <!-- Total Summary Button (Prominent Indigo Button) -->
+          <button id="btnOpenTotalSummaryModal" class="inline-flex items-center px-3 py-1.5 rounded text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow transition active:scale-95 focus:outline-none" title="Open concise Open Pending Total Summary table dialog to view and copy for Email">
+            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            Total Summary
+          </button>
+
+          <!-- Quick Copy Summary for Mail -->
+          <button id="btnCopySummaryForMail" class="inline-flex items-center px-2.5 py-1.5 rounded text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm transition active:scale-95 focus:outline-none" title="Quickly copy Open Pending Total Summary table to clipboard for Email">
+            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+            Copy Summary
+          </button>
+
           <!-- Copy for Mail Button -->
           <button id="btnCopyForMail" class="inline-flex items-center px-3 py-1.5 rounded text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow transition active:scale-95 focus:outline-none font-bold">
             <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
             </svg>
-            Copy HTML for Mail
+            Copy Full Report
           </button>
 
           <!-- Export Excel Button -->
@@ -450,8 +555,8 @@
               <th colspan="2" class="bg-white text-slate-900 font-bold py-2.5 px-3 text-center border-r border-slate-300 text-sm tracking-wide">
                 WAR Status
               </th>
-              <!-- Right section title (covers 10 products) -->
-              <th colspan="10" class="bg-[#dce6f1] text-rose-900 font-bold py-2.5 px-3 text-center text-sm tracking-wide">
+              <!-- Right section title (covers Total + 10 products) -->
+              <th colspan="11" class="bg-[#dce6f1] text-rose-900 font-bold py-2.5 px-3 text-center text-sm tracking-wide">
                 D+7 Calls By Products
               </th>
             </tr>
@@ -474,7 +579,8 @@
               <th class="py-2 px-2 border-r border-slate-300 bg-[#c1f0c8] text-slate-900 font-bold w-14" title="In-Warranty Calls">IW</th>
               <th class="py-2 px-2 border-r-2 border-slate-400 bg-[#c1f0c8] text-slate-900 font-bold w-14" title="Out-of-Warranty Calls">OW</th>
 
-              <!-- Right Columns (D+7 Product Colors) -->
+              <!-- Right Columns (D+7 Total & Product Colors) -->
+              <th class="py-2 px-2 border-r border-slate-300 bg-[#ffc7ce] text-rose-950 font-bold w-14" title="Total D+7 Pending Calls">Total</th>
               <th class="py-2 px-2 border-r border-slate-300 bg-[#ffff00] text-slate-900 font-bold w-12" title="Air Conditioner">AC</th>
               <th class="py-2 px-2 border-r border-slate-300 bg-[#92d050] text-slate-900 font-bold w-12" title="Washing Machine">WM</th>
               <th class="py-2 px-2 border-r border-slate-300 bg-[#dce6f1] text-slate-900 font-bold w-12" title="Refrigerator">REF</th>
@@ -689,6 +795,56 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             Copy Formatted Table (Ctrl+V Ready)
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: Total Summary Dialog (Simple Single Dialog) -->
+  <!-- ========================================================================= -->
+  <div id="totalSummaryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true" aria-labelledby="totalSummaryModalTitle">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="px-5 py-4 bg-gradient-to-r from-[#0f2e59] to-[#184685] text-white flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-white/10 rounded-lg">
+            <svg class="w-5 h-5 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold font-outfit text-white" id="totalSummaryModalTitle">Open Pending Total Summary</h3>
+            <p class="text-xs text-slate-200" id="totalSummaryModalSubtitle">Branch D+7 &amp; Warranty Totals</p>
+          </div>
+        </div>
+        <button id="btnCloseTotalSummaryModal" class="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Live Visual Preview Container -->
+      <div class="p-5 overflow-auto flex-1 flex justify-center bg-white" id="totalSummaryModalBody">
+        <!-- Injected via JS -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-shrink-0">
+        <span class="text-xs text-slate-500 font-medium">Ready to share via Email</span>
+        <div class="flex gap-2">
+          <button id="btnModalCopySummary" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs shadow-md transition flex items-center gap-1.5 transform active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Copy for Mail
+          </button>
+          <button id="btnCloseTotalSummaryModal2" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 transition">
+            Close
           </button>
         </div>
       </div>
@@ -1785,6 +1941,7 @@
             '15–30 Days': 0,
             '30+ Days': 0
           },
+          d7Total: 0,
           productsD7: {}
         };
         PRODUCT_CATEGORIES.forEach(p => { row.productsD7[p.code] = 0; });
@@ -1830,6 +1987,8 @@
 
         // Check if D+7 (Aging > 7 Days)
         if (r.aging > 7) {
+          row.d7Total++;
+          totalRow.d7Total++;
           if (row.productsD7[prod] !== undefined) {
             row.productsD7[prod]++;
             totalRow.productsD7[prod]++;
@@ -1981,6 +2140,7 @@
         <td class="py-2.5 px-2 border-r-2 border-slate-400 table-cell-aging-hot text-center tabular-nums font-bold">${cellVal(t.aging['30+ Days'])}</td>
         <td class="py-2.5 px-2 border-r border-slate-300 bg-[#c1f0c8] text-slate-900 font-extrabold text-center tabular-nums">${cellVal(t.iw)}</td>
         <td class="py-2.5 px-2 border-r-2 border-slate-400 bg-[#c1f0c8] text-slate-900 font-extrabold text-center tabular-nums">${cellVal(t.ow)}</td>
+        <td class="py-2.5 px-2 border-r border-slate-300 bg-[#ffc7ce] text-rose-950 font-extrabold text-center tabular-nums">${cellVal(t.d7Total)}</td>
       `;
 
       // D+7 Product columns for Total row
@@ -2011,6 +2171,7 @@
           <td class="py-2 px-2 border-r-2 border-slate-400 table-cell-aging-hot tabular-nums font-bold">${cellVal(row.aging['30+ Days'])}</td>
           <td class="py-2 px-2 border-r border-slate-200 bg-[#c1f0c8] text-slate-900 font-semibold tabular-nums">${cellVal(row.iw)}</td>
           <td class="py-2 px-2 border-r-2 border-slate-400 bg-[#c1f0c8] text-slate-900 font-semibold tabular-nums">${cellVal(row.ow)}</td>
+          <td class="py-2 px-2 border-r border-slate-200 bg-rose-50/70 font-bold text-rose-950 text-center tabular-nums">${cellVal(row.d7Total)}</td>
         `;
 
         PRODUCT_CATEGORIES.forEach(p => {
@@ -2406,7 +2567,7 @@
             <th colspan="2" style="background-color: #ffffff; color: #0f172a; font-size: 12px; font-weight: bold; text-align: center; padding: 6px 8px; border: 1px solid #475569;">
               WAR Status
             </th>
-            <th colspan="10" style="background-color: #dce6f1; color: #991b1b; font-size: 12px; font-weight: bold; text-align: center; padding: 6px 8px; border: 1px solid #475569;">
+            <th colspan="11" style="background-color: #dce6f1; color: #991b1b; font-size: 12px; font-weight: bold; text-align: center; padding: 6px 8px; border: 1px solid #475569;">
               D+7 Calls By Products
             </th>
           </tr>
@@ -2425,6 +2586,8 @@
             <!-- IW / OW -->
             <th style="padding: 5px; border: 1px solid #cbd5e1; background-color: #c1f0c8; color: #0f172a; font-weight: bold;">IW</th>
             <th style="padding: 5px; border: 1px solid #cbd5e1; background-color: #c1f0c8; color: #0f172a; font-weight: bold;">OW</th>
+            <!-- Total D+7 -->
+            <th style="padding: 5px; border: 1px solid #cbd5e1; background-color: #ffc7ce; color: #991b1b; font-weight: bold;">Total</th>
             <!-- Products -->
             <th style="padding: 5px; border: 1px solid #cbd5e1; background-color: ${prodColors['AC'].bg}; color: ${prodColors['AC'].text};">AC</th>
             <th style="padding: 5px; border: 1px solid #cbd5e1; background-color: ${prodColors['WM'].bg}; color: ${prodColors['WM'].text};">WM</th>
@@ -2453,6 +2616,7 @@
             <td style="padding: 6px; border: 1px solid #94a3b8; background-color: #fca5a5; font-weight: bold;">${fmtVal(t.aging['30+ Days'])}</td>
             <td style="padding: 6px; border: 1px solid #94a3b8; background-color: #c1f0c8; color: #0f172a; font-weight: bold;">${fmtVal(t.iw)}</td>
             <td style="padding: 6px; border: 1px solid #94a3b8; background-color: #c1f0c8; color: #0f172a; font-weight: bold;">${fmtVal(t.ow)}</td>
+            <td style="padding: 6px; border: 1px solid #94a3b8; background-color: #fecaca; color: #991b1b; font-weight: bold;">${fmtVal(t.d7Total)}</td>
       `;
 
       PRODUCT_CATEGORIES.forEach(p => {
@@ -2481,6 +2645,7 @@
             <td style="padding: 5px; border: 1px solid #cbd5e1; background-color: #fca5a5; font-weight: bold;">${fmtVal(row.aging['30+ Days'])}</td>
             <td style="padding: 5px; border: 1px solid #cbd5e1; background-color: #c1f0c8; color: #0f172a;">${fmtVal(row.iw)}</td>
             <td style="padding: 5px; border: 1px solid #cbd5e1; background-color: #c1f0c8; color: #0f172a;">${fmtVal(row.ow)}</td>
+            <td style="padding: 5px; border: 1px solid #cbd5e1; background-color: #ffe4e6; color: #991b1b; font-weight: bold;">${fmtVal(row.d7Total)}</td>
         `;
 
         PRODUCT_CATEGORIES.forEach(p => {
@@ -2501,6 +2666,168 @@
       return html;
     }
 
+    // --- TOTAL SUMMARY GENERATOR (Email & Dialog) ---
+    function generateTotalSummaryData() {
+      const records = computeProcessedRecords();
+      if (!records || records.length === 0) return { branches: [], total: { d7: 0, iw: 0, ow: 0, count: 0 } };
+
+      const branchMap = {};
+      records.forEach(r => {
+        const bName = r.branchName || 'Gurgaon-CE';
+        const code = r.cpCode || (appState.selectedAsc !== 'ALL' ? appState.selectedAsc : '4903753');
+        const key = `${code}_${bName}`;
+        if (!branchMap[key]) {
+          branchMap[key] = {
+            code: code,
+            name: bName,
+            d7: 0,
+            iw: 0,
+            ow: 0
+          };
+        }
+        if (r.aging > 7) {
+          branchMap[key].d7++;
+          if (isInWarranty(r)) {
+            branchMap[key].iw++;
+          } else {
+            branchMap[key].ow++;
+          }
+        }
+      });
+
+      const branchList = Object.values(branchMap);
+      let sumTotD7 = 0;
+      let sumTotIW = 0;
+      let sumTotOW = 0;
+      branchList.forEach(b => {
+        sumTotD7 += b.d7;
+        sumTotIW += b.iw;
+        sumTotOW += b.ow;
+      });
+
+      return {
+        branches: branchList,
+        total: {
+          d7: sumTotD7,
+          iw: sumTotIW,
+          ow: sumTotOW,
+          count: branchList.length
+        }
+      };
+    }
+
+    function generateTotalSummaryHtmlTable() {
+      const data = generateTotalSummaryData();
+      const dotDate = formatDateToDot(appState.reportDate);
+      const title = `Open Pending Total Summary dt ${dotDate}`;
+
+      if (data.branches.length === 0) {
+        return '<p class="text-slate-400 p-4 text-xs italic">No service center calls found to generate Total Summary.</p>';
+      }
+
+      const rowsHtml = data.branches.map(b => `
+        <tr style="border-bottom: 1px solid #cbd5e1; font-family: Calibri, Arial, sans-serif; font-size: 13px;">
+          <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; color: #000000; font-weight: normal; background-color: #ffffff;">${b.code}</td>
+          <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; color: #000000; font-weight: normal; background-color: #ffffff;">${b.name}</td>
+          <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; color: #1d4ed8; font-weight: normal; background-color: #ffffff;">${b.d7}</td>
+          <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; background-color: #c1f0c8; color: #000000;">${b.iw}</td>
+          <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; background-color: #c1f0c8; color: #000000;">${b.ow}</td>
+        </tr>
+      `).join('');
+
+      return `
+      <table cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 13px; color: #000000; border: 1px solid #94a3b8; text-align: center; width: 100%; max-width: 650px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <thead>
+          <!-- Super Header Banner -->
+          <tr style="background-color: #0f2e59; color: #ffffff;">
+            <th colspan="5" style="padding: 8px 14px; text-align: left; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; border: 1px solid #0f2e59;">
+              ${title}
+            </th>
+          </tr>
+          <!-- Column Headers -->
+          <tr style="background-color: #dce6f1; color: #000000; font-weight: bold;">
+            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle;">ASC_CODE</th>
+            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle;">Branch_Name</th>
+            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle;">Total D+7</th>
+            <th colspan="2" style="padding: 6px 14px; border: 1px solid #cbd5e1; text-align: center;">WAR Status</th>
+          </tr>
+          <!-- Sub-Headers under WAR Status -->
+          <tr style="background-color: #dce6f1; color: #000000; font-weight: bold;">
+            <th style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">IW</th>
+            <th style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">OW</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+          <!-- Total Summary Row -->
+          <tr style="background-color: #e0f2fe; font-weight: bold; border-top: 2px solid #0284c7; border-bottom: 2px solid #0284c7;">
+            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: left; color: #0c4a6e;">Total</td>
+            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: left; color: #0c4a6e;">${data.total.count} Service Centers</td>
+            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; color: #0369a1; background-color: #bae6fd;">${data.total.d7}</td>
+            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">${data.total.iw}</td>
+            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">${data.total.ow}</td>
+          </tr>
+        </tbody>
+      </table>
+      `;
+    }
+
+    function openTotalSummaryModal() {
+      const modal = document.getElementById('totalSummaryModal');
+      const body = document.getElementById('totalSummaryModalBody');
+      const sub = document.getElementById('totalSummaryModalSubtitle');
+      const data = generateTotalSummaryData();
+      if (data.branches.length === 0) {
+        showToast('Please upload or load data before viewing Total Summary', 'error');
+        return;
+      }
+      if (sub) {
+        sub.textContent = `Report Date: ${formatDateToDot(appState.reportDate)} • ${data.total.count} Service Centers`;
+      }
+      if (body) {
+        body.innerHTML = generateTotalSummaryHtmlTable();
+      }
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeTotalSummaryModal() {
+      const modal = document.getElementById('totalSummaryModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function copyTotalSummaryHtmlForMail() {
+      const html = generateTotalSummaryHtmlTable();
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          const blobHtml = new Blob([html], { type: 'text/html' });
+          const blobText = new Blob([html.replace(/<[^>]+>/g, ' ')], { type: 'text/plain' });
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'text/html': blobHtml,
+              'text/plain': blobText
+            })
+          ]);
+        } else {
+          const tempEl = document.createElement('div');
+          tempEl.style.position = 'fixed';
+          tempEl.style.left = '-9999px';
+          tempEl.innerHTML = html;
+          document.body.appendChild(tempEl);
+          const range = document.createRange();
+          range.selectNodeContents(tempEl);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          document.execCommand('copy');
+          tempEl.remove();
+        }
+        showToast('Open Pending Total Summary Table copied to clipboard! Ready to paste into Email.');
+      } catch (err) {
+        console.error('Copy summary failed:', err);
+        showToast('Failed to copy summary. Try modern browser permissions.', 'error');
+      }
+    }
+
     // --- TOAST NOTIFICATIONS ---
     function showToast(message, type = 'success') {
       const container = document.getElementById('toastContainer');
@@ -2513,6 +2840,7 @@
         </svg>
         <span>${message}</span>
       `;
+      toast.style.zIndex = '999999';
       container.appendChild(toast);
 
       requestAnimationFrame(() => {
@@ -3277,15 +3605,115 @@
         });
       });
 
-      // 8. Export to Excel via SheetJS
+      // Total Summary Modal Controls
+      const btnOpenTotalSummaryModal = document.getElementById('btnOpenTotalSummaryModal');
+      if (btnOpenTotalSummaryModal) btnOpenTotalSummaryModal.addEventListener('click', openTotalSummaryModal);
+
+      const btnCopySummaryForMail = document.getElementById('btnCopySummaryForMail');
+      if (btnCopySummaryForMail) btnCopySummaryForMail.addEventListener('click', copyTotalSummaryHtmlForMail);
+
+      const btnCloseTotalSummaryModal = document.getElementById('btnCloseTotalSummaryModal');
+      if (btnCloseTotalSummaryModal) btnCloseTotalSummaryModal.addEventListener('click', closeTotalSummaryModal);
+
+      const btnCloseTotalSummaryModal2 = document.getElementById('btnCloseTotalSummaryModal2');
+      if (btnCloseTotalSummaryModal2) btnCloseTotalSummaryModal2.addEventListener('click', closeTotalSummaryModal);
+
+      const btnModalCopySummary = document.getElementById('btnModalCopySummary');
+      if (btnModalCopySummary) btnModalCopySummary.addEventListener('click', copyTotalSummaryHtmlForMail);
+
+      // 8. Export to Excel via SheetJS (Summary + Bottom Total Summary + RAW)
       document.getElementById('btnExportExcel').addEventListener('click', () => {
         const table = document.getElementById('mainExecutiveTable');
-        const wb = XLSX.utils.table_to_book(table, { sheet: "RC-GD_Pendency" });
         const dateStr = formatDateToDot(appState.reportDate);
-        XLSX.writeFile(wb, `RC-GD_Pendency_Report_${dateStr}.xlsx`);
-        showToast('Excel report generated and downloaded!');
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Summary" });
+        
+        // Append Total Summary at bottom of Summary Sheet as requested
+        const sumData = generateTotalSummaryData();
+        const summaryRows = [
+          [], // separator
+          [], // separator
+          [`OPEN PENDING TOTAL SUMMARY dt ${dateStr}`],
+          ['ASC_CODE', 'Branch_Name', 'Total D+7', 'WAR Status - IW', 'WAR Status - OW'],
+          ...sumData.branches.map(b => [b.code, b.name, b.d7, b.iw, b.ow]),
+          ['Total', `${sumData.total.count} Service Centers`, sumData.total.d7, sumData.total.iw, sumData.total.ow]
+        ];
+        
+        XLSX.utils.sheet_add_aoa(wb.Sheets["Summary"], summaryRows, { origin: -1 });
+
+        // Add Sheet 2: RAW_DATA
+        const processed = computeProcessedRecords();
+        const rawRows = processed.map(r => ({
+          'Date': r.date || dateStr,
+          'Branch Name': r.branchName,
+          'No': r.no,
+          'Service Order No.': r.serviceOrderNo,
+          'ASC Job No': r.ascJobNo,
+          'Created': r.created,
+          'Assigned': r.assigned,
+          'Assigned Time': r.assignedTime,
+          'Model': r.model,
+          'Serial': r.serial,
+          'Wty Status': r.wtyStatus,
+          'VOC': r.voc,
+          'REDO': r.redo,
+          'Risk Sensing': r.riskSensing,
+          'RED': r.red,
+          'High Priority': r.highPriority,
+          'Customer Name': r.customerName,
+          'City': r.city,
+          'App Date': r.appDate,
+          'App Time': r.appTime,
+          'Service Type': r.serviceType,
+          'Status': r.isClosed ? `[CLOSED] ${r.status}` : r.status,
+          'Reason': r.isClosed ? `[CHECKED & CLOSED] ${r.reason}` : r.reason,
+          'B2B': r.b2b,
+          'Risk Reason': r.riskReason
+        }));
+        const wsRaw = XLSX.utils.json_to_sheet(rawRows, { header: STANDARD_25_COLUMNS });
+        XLSX.utils.book_append_sheet(wb, wsRaw, "RAW_DATA");
+
+        XLSX.writeFile(wb, `Open_Pending_Report_${dateStr}.xlsx`);
+        showToast('Excel report downloaded (Summary + Bottom Total Summary + RAW DATA)!');
       });
     });
   </script>
+
+  <!-- BOTTOM NAVBAR -->
+  <nav class="bottom-nav glass-nav" id="bottomNav">
+    <div class="bottom-nav-inner">
+      <a href="/index.html" class="bottom-nav-item" id="navHome">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="/tools.html" class="bottom-nav-item" id="navTools">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+        <span>Tools</span>
+      </a>
+      <a href="/openPending.html" class="bottom-nav-item active" id="navMaster">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <span>Master</span>
+      </a>
+      <a href="/reports.html" class="bottom-nav-item" id="navSvcReports">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span>SVC</span>
+      </a>
+      <a href="/Context.html" class="bottom-nav-item" id="navContext">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        <span>Context</span>
+      </a>
+    </div>
+  </nav>
+
+  <script src="/assets/js/main.js"></script>
 </body>
 </html>

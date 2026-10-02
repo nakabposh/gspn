@@ -11,6 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="/assets/css/main.css">
+
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -82,8 +85,8 @@
 </head>
 <body class="min-h-screen pb-20">
 
-  <!-- Toast Notification Container -->
-  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+  <!-- Toast Notification Container (z-index 999999 so alerts appear above all modals) -->
+  <div id="toastContainer" class="fixed top-5 right-5 flex flex-col gap-2 pointer-events-none" style="z-index: 999999;"></div>
 
   <!-- TOP NAVIGATION BAR -->
   <header class="bg-white text-slate-900 shadow-sm border-b border-slate-200 sticky top-0 z-30 no-print">
@@ -102,15 +105,100 @@
           </div>
         </a>
 
-        <!-- Global Nav Links -->
-        <nav class="hidden md:flex items-center space-x-1">
-          <a href="index.html" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Home</a>
-          <a href="tools.html" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Tools</a>
-          <a href="custom-template.html" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Template Builder</a>
-          <a href="reports.html" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Reports</a>
-          <a href="openPending.html" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Open Pending</a>
-          <a href="reportMaking.html" class="px-3 py-1.5 rounded-md text-xs font-bold text-blue-600 bg-blue-50 transition border border-blue-200">Report Making</a>
-          <a href="formats.html" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Formats</a>
+        <!-- Global Nav Links with Standard Dropdowns -->
+        <nav class="hidden md:flex items-center space-x-2">
+          <a href="/index.html" class="nav-link text-xs" id="navHome">Home</a>
+
+          <!-- Tools Dropdown -->
+          <div class="nav-dropdown" id="dropdownTools">
+            <button type="button" class="nav-dropdown-btn text-xs py-1.5 px-3" aria-haspopup="true" aria-expanded="false">
+              <span>Tools</span>
+              <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="dropdown-menu">
+              <a href="/tools.html" class="dropdown-item">
+                <div class="dropdown-icon icon-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+                <div class="dropdown-text"><span class="dropdown-title">Data Extraction</span><span class="dropdown-desc">Print Command &amp; Management Lite</span></div>
+              </a>
+              <a href="/custom-template.html" class="dropdown-item">
+                <div class="dropdown-icon icon-cyan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
+                <div class="dropdown-text"><span class="dropdown-title">Template Builder</span><span class="dropdown-desc">Custom columns &amp; profiles</span></div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Reports Dropdown (Two Options: Master Reports & SVC Reports) -->
+          <div class="nav-dropdown active" id="dropdownReports">
+            <button type="button" class="nav-dropdown-btn text-xs py-1.5 px-3 active" aria-haspopup="true" aria-expanded="false">
+              <span>Reports</span>
+              <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="dropdown-menu dropdown-menu-wide">
+              <!-- Master Reports Section -->
+              <div class="dropdown-section">
+                <div class="dropdown-section-header">
+                  <span class="section-tag master-tag">Master Reports</span>
+                  <span class="section-sub">Executive &amp; Operations</span>
+                </div>
+                <a href="/openPending.html" class="dropdown-item">
+                  <div class="dropdown-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+                  <div class="dropdown-text">
+                    <div class="dropdown-title-row">
+                      <span class="dropdown-title">Open Pending Report</span>
+                      <span class="badge-mini-live">Live</span>
+                    </div>
+                    <span class="dropdown-desc">RC-GD daily tracking &amp; aging</span>
+                  </div>
+                </a>
+                <a href="/reportMaking.html" class="dropdown-item active">
+                  <div class="dropdown-icon icon-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
+                  <div class="dropdown-text"><span class="dropdown-title">Report Maker</span><span class="dropdown-desc">Multi-SVC service reporter &amp; mail</span></div>
+                </a>
+                <a href="/masterCloser.html" class="dropdown-item">
+                  <div class="dropdown-icon icon-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                  <div class="dropdown-text">
+                    <div class="dropdown-title-row">
+                      <span class="dropdown-title">Master Closer</span>
+                      <span class="badge-mini-live" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0;">Closer %</span>
+                    </div>
+                    <span class="dropdown-desc">Morning vs Inflow vs Current Closer %</span>
+                  </div>
+                </a>
+              </div>
+
+              <div class="dropdown-divider"></div>
+
+              <!-- SVC Reports Section -->
+              <div class="dropdown-section">
+                <div class="dropdown-section-header">
+                  <span class="section-tag svc-tag">SVC (Service Center)</span>
+                  <span class="section-sub">Center Analytics</span>
+                </div>
+                <a href="/reports.html" class="dropdown-item">
+                  <div class="dropdown-icon icon-orange"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+                  <div class="dropdown-text"><span class="dropdown-title">SVC Reports &amp; Analytics</span><span class="dropdown-desc">Center TAT &amp; call aging</span></div>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Context Dropdown -->
+          <div class="nav-dropdown" id="dropdownContext">
+            <button type="button" class="nav-dropdown-btn text-xs py-1.5 px-3" aria-haspopup="true" aria-expanded="false">
+              <span>Context</span>
+              <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="dropdown-menu">
+              <a href="/Context.html" class="dropdown-item">
+                <div class="dropdown-icon icon-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+                <div class="dropdown-text"><span class="dropdown-title">Context &amp; Dictionary</span><span class="dropdown-desc">28 Standard GGN fields</span></div>
+              </a>
+              <a href="/context/formats.html" class="dropdown-item">
+                <div class="dropdown-icon icon-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                <div class="dropdown-text"><span class="dropdown-title">Formats &amp; Templates</span><span class="dropdown-desc">ML &amp; Print Command specs</span></div>
+              </a>
+            </div>
+          </div>
         </nav>
       </div>
     </div>
@@ -159,9 +247,17 @@
             <h3 class="text-base font-bold text-slate-800 font-outfit">Active Service Centers</h3>
             <p class="text-xs text-slate-400">Branches included in current report batch</p>
           </div>
-          <span id="svcCountBadge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-            0 Branches Added
-          </span>
+          <div class="flex items-center gap-2">
+            <button id="btnReloadApp" type="button" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-600 transition flex items-center gap-1.5 shadow-sm" title="Reload application and reset all loaded SVC data">
+              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span>Reload App</span>
+            </button>
+            <span id="svcCountBadge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+              0 Branches Added
+            </span>
+          </div>
         </div>
 
         <!-- SVC Rows List (Populated Dynamically) -->
@@ -174,21 +270,21 @@
               </svg>
             </div>
             <h4 class="text-sm font-bold text-slate-700">No Service Centers Added Yet</h4>
-            <p class="text-xs text-slate-400 max-w-md mx-auto mt-1 mb-4">Click "+ ADD SVC" below to select your branch, paste Management Lite data, and configure it for the report.</p>
+            <p class="text-xs text-slate-400 max-w-md mx-auto mt-1 mb-4">Click "ADD SVC" below to select your branch, paste Management Lite data, and configure it for the report.</p>
             <button id="btnEmptyAddSvc" class="inline-flex items-center px-4 py-2 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-lg text-xs font-bold shadow transition">
               <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-              + ADD SVC
+              ADD SVC
             </button>
           </div>
         </div>
 
-        <!-- ACTION BUTTONS: [+ ADD SVC] & [PROCESS & MAKE REPORT] (Mockup 2) -->
+        <!-- ACTION BUTTONS: [ADD SVC] & [PROCESS & MAKE REPORT] (Mockup 2) -->
         <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100">
           <button id="btnOpenAddSvcModal" class="w-full sm:w-auto px-6 py-3 border-2 border-[#0f2e59] text-[#0f2e59] hover:bg-[#0f2e59] hover:text-white rounded-xl text-sm font-black tracking-wide shadow-sm transition active:scale-95 flex items-center justify-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
             </svg>
-            + ADD SVC
+            ADD SVC
           </button>
 
           <button id="btnProcessAndMakeReport" class="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 text-white rounded-xl text-sm font-black tracking-wide shadow-md hover:shadow-lg transition active:scale-95 flex items-center justify-center gap-2.5">
@@ -223,12 +319,26 @@
               <input type="date" id="reportCutoffDatePicker" class="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer">
             </div>
 
-            <!-- Copy HTML for Mail (Prominent Amber Button) -->
-            <button id="btnCopyHtmlForMail" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white rounded-lg text-xs font-black shadow transition active:scale-95 flex items-center gap-1.5 focus:outline-none" title="Copy formatted HTML table ready to paste into Outlook or Gmail">
+            <!-- Total Summary Dialog Button (Prominent Indigo Button) -->
+            <button id="btnOpenTotalSummaryModal" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-xs font-black shadow transition active:scale-95 flex items-center gap-1.5 focus:outline-none" title="Open concise Branch Total Summary table dialog to view and copy for Email">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+              </svg>
+              Total Summary
+            </button>
+
+            <!-- Quick Copy Total Summary for Mail -->
+            <button id="btnCopySummaryForMail" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold shadow-sm transition active:scale-95 flex items-center gap-1.5 focus:outline-none" title="Quickly copy Branch Total Summary table to clipboard for Email">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              Copy Summary
+            </button>
+
+            <!-- Copy Full HTML for Mail (Amber Button) -->
+            <button id="btnCopyHtmlForMail" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white rounded-lg text-xs font-black shadow transition active:scale-95 flex items-center gap-1.5 focus:outline-none" title="Copy formatted executive HTML table ready to paste into Outlook or Gmail">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
               </svg>
-              Copy HTML for Mail
+              Copy Full Report
             </button>
 
             <!-- Export to Excel (2 Sheets: Summary + RAW) -->
@@ -258,22 +368,146 @@
     <!-- VIEW 2: OPEN PENDING TAB VIEW                                         -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <div id="viewOpenPending" class="hidden space-y-6">
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
-        <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center mx-auto mb-4">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-          </svg>
+
+      <!-- SERVICE CENTERS LIST CONTAINER (Open Pending) -->
+      <section class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-bold text-slate-800 font-outfit">Active Service Centers</h3>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Open Pending</span>
+            </div>
+            <p class="text-xs text-slate-400">Branches included in Open Pending report batch</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnReloadAppOp" type="button" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-600 transition flex items-center gap-1.5 shadow-sm" title="Reload application and reset all loaded Open Pending SVC data">
+              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span>Reload App</span>
+            </button>
+            <span id="svcCountBadgeOp" class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              0 Branches Added
+            </span>
+          </div>
         </div>
-        <h3 class="text-xl font-bold text-slate-800 font-outfit">Open Pending Live Operations Module</h3>
-        <p class="text-sm text-slate-500 max-w-xl mx-auto mt-2 mb-6">
-          Access the full-featured standalone Open Pending dashboard with chart analysis, D+7 drilldown, live status tracking, and single Excel spreadsheet processing.
-        </p>
-        <a href="openPending.html" class="inline-flex items-center px-6 py-3 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-xl text-sm font-bold shadow-md transition">
-          Launch Open Pending Dashboard
-          <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+
+        <!-- SVC Rows List (Populated Dynamically) -->
+        <div id="svcRowsContainerOp" class="space-y-3">
+          <!-- Empty State -->
+          <div id="svcEmptyStateOp" class="py-12 px-4 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+            <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <h4 class="text-sm font-bold text-slate-700">No Open Pending Centers Added Yet</h4>
+            <p class="text-xs text-slate-400 max-w-md mx-auto mt-1 mb-4">Click "ADD SVC" below to select your branch, paste Management Lite data, and compile your Open Pending report.</p>
+            <button id="btnEmptyAddSvcOp" class="inline-flex items-center px-4 py-2 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-lg text-xs font-bold shadow transition">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+              ADD SVC
+            </button>
+          </div>
+        </div>
+
+        <!-- ACTION BUTTONS: [ADD SVC] & [PROCESS & MAKE REPORT] -->
+        <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100">
+          <button id="btnOpenAddSvcModalOp" class="w-full sm:w-auto px-6 py-3 border-2 border-[#0f2e59] text-[#0f2e59] hover:bg-[#0f2e59] hover:text-white rounded-xl text-sm font-black tracking-wide shadow-sm transition active:scale-95 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+            ADD SVC
+          </button>
+
+          <button id="btnProcessAndMakeReportOp" class="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-emerald-700 to-teal-800 hover:from-emerald-800 hover:to-teal-900 text-white rounded-xl text-sm font-black tracking-wide shadow-md hover:shadow-lg transition active:scale-95 flex items-center justify-center gap-2.5">
+            <svg class="w-5 h-5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            PROCESS &amp; MAKE OPEN PENDING REPORT
+          </button>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════════ -->
+      <!-- REPORT SECTION (Open Pending Format)                                -->
+      <!-- ═════════════════════════════════════════════════════════════════════ -->
+      <section id="opReportOutputSection" class="bg-white rounded-2xl border border-slate-200/90 shadow-md p-4 sm:p-6 space-y-4 hidden">
+        <!-- Report Header Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <h2 class="text-lg font-black tracking-wider text-[#0f2e59] uppercase font-outfit">REPORT</h2>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">Open Pending Format</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Executive Daily Open Pending, Ageing, Warranty &amp; Product Matrix</p>
+          </div>
+
+          <!-- Report Actions -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Cutoff Date Selector -->
+            <div class="flex items-center bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
+              <span class="text-[11px] font-bold text-slate-500 uppercase mr-2">Report Date:</span>
+              <input type="date" id="opReportCutoffDatePicker" class="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer">
+            </div>
+
+            <!-- Total Summary Dialog Button (Prominent Indigo Button) -->
+            <button id="btnOpenTotalSummaryModalOp" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-xs font-black shadow transition active:scale-95 flex items-center gap-1.5 focus:outline-none" title="Open concise Open Pending Total Summary table dialog to view and copy for Email">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+              </svg>
+              Total Summary
+            </button>
+
+            <!-- Quick Copy Total Summary for Mail -->
+            <button id="btnCopySummaryForMailOp" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold shadow-sm transition active:scale-95 flex items-center gap-1.5 focus:outline-none" title="Quickly copy Open Pending Total Summary table to clipboard for Email">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              Copy Summary
+            </button>
+
+            <!-- Copy Full HTML for Mail (Amber Button) -->
+            <button id="btnCopyHtmlForMailOp" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white rounded-lg text-xs font-black shadow transition active:scale-95 flex items-center gap-1.5 focus:outline-none" title="Copy formatted Open Pending executive HTML table ready to paste into Outlook or Gmail">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+              </svg>
+              Copy Full Report
+            </button>
+
+            <!-- Export to Excel (2 Sheets: Summary + RAW) -->
+            <button id="btnExportReportExcelOp" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95 flex items-center gap-1.5" title="Download single Open Pending Excel file containing 2 sheets: Styled Summary and Full RAW Data">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Export Excel (Summary + RAW)
+            </button>
+
+            <!-- Print -->
+            <button onclick="window.print()" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold shadow-sm transition">
+              Print
+            </button>
+          </div>
+        </div>
+
+        <!-- Generated Table Output Container -->
+        <div class="overflow-x-auto border border-slate-300 rounded-xl shadow-inner bg-white p-2" id="opReportTableRenderArea">
+          <!-- Table HTML inserted here -->
+        </div>
+      </section>
+
+      <!-- Optional link to Standalone Live Dashboard -->
+      <div class="p-4 bg-slate-100/70 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Need full chart analytics, call closure checkboxes, or direct daily Excel file uploads?</span>
+        </div>
+        <a href="openPending.html" class="inline-flex items-center gap-1 font-bold text-[#0f2e59] hover:underline whitespace-nowrap">
+          Open Standalone Open Pending Dashboard &rarr;
         </a>
       </div>
-    </div>
+
+    </div><!-- End of viewOpenPending -->
 
   </main>
 
@@ -283,10 +517,13 @@
   <div id="addSvcModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
     <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-3xl overflow-hidden modal-animate flex flex-col max-h-[92vh]">
 
-      <!-- Dialog Header (Mockup 1: SVC Name | SVC Code | preview raw) -->
+      <!-- Dialog Header (Mockup 1: Tab Badge | SVC Name | SVC Code | preview raw) -->
       <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <!-- SVC Name & Code Fields -->
         <div class="flex flex-wrap items-center gap-3">
+          <!-- Active Target Tab Badge -->
+          <span id="modalTabBadge" class="text-[11px] font-black uppercase px-2.5 py-1 rounded-full bg-[#0f2e59] text-white tracking-wider">RC-GD</span>
+
           <!-- SVC Name Dropdown -->
           <div class="flex items-center gap-2">
             <label for="modalSvcNameSelect" class="text-xs font-black text-[#0f2e59] uppercase tracking-wider whitespace-nowrap">SVC Name</label>
@@ -346,7 +583,7 @@
         </div>
 
         <!-- Large Edit Text Area (Gray in Mockup 1) -->
-        <textarea id="modalDataInput" rows="12" class="w-full p-3.5 text-xs font-mono bg-slate-100 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition text-slate-800 placeholder-slate-400 resize-none shadow-inner" placeholder="Paste Management Lite tabular text or HTML table here (Ctrl+V)...&#10;&#10;1. Copy rows from Management Lite&#10;2. Paste here&#10;3. Click 'Process and Validate', then 'Add SVC'"></textarea>
+        <textarea id="modalDataInput" rows="12" class="w-full p-3.5 text-xs font-mono bg-slate-100 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition text-slate-800 placeholder-slate-400 resize-none shadow-inner" placeholder="Paste Management Lite tabular text or HTML table here (Ctrl+V)...&#10;&#10;1. Copy rows from Management Lite&#10;2. Paste here&#10;3. Click 'Process and Validate', then 'ADD SVC'"></textarea>
 
         <!-- Validation Status Card (Appears after validation) -->
         <div id="modalValidationFeedback" class="hidden p-3 rounded-xl border text-xs flex items-center justify-between">
@@ -358,7 +595,7 @@
         </div>
       </div>
 
-      <!-- Dialog Footer: [Process and Validate] and [+ Add SVC] (Mockup 1 & Audio) -->
+      <!-- Dialog Footer: [Process and Validate] and [ADD SVC] (Mockup 1 & Audio) -->
       <div class="px-5 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div class="text-[11px] text-slate-400">
           Auto-cleans tracking numbers, resolves products &amp; calculates age from cutoff date.
@@ -373,12 +610,12 @@
             Process and Validate
           </button>
 
-          <!-- Add SVC Button (adds row and closes modal as requested in voice note) -->
+          <!-- Add SVC Button (adds row and closes modal) -->
           <button id="modalBtnAddSvc" class="w-full sm:w-auto px-6 py-2.5 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-xl text-xs font-black transition active:scale-95 shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
             </svg>
-            + Add SVC
+            ADD SVC
           </button>
         </div>
       </div>
@@ -446,6 +683,88 @@
   </div>
 
   <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL 3: CONFIRMATION DIALOG (For Remove SVC, Replace SVC & Reload App)  -->
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <div id="confirmationModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-md overflow-hidden modal-animate flex flex-col" id="confirmationModalCard">
+      <!-- Modal Header -->
+      <div class="p-5 pb-3 flex items-start gap-3.5">
+        <div id="confirmIconContainer" class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0 border border-rose-200 shadow-sm">
+          <svg id="confirmIconSvg" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+        </div>
+        <div class="flex-1 pr-6 relative">
+          <button id="confirmBtnCloseX" type="button" class="absolute -top-1 -right-1 text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition" title="Close dialog">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+          <h3 id="confirmDialogTitle" class="text-base font-bold text-slate-900 font-outfit">Confirmation Required</h3>
+          <p id="confirmDialogMessage" class="text-xs text-slate-600 mt-1 leading-relaxed">Are you sure you want to proceed?</p>
+        </div>
+      </div>
+
+      <!-- Details Box (shows details of SVC / records being affected) -->
+      <div id="confirmDialogDetailsBox" class="mx-5 mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 hidden">
+        <!-- Injected dynamic info -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+        <button id="confirmBtnCancel" type="button" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-xl text-xs font-bold transition active:scale-95 shadow-sm">
+          Cancel
+        </button>
+        <button id="confirmBtnProceed" type="button" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white rounded-xl text-xs font-black shadow-md transition active:scale-95 flex items-center gap-1.5">
+          <span id="confirmProceedText">Confirm</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL 4: TOTAL SUMMARY MODAL (Simple Single Dialog)                      -->
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <div id="totalSummaryModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden" role="dialog" aria-modal="true" aria-labelledby="totalSummaryModalTitle">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-2xl overflow-hidden modal-animate flex flex-col max-h-[90vh]">
+      <!-- Header -->
+      <div class="px-5 py-4 bg-gradient-to-r from-[#0f2e59] to-[#184685] text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+            <svg class="w-4 h-4 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white font-outfit" id="totalSummaryModalTitle">Total Summary</h3>
+            <p class="text-[11px] text-slate-200" id="totalSummaryModalSubtitle">Branch D+7 &amp; Warranty Totals</p>
+          </div>
+        </div>
+        <button id="btnCloseTotalSummaryModal" type="button" class="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition" title="Close dialog">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Table Container -->
+      <div class="p-5 flex-1 overflow-auto flex justify-center bg-white" id="totalSummaryModalBody">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Footer -->
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+        <span class="text-xs text-slate-500 font-medium">Ready to share via Email</span>
+        <div class="flex items-center gap-2">
+          <button id="btnModalCopySummary" type="button" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-xs font-black shadow transition active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+            <span>Copy for Mail</span>
+          </button>
+          <button id="btnCloseTotalSummaryModal2" type="button" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
   <!-- JAVASCRIPT LOGIC ENGINE                                                  -->
   <!-- ═════════════════════════════════════════════════════════════════════════ -->
   <script>
@@ -506,14 +825,73 @@
       'RETURN HANDLING'
     ];
 
-    // --- 2. GLOBAL STATE ---
+    // --- 2. GLOBAL STATE FOR BOTH TABS ---
     const pageState = {
-      activeTab: 'RC-GD',
-      cutoffDate: new Date().toISOString().split('T')[0],
-      svcList: [], // Array of { id, name, code, rawInput, records: [] }
+      activeTab: 'RC-GD', // 'RC-GD' or 'OPEN PENDING'
+      rcGd: {
+        cutoffDate: new Date().toISOString().split('T')[0],
+        svcList: [] // Array of { id, name, code, rawInput, records: [] }
+      },
+      openPending: {
+        cutoffDate: new Date().toISOString().split('T')[0],
+        svcList: [] // Separate array for Open Pending
+      },
+      modalTargetTab: 'rcGd',
       stagedValidation: null, // Temporary store for dialog validation
       activePreviewRecords: []
     };
+
+    // Safety aliases so any case, hyphens, or format variations resolve safely
+    const rcAliases = ['RC-GD', 'rc-gd', 'rc_gd', 'rcgd', 'RCGD', 'RC_GD'];
+    rcAliases.forEach(alias => {
+      Object.defineProperty(pageState, alias, {
+        get() { return pageState.rcGd; },
+        set(v) { pageState.rcGd = v; },
+        configurable: true,
+        enumerable: true
+      });
+    });
+
+    const opAliases = ['OPEN PENDING', 'open-pending', 'open_pending', 'openpending', 'OPEN_PENDING', 'Open Pending', 'open pending'];
+    opAliases.forEach(alias => {
+      Object.defineProperty(pageState, alias, {
+        get() { return pageState.openPending; },
+        set(v) { pageState.openPending = v; },
+        configurable: true,
+        enumerable: true
+      });
+    });
+
+    function normalizeTabKey(tab) {
+      if (!tab || typeof tab !== 'string') {
+        const active = String(pageState.activeTab || '').toUpperCase().trim();
+        return (active.includes('OPEN') || active.includes('PENDING')) ? 'openPending' : 'rcGd';
+      }
+      const clean = String(tab).toUpperCase().trim();
+      if (clean.includes('OPEN') || clean.includes('PENDING')) return 'openPending';
+      return 'rcGd';
+    }
+
+    function getTabState(tabKey = null) {
+      const normKey = normalizeTabKey(tabKey || pageState.modalTargetTab || pageState.activeTab);
+      if (!pageState[normKey]) {
+        pageState[normKey] = {
+          cutoffDate: new Date().toISOString().split('T')[0],
+          svcList: []
+        };
+      }
+      if (!Array.isArray(pageState[normKey].svcList)) {
+        pageState[normKey].svcList = [];
+      }
+      return pageState[normKey];
+    }
+
+    function getActiveTabKey(tab = pageState.activeTab) {
+      return normalizeTabKey(tab);
+    }
+
+    window.normalizeTabKey = normalizeTabKey;
+    window.getTabState = getTabState;
 
     // --- 3. PARSING & DATA HELPERS ---
     function cleanTrackingNumber(val) {
@@ -599,10 +977,11 @@
     /**
      * Parses Management Lite data from plain text or HTML table
      */
-    function parseManagementLite(rawText, branchName, svcCode) {
+    function parseManagementLite(rawText, branchName, svcCode, cutoffDateStr = null) {
       if (!rawText || !rawText.trim()) return [];
       const records = [];
       const trimmed = rawText.trim();
+      const cutoff = cutoffDateStr || pageState[getActiveTabKey()].cutoffDate;
 
       // Check if HTML table was pasted
       if (/<table[\s>]/i.test(trimmed) || /<tr[\s>]/i.test(trimmed)) {
@@ -644,7 +1023,7 @@
               reason = cells2[6] || '';
             }
 
-            const age = calcAging(assigned, pageState.cutoffDate);
+            const age = calcAging(assigned, cutoff);
             records.push({
               no: records.length + 1,
               serviceOrderNo: cleanSo,
@@ -712,7 +1091,7 @@
               if (f2.length > 6) reason = f2[6];
             }
 
-            const age = calcAging(assigned, pageState.cutoffDate);
+            const age = calcAging(assigned, cutoff);
             records.push({
               no: records.length + 1,
               serviceOrderNo: cleanSo,
@@ -762,12 +1141,14 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
     // --- 4. TOAST NOTIFICATIONS ---
     function showToast(message, type = 'success') {
       const container = document.getElementById('toastContainer');
+      if (!container) return;
       const toast = document.createElement('div');
       const isSuccess = type === 'success';
-      toast.className = `px-4 py-2.5 rounded-xl shadow-lg border text-xs font-bold flex items-center gap-2 transform transition-all duration-200 pointer-events-auto ${
-        isSuccess ? 'bg-slate-900 text-white border-slate-800' : 'bg-rose-600 text-white border-rose-700'
+      toast.className = `px-4 py-2.5 rounded-xl shadow-2xl border text-xs font-bold flex items-center gap-2 transform transition-all duration-200 pointer-events-auto ${
+        isSuccess ? 'bg-slate-900 text-white border-slate-700 shadow-slate-950/50' : 'bg-rose-600 text-white border-rose-700 shadow-rose-950/50'
       }`;
-      toast.innerHTML = `<span>${isSuccess ? '✓' : '✕'}</span><span>${message}</span>`;
+      toast.innerHTML = `<span class="text-sm font-black">${isSuccess ? '✓' : '✕'}</span><span class="tracking-wide">${message}</span>`;
+      toast.style.zIndex = '999999';
       container.appendChild(toast);
       setTimeout(() => {
         toast.style.opacity = '0';
@@ -777,96 +1158,292 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
     }
 
     // --- 5. UI RENDERING FOR SVC ROWS (Mockup 2) ---
-    function renderSvcRows() {
-      const container = document.getElementById('svcRowsContainer');
-      const countBadge = document.getElementById('svcCountBadge');
-      countBadge.textContent = `${pageState.svcList.length} ${pageState.svcList.length === 1 ? 'Branch' : 'Branches'} Added`;
+    function renderSvcRows(targetTabKey = null) {
+      const keysToRender = targetTabKey ? [normalizeTabKey(targetTabKey)] : ['rcGd', 'openPending'];
 
-      if (pageState.svcList.length === 0) {
-        container.innerHTML = `
-          <div id="svcEmptyState" class="py-12 px-4 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-            <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
+      keysToRender.forEach(k => {
+        const normKey = normalizeTabKey(k);
+        const isOp = normKey === 'openPending';
+        const container = document.getElementById(isOp ? 'svcRowsContainerOp' : 'svcRowsContainer');
+        const countBadge = document.getElementById(isOp ? 'svcCountBadgeOp' : 'svcCountBadge');
+        const emptyStateId = isOp ? 'svcEmptyStateOp' : 'svcEmptyState';
+        const activeTabState = getTabState(normKey);
+        const list = activeTabState.svcList;
+        const tabLabel = isOp ? 'Open Pending' : 'RC-GD';
+
+        if (!container || !countBadge) return;
+        countBadge.textContent = `${list.length} ${list.length === 1 ? 'Branch' : 'Branches'} Added`;
+
+        if (list.length === 0) {
+          container.innerHTML = `
+            <div id="${emptyStateId}" class="py-12 px-4 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+              <div class="w-12 h-12 rounded-full ${isOp ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'} flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <h4 class="text-sm font-bold text-slate-700">No ${isOp ? 'Open Pending ' : ''}Service Centers Added Yet</h4>
+              <p class="text-xs text-slate-400 max-w-md mx-auto mt-1 mb-4">Click "ADD SVC" below to select your branch, paste Management Lite data, and configure it for the report.</p>
+              <button onclick="openAddModal('${normKey}')" class="inline-flex items-center px-4 py-2 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-lg text-xs font-bold shadow transition">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                ADD SVC
+              </button>
             </div>
-            <h4 class="text-sm font-bold text-slate-700">No Service Centers Added Yet</h4>
-            <p class="text-xs text-slate-400 max-w-md mx-auto mt-1 mb-4">Click "+ ADD SVC" below to select your branch, paste Management Lite data, and configure it for the report.</p>
-            <button onclick="document.getElementById('btnOpenAddSvcModal').click()" class="inline-flex items-center px-4 py-2 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-lg text-xs font-bold shadow transition">
-              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-              + ADD SVC
-            </button>
+          `;
+          return;
+        }
+
+        let html = '';
+        list.forEach((svc, index) => {
+          html += `
+            <div class="flex items-center gap-3 group">
+              <!-- Row Card (SVC Name, Code & Preview Raw) -->
+              <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:px-5 sm:py-3.5 bg-slate-50 hover:bg-blue-50/40 border border-slate-300 rounded-xl transition shadow-sm">
+                <!-- Name & Code -->
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg ${isOp ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'} flex items-center justify-center font-bold text-xs">
+                    ${index + 1}
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-black text-slate-900 tracking-wide font-outfit uppercase">${svc.name}</span>
+                      <span class="text-xs font-bold ${isOp ? 'text-emerald-700 bg-emerald-100/70 border-emerald-200' : 'text-blue-700 bg-blue-100/70 border-blue-200'} border px-2 py-0.5 rounded">
+                        ${svc.code}
+                      </span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mt-0.5">
+                      ${svc.records.length} validated call records loaded
+                    </div>
+                  </div>
+                </div>
+
+                <!-- PREVIEW RAW Button in Row -->
+                <button onclick="previewSvcRaw('${normKey}', ${index})" class="px-4 py-1.5 border border-slate-300 hover:bg-white text-slate-700 hover:text-blue-700 rounded-lg text-xs font-black tracking-wider uppercase transition shadow-sm bg-white/80 flex items-center justify-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  PREVIEW RAW
+                </button>
+              </div>
+
+              <!-- DELETE Button (Round circular button matching Mockup 2) -->
+              <button onclick="confirmDeleteSvc('${normKey}', ${index})" class="w-10 h-10 rounded-full border-2 border-slate-300 hover:border-red-500 bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition shadow-sm active:scale-90 flex-shrink-0" title="Delete this Service Center from ${tabLabel}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+      });
+    }
+
+    // --- CONFIRMATION DIALOG LOGIC & HANDLERS ---
+    let pendingConfirmAction = null;
+
+    function showConfirmationDialog({
+      title,
+      message,
+      detailsHtml,
+      type = 'danger', // 'danger' | 'replace' | 'reload'
+      confirmText = 'Confirm',
+      cancelText = 'Cancel',
+      onConfirm
+    }) {
+      const modal = document.getElementById('confirmationModal');
+      const titleEl = document.getElementById('confirmDialogTitle');
+      const msgEl = document.getElementById('confirmDialogMessage');
+      const detailsEl = document.getElementById('confirmDialogDetailsBox');
+      const proceedBtn = document.getElementById('confirmBtnProceed');
+      const proceedText = document.getElementById('confirmProceedText');
+      const cancelBtn = document.getElementById('confirmBtnCancel');
+      const iconContainer = document.getElementById('confirmIconContainer');
+      const iconSvg = document.getElementById('confirmIconSvg');
+
+      if (!modal) return;
+
+      titleEl.textContent = title;
+      msgEl.innerHTML = message;
+
+      if (detailsHtml) {
+        detailsEl.innerHTML = detailsHtml;
+        detailsEl.classList.remove('hidden');
+      } else {
+        detailsEl.classList.add('hidden');
+        detailsEl.innerHTML = '';
+      }
+
+      proceedText.textContent = confirmText;
+      cancelBtn.textContent = cancelText;
+
+      // Theme-consistent styling based on confirmation type
+      if (type === 'danger') {
+        proceedBtn.className = 'px-5 py-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white rounded-xl text-xs font-black shadow-md transition active:scale-95 flex items-center gap-1.5';
+        iconContainer.className = 'w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0 border border-rose-200 shadow-sm';
+        iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>';
+      } else if (type === 'replace') {
+        proceedBtn.className = 'px-5 py-2 bg-[#0f2e59] hover:bg-[#184685] active:bg-[#0a1f3d] text-white rounded-xl text-xs font-black shadow-md transition active:scale-95 flex items-center gap-1.5';
+        iconContainer.className = 'w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 border border-amber-200 shadow-sm';
+        iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>';
+      } else if (type === 'reload') {
+        proceedBtn.className = 'px-5 py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-black shadow-md transition active:scale-95 flex items-center gap-1.5';
+        iconContainer.className = 'w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 border border-amber-200 shadow-sm';
+        iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>';
+      }
+
+      pendingConfirmAction = onConfirm;
+      modal.classList.remove('hidden');
+    }
+
+    function closeConfirmationDialog() {
+      const modal = document.getElementById('confirmationModal');
+      if (modal) modal.classList.add('hidden');
+      pendingConfirmAction = null;
+    }
+
+    function confirmDeleteSvc(tabKey, index) {
+      const normKey = normalizeTabKey(tabKey);
+      const activeTabState = getTabState(normKey);
+      const svc = (activeTabState.svcList && activeTabState.svcList[index]) ? activeTabState.svcList[index] : null;
+      if (!svc) return;
+      const tabLabel = normKey === 'openPending' ? 'Open Pending' : 'RC-GD';
+
+      showConfirmationDialog({
+        title: 'Remove Service Center?',
+        message: `Are you sure you want to remove <strong>${svc.name}</strong> from the ${tabLabel} report? This will remove all associated call data and recalculate report totals.`,
+        detailsHtml: `
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-xs font-semibold">
+              <span class="text-slate-500">Service Center:</span>
+              <span class="font-bold text-slate-800 uppercase font-outfit">${svc.name} (${svc.code})</span>
+            </div>
+            <div class="flex items-center justify-between text-xs font-semibold">
+              <span class="text-slate-500">Report Batch:</span>
+              <span class="font-bold text-blue-800 uppercase font-outfit">${tabLabel}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs font-semibold">
+              <span class="text-slate-500">Loaded Call Records:</span>
+              <span class="font-bold text-rose-700">${svc.records ? svc.records.length : 0} calls</span>
+            </div>
           </div>
-        `;
+        `,
+        type: 'danger',
+        confirmText: 'Yes, Remove SVC',
+        cancelText: 'Cancel',
+        onConfirm: () => {
+          deleteSvcRow(normKey, index);
+        }
+      });
+    }
+
+    function confirmReloadApp(tabKey = null) {
+      const currentTab = normalizeTabKey(tabKey || pageState.activeTab);
+      const tabLabel = currentTab === 'openPending' ? 'Open Pending' : 'RC-GD';
+      const activeTabState = getTabState(currentTab);
+      const currentList = activeTabState.svcList;
+
+      if (currentList.length === 0) {
+        showToast(`No service centers loaded in ${tabLabel}`);
         return;
       }
 
-      // Generate visual rows matching Mockup 2:
-      // [ SVC NAME   SVC CODE           [PREVIEW RAW] ]   (DELETE)
-      let html = '';
-      pageState.svcList.forEach((svc, index) => {
-        html += `
-          <div class="flex items-center gap-3 group">
-            <!-- Row Card (SVC Name, Code & Preview Raw) -->
-            <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:px-5 sm:py-3.5 bg-slate-50 hover:bg-blue-50/40 border border-slate-300 rounded-xl transition shadow-sm">
-              <!-- Name & Code -->
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs">
-                  ${index + 1}
-                </div>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm font-black text-slate-900 tracking-wide font-outfit uppercase">${svc.name}</span>
-                    <span class="text-xs font-bold text-blue-700 bg-blue-100/70 border border-blue-200 px-2 py-0.5 rounded">
-                      ${svc.code}
-                    </span>
-                  </div>
-                  <div class="text-[11px] text-slate-500 mt-0.5">
-                    ${svc.records.length} validated call records loaded
-                  </div>
-                </div>
-              </div>
-
-              <!-- PREVIEW RAW Button in Row -->
-              <button onclick="previewSvcRaw(${index})" class="px-4 py-1.5 border border-slate-300 hover:bg-white text-slate-700 hover:text-blue-700 rounded-lg text-xs font-black tracking-wider uppercase transition shadow-sm bg-white/80 flex items-center justify-center gap-1.5">
-                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-                PREVIEW RAW
-              </button>
+      showConfirmationDialog({
+        title: `Reload ${tabLabel} Report?`,
+        message: `Are you sure you want to reload and clear the <strong>${tabLabel}</strong> active service center(s)? All <strong>${currentList.length}</strong> branch(es) and generated report data for ${tabLabel} will be cleared.`,
+        detailsHtml: `
+          <div class="space-y-1.5 text-xs">
+            <div class="font-bold text-slate-700">Currently loaded branches in ${tabLabel} (${currentList.length}):</div>
+            <div class="flex flex-wrap gap-1.5 mt-1">
+              ${currentList.map(s => `<span class="bg-slate-200/80 text-slate-800 px-2 py-0.5 rounded text-[11px] font-semibold">${s.name} (${s.records ? s.records.length : 0} calls)</span>`).join('')}
             </div>
-
-            <!-- DELETE Button (Round circular button matching Mockup 2) -->
-            <button onclick="deleteSvcRow(${index})" class="w-10 h-10 rounded-full border-2 border-slate-300 hover:border-red-500 bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition shadow-sm active:scale-90 flex-shrink-0" title="Delete this Service Center">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-              </svg>
-            </button>
           </div>
-        `;
+        `,
+        type: 'reload',
+        confirmText: `Yes, Clear ${tabLabel}`,
+        cancelText: 'Cancel',
+        onConfirm: () => {
+          activeTabState.svcList = [];
+          renderSvcRows(currentTab);
+          const outputSec = document.getElementById(currentTab === 'openPending' ? 'opReportOutputSection' : 'reportOutputSection');
+          if (outputSec) outputSec.classList.add('hidden');
+          showToast(`Cleared ${tabLabel} active service centers`);
+        }
       });
-
-      container.innerHTML = html;
     }
 
-    function deleteSvcRow(index) {
-      const removed = pageState.svcList.splice(index, 1);
-      renderSvcRows();
-      showToast(`Removed ${removed[0].name} from report`);
-      if (pageState.svcList.length === 0) {
-        document.getElementById('reportOutputSection').classList.add('hidden');
+    function handleBeforeUnload(e) {
+      const rcList = (pageState.rcGd && pageState.rcGd.svcList) || [];
+      const opList = (pageState.openPending && pageState.openPending.svcList) || [];
+      if (rcList.length > 0 || opList.length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    function deleteSvcRow(tabKey, index) {
+      const normKey = normalizeTabKey(tabKey);
+      const activeTabState = getTabState(normKey);
+      const removed = activeTabState.svcList.splice(index, 1);
+      renderSvcRows(normKey);
+      showToast(`Removed ${removed[0] ? removed[0].name : 'branch'} from ${normKey === 'openPending' ? 'Open Pending' : 'RC-GD'}`);
+      const sec = document.getElementById(normKey === 'openPending' ? 'opReportOutputSection' : 'reportOutputSection');
+      if (activeTabState.svcList.length === 0) {
+        if (sec) sec.classList.add('hidden');
       } else {
-        // Re-generate report if active
-        if (!document.getElementById('reportOutputSection').classList.contains('hidden')) {
-          generateRcGdReport();
+        if (sec && !sec.classList.contains('hidden')) {
+          generateReport(normKey);
         }
       }
     }
 
-    function previewSvcRaw(index) {
-      const svc = pageState.svcList[index];
-      openRawModal(svc.records, `${svc.name} (${svc.code}) — Raw Records`);
+    function previewSvcRaw(tabKey, index) {
+      const normKey = normalizeTabKey(tabKey);
+      const activeTabState = getTabState(normKey);
+      const svc = (activeTabState.svcList && activeTabState.svcList[index]) ? activeTabState.svcList[index] : null;
+      if (!svc) return;
+      openRawModal(svc.records, `${svc.name} (${svc.code}) — ${normKey === 'openPending' ? 'Open Pending ' : ''}Raw Records`);
     }
+
+    function openAddModal(targetTab = null) {
+      const normalizedTab = normalizeTabKey(targetTab || pageState.activeTab);
+      pageState.modalTargetTab = normalizedTab;
+      
+      const modalTabBadge = document.getElementById('modalTabBadge');
+      if (modalTabBadge) {
+        if (normalizedTab === 'openPending') {
+          modalTabBadge.textContent = 'OPEN PENDING';
+          modalTabBadge.className = 'text-[11px] font-black uppercase px-2.5 py-1 rounded-full bg-emerald-700 text-white tracking-wider';
+        } else {
+          modalTabBadge.textContent = 'RC-GD';
+          modalTabBadge.className = 'text-[11px] font-black uppercase px-2.5 py-1 rounded-full bg-[#0f2e59] text-white tracking-wider';
+        }
+      }
+
+      const modalSvcNameSelect = document.getElementById('modalSvcNameSelect');
+      const modalCustomSvcNameInput = document.getElementById('modalCustomSvcNameInput');
+      const modalSvcCodeInput = document.getElementById('modalSvcCodeInput');
+      const modalDataInput = document.getElementById('modalDataInput');
+      const modalValidationFeedback = document.getElementById('modalValidationFeedback');
+      const modalBtnAddSvc = document.getElementById('modalBtnAddSvc');
+      const addSvcModal = document.getElementById('addSvcModal');
+
+      if (modalSvcNameSelect) modalSvcNameSelect.value = 'Gurgaon-CE';
+      if (modalCustomSvcNameInput) {
+        modalCustomSvcNameInput.classList.add('hidden');
+        modalCustomSvcNameInput.value = '';
+      }
+      if (modalSvcCodeInput) modalSvcCodeInput.value = getBranchSvcCode('Gurgaon-CE');
+      if (modalDataInput) modalDataInput.value = '';
+      if (modalValidationFeedback) modalValidationFeedback.classList.add('hidden');
+      if (modalBtnAddSvc) modalBtnAddSvc.disabled = true;
+      pageState.stagedValidation = null;
+      if (addSvcModal) addSvcModal.classList.remove('hidden');
+    }
+    window.openAddModal = openAddModal;
 
     // --- 6. REPORT MATRIX ENGINE & EMAIL HTML GENERATION ---
     function buildMatrixForRecords(recordsList) {
@@ -888,6 +1465,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
             '15–30 Days': 0,
             '30+ Days': 0
           },
+          d7Total: 0,
           productsD7: {}
         };
         PRODUCT_CATEGORIES.forEach(p => { row.productsD7[p.code] = 0; });
@@ -923,6 +1501,8 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
 
         // D+7 check (Aging > 7 Days)
         if (r.aging > 7) {
+          row.d7Total++;
+          totalRow.d7Total++;
           if (row.productsD7[prod] !== undefined) {
             row.productsD7[prod]++;
             totalRow.productsD7[prod]++;
@@ -937,15 +1517,21 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
     /**
      * Builds standard Executive HTML Table for Email / Display (matching openPending.html exactly)
      */
-    function generateRcGdHtmlTable() {
-      // Gather all records
+    function generateReportHtmlTable(tabKey = 'rcGd') {
+      const normKey = normalizeTabKey(tabKey);
+      const activeState = getTabState(normKey);
       const allRecords = [];
-      pageState.svcList.forEach(s => allRecords.push(...s.records));
+      activeState.svcList.forEach(s => {
+        if (s && s.records && Array.isArray(s.records)) {
+          allRecords.push(...s.records);
+        }
+      });
 
       if (allRecords.length === 0) return '<p class="text-slate-400 p-4">No records to generate report.</p>';
 
       const overall = buildMatrixForRecords(allRecords);
-      const dotDate = formatDateToDot(pageState.cutoffDate);
+      const dotDate = formatDateToDot(activeState.cutoffDate);
+      const reportTitle = normKey === 'openPending' ? `Open Pending dt ${dotDate}` : `RC-GD Pendency dt ${dotDate}`;
 
       // Color maps
       const prodColors = {
@@ -972,7 +1558,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
           <!-- Super Header -->
           <tr>
             <th colspan="3" style="background-color: #002060; color: #ffffff; font-size: 12px; font-weight: bold; text-align: left; padding: 6px 8px; border: 1px solid #475569;">
-              RC-GD Pendency dt ${dotDate}
+              ${reportTitle}
             </th>
             <th colspan="7" style="background-color: #dce6f1; color: #0f172a; font-size: 12px; font-weight: bold; text-align: center; padding: 6px 8px; border: 1px solid #475569;">
               Aging
@@ -980,7 +1566,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
             <th colspan="2" style="background-color: #ffffff; color: #0f172a; font-size: 12px; font-weight: bold; text-align: center; padding: 6px 8px; border: 1px solid #475569;">
               WAR Status
             </th>
-            <th colspan="10" style="background-color: #dce6f1; color: #991b1b; font-size: 12px; font-weight: bold; text-align: center; padding: 6px 8px; border: 1px solid #475569;">
+            <th colspan="11" style="background-color: #dce6f1; color: #991b1b; font-size: 12px; font-weight: bold; text-align: center; padding: 6px 8px; border: 1px solid #475569;">
               D+7 Calls By Products
             </th>
           </tr>
@@ -999,6 +1585,8 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
             <!-- IW / OW -->
             <th style="padding: 5px; border: 1px solid #cbd5e1; background-color: #c1f0c8; color: #0f172a; font-weight: bold;">IW</th>
             <th style="padding: 5px; border: 1px solid #cbd5e1; background-color: #c1f0c8; color: #0f172a; font-weight: bold;">OW</th>
+            <!-- Total D+7 Products -->
+            <th style="padding: 5px; border: 1px solid #cbd5e1; background-color: #cbd5e1; font-weight: bold; color: #0f172a;">Total</th>
             <!-- Products -->
             <th style="padding: 5px; border: 1px solid #cbd5e1; background-color: ${prodColors['AC'].bg}; color: ${prodColors['AC'].text};">AC</th>
             <th style="padding: 5px; border: 1px solid #cbd5e1; background-color: ${prodColors['WM'].bg}; color: ${prodColors['WM'].text};">WM</th>
@@ -1017,8 +1605,8 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
 
       // 1. GRAND TOTAL ROW
       const t = overall.totalRow;
-      const ascCodeDisplay = pageState.svcList.map(s => s.code).join('/') || 'ALL';
-      const branchDisplay = pageState.svcList.map(s => s.name).join(' / ') || 'Consolidated';
+      const ascCodeDisplay = activeState.svcList.map(s => s.code).join('/') || 'ALL';
+      const branchDisplay = activeState.svcList.map(s => s.name).join(' / ') || 'Consolidated';
 
       html += `
         <tr style="background-color: #e0f2fe; font-weight: bold; border-bottom: 2px solid #0284c7;">
@@ -1034,6 +1622,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
           <td style="padding: 6px; border: 1px solid #94a3b8; background-color: #fca5a5; font-weight: bold;">${fmt(t.aging['30+ Days'])}</td>
           <td style="padding: 6px; border: 1px solid #94a3b8; background-color: #c1f0c8; color: #0f172a; font-weight: bold;">${fmt(t.iw)}</td>
           <td style="padding: 6px; border: 1px solid #94a3b8; background-color: #c1f0c8; color: #0f172a; font-weight: bold;">${fmt(t.ow)}</td>
+          <td style="padding: 6px; border: 1px solid #94a3b8; background-color: #bae6fd; font-weight: bold;">${fmt(t.d7Total)}</td>
       `;
       PRODUCT_CATEGORIES.forEach(p => {
         html += `<td style="padding: 6px; border: 1px solid #94a3b8; font-weight: bold;">${fmt(t.productsD7[p.code])}</td>`;
@@ -1041,7 +1630,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       html += `</tr>`;
 
       // 2. BREAKDOWN BY SERVICE CENTER & SERVICE TYPE
-      pageState.svcList.forEach((svc, sIdx) => {
+      activeState.svcList.forEach((svc, sIdx) => {
         const svcData = buildMatrixForRecords(svc.records);
 
         // Branch Subtotal Row
@@ -1060,6 +1649,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
             <td style="padding: 5px; border: 1px solid #94a3b8; background-color: #fca5a5; font-weight: bold;">${fmt(st.aging['30+ Days'])}</td>
             <td style="padding: 5px; border: 1px solid #94a3b8; background-color: #c1f0c8;">${fmt(st.iw)}</td>
             <td style="padding: 5px; border: 1px solid #94a3b8; background-color: #c1f0c8;">${fmt(st.ow)}</td>
+            <td style="padding: 5px; border: 1px solid #94a3b8; background-color: #e2e8f0; font-weight: bold;">${fmt(st.d7Total)}</td>
         `;
         PRODUCT_CATEGORIES.forEach(p => {
           html += `<td style="padding: 5px; border: 1px solid #94a3b8;">${fmt(st.productsD7[p.code])}</td>`;
@@ -1086,6 +1676,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
               <td style="padding: 4px; border: 1px solid #cbd5e1; background-color: #fca5a5; font-weight: bold;">${fmt(row.aging['30+ Days'])}</td>
               <td style="padding: 4px; border: 1px solid #cbd5e1; background-color: #c1f0c8; color: #0f172a;">${fmt(row.iw)}</td>
               <td style="padding: 4px; border: 1px solid #cbd5e1; background-color: #c1f0c8; color: #0f172a;">${fmt(row.ow)}</td>
+              <td style="padding: 4px; border: 1px solid #cbd5e1; font-weight: bold; background-color: #f1f5f9;">${fmt(row.d7Total)}</td>
           `;
           PRODUCT_CATEGORIES.forEach(p => {
             html += `<td style="padding: 4px; border: 1px solid #cbd5e1;">${fmt(row.productsD7[p.code])}</td>`;
@@ -1098,12 +1689,161 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         </tbody>
       </table>
       <div style="font-family: Arial, sans-serif; font-size: 10px; color: #64748b; margin-top: 6px;">
-        * Report generated on ${new Date().toLocaleString()} | RC-GD Pendency Multi-Branch Report
+        * Report generated on ${new Date().toLocaleString()} | ${tabKey === 'openPending' ? 'Open Pending Multi-Branch Report' : 'RC-GD Pendency Multi-Branch Report'}
       </div>
       `;
 
       return html;
     }
+
+    function generateRcGdHtmlTable() {
+      return generateReportHtmlTable('rcGd');
+    }
+
+    /**
+     * Builds concise Branch Total Summary Table for Email & Display (matching exact user image)
+     * Columns: ASC_CODE | Branch_Name | Total D+7 | WAR Status [IW, OW]
+     */
+    function generateTotalSummaryHtmlTable(tabKey = 'rcGd') {
+      const normKey = normalizeTabKey(tabKey);
+      const activeState = getTabState(normKey);
+      const list = activeState.svcList || [];
+      if (list.length === 0) {
+        return '<p class="text-slate-400 p-4 text-xs italic">No service centers added to generate Total Summary.</p>';
+      }
+
+      const dotDate = formatDateToDot(activeState.cutoffDate);
+      const title = normKey === 'openPending' ? `Open Pending Total Summary dt ${dotDate}` : `RC-GD Total Summary dt ${dotDate}`;
+
+      let sumTotD7 = 0;
+      let sumTotIW = 0;
+      let sumTotOW = 0;
+
+      const rowsHtml = list.map(svc => {
+        const sMatrix = buildMatrixForRecords(svc.records || []);
+        const sRow = sMatrix.totalRow;
+        const d7 = Number(sRow.d7Total) || 0;
+        const iw = Number(sRow.iw) || 0;
+        const ow = Number(sRow.ow) || 0;
+
+        sumTotD7 += d7;
+        sumTotIW += iw;
+        sumTotOW += ow;
+
+        return `
+          <tr style="border-bottom: 1px solid #cbd5e1; font-family: Calibri, Arial, sans-serif; font-size: 13px;">
+            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; color: #000000; font-weight: normal; background-color: #ffffff;">${svc.code}</td>
+            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; color: #000000; font-weight: normal; background-color: #ffffff;">${svc.name}</td>
+            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; color: #1d4ed8; font-weight: normal; background-color: #ffffff;">${d7}</td>
+            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; background-color: #c1f0c8; color: #000000;">${iw}</td>
+            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; background-color: #c1f0c8; color: #000000;">${ow}</td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+      <table cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 13px; color: #000000; border: 1px solid #94a3b8; text-align: center; width: 100%; max-width: 650px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <thead>
+          <!-- Super Header Banner -->
+          <tr style="background-color: #0f2e59; color: #ffffff;">
+            <th colspan="5" style="padding: 8px 14px; text-align: left; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; border: 1px solid #0f2e59;">
+              ${title}
+            </th>
+          </tr>
+          <!-- Column Headers Matching Screenshot -->
+          <tr style="background-color: #dce6f1; color: #000000; font-weight: bold;">
+            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle;">ASC_CODE</th>
+            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle;">Branch_Name</th>
+            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle;">Total D+7</th>
+            <th colspan="2" style="padding: 6px 14px; border: 1px solid #cbd5e1; text-align: center;">WAR Status</th>
+          </tr>
+          <!-- Sub-Headers under WAR Status -->
+          <tr style="background-color: #dce6f1; color: #000000; font-weight: bold;">
+            <th style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">IW</th>
+            <th style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">OW</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+          <!-- Total Summary Row -->
+          <tr style="background-color: #e0f2fe; font-weight: bold; border-top: 2px solid #0284c7; border-bottom: 2px solid #0284c7;">
+            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: left; color: #0c4a6e;">Total</td>
+            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: left; color: #0c4a6e;">${list.length} Service Centers</td>
+            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; color: #0369a1; background-color: #bae6fd;">${sumTotD7}</td>
+            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">${sumTotIW}</td>
+            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">${sumTotOW}</td>
+          </tr>
+        </tbody>
+      </table>
+      `;
+    }
+
+    async function copyTotalSummaryHtmlForMail(tabKey = 'rcGd') {
+      const normKey = normalizeTabKey(tabKey);
+      const html = generateTotalSummaryHtmlTable(normKey);
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          const blobHtml = new Blob([html], { type: 'text/html' });
+          const blobText = new Blob([html.replace(/<[^>]+>/g, ' ')], { type: 'text/plain' });
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'text/html': blobHtml,
+              'text/plain': blobText
+            })
+          ]);
+        } else {
+          const tempEl = document.createElement('div');
+          tempEl.style.position = 'fixed';
+          tempEl.style.left = '-9999px';
+          tempEl.innerHTML = html;
+          document.body.appendChild(tempEl);
+          const range = document.createRange();
+          range.selectNodeContents(tempEl);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          document.execCommand('copy');
+          tempEl.remove();
+        }
+        showToast(`${normKey === 'openPending' ? 'Open Pending' : 'RC-GD'} Total Summary Table copied to clipboard! Ready to paste into Email.`);
+      } catch (err) {
+        console.error('Copy summary failed:', err);
+        showToast('Failed to copy summary. Try using modern browser permissions.', 'error');
+      }
+    }
+    window.generateTotalSummaryHtmlTable = generateTotalSummaryHtmlTable;
+    window.copyTotalSummaryHtmlForMail = copyTotalSummaryHtmlForMail;
+
+    let currentSummaryModalTab = 'rcGd';
+
+    function openTotalSummaryModal(tabKey = 'rcGd') {
+      const normKey = normalizeTabKey(tabKey);
+      currentSummaryModalTab = normKey;
+      const activeState = getTabState(normKey);
+      if (activeState.svcList.length === 0) {
+        showToast('Please add at least one Service Center to view Total Summary', 'error');
+        return;
+      }
+      const isOp = normKey === 'openPending';
+      const modal = document.getElementById('totalSummaryModal');
+      const body = document.getElementById('totalSummaryModalBody');
+      const title = document.getElementById('totalSummaryModalTitle');
+      const sub = document.getElementById('totalSummaryModalSubtitle');
+      if (title) title.textContent = `${isOp ? 'Open Pending' : 'RC-GD'} Total Summary`;
+      if (sub) sub.textContent = `Report Date: ${formatDateToDot(activeState.cutoffDate)} • ${activeState.svcList.length} Service Centers`;
+      if (body) {
+        body.innerHTML = generateTotalSummaryHtmlTable(normKey);
+      }
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeTotalSummaryModal() {
+      const modal = document.getElementById('totalSummaryModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    window.openTotalSummaryModal = openTotalSummaryModal;
+    window.closeTotalSummaryModal = closeTotalSummaryModal;
 
     function formatDateToDot(isoStr) {
       if (!isoStr) return 'Today';
@@ -1112,22 +1852,46 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       return isoStr;
     }
 
-    function generateRcGdReport() {
-      if (pageState.svcList.length === 0) {
+    function generateReport(tabKey = 'rcGd') {
+      const normKey = normalizeTabKey(tabKey);
+      const activeState = getTabState(normKey);
+      if (activeState.svcList.length === 0) {
         showToast('Please add at least one Service Center before making report', 'error');
         return;
       }
-      const area = document.getElementById('reportTableRenderArea');
-      area.innerHTML = generateRcGdHtmlTable();
-      const sec = document.getElementById('reportOutputSection');
-      sec.classList.remove('hidden');
-      sec.scrollIntoView({ behavior: 'smooth' });
-      showToast('RC-GD Report successfully generated!');
+      const isOp = normKey === 'openPending';
+      const areaId = isOp ? 'opReportTableRenderArea' : 'reportTableRenderArea';
+      const secId = isOp ? 'opReportOutputSection' : 'reportOutputSection';
+      const area = document.getElementById(areaId);
+      if (area) {
+        area.innerHTML = `
+          <div class="overflow-x-auto">
+            ${generateReportHtmlTable(normKey)}
+          </div>
+        `;
+      }
+      const sec = document.getElementById(secId);
+      if (sec) {
+        sec.classList.remove('hidden');
+        sec.scrollIntoView({ behavior: 'smooth' });
+      }
+      showToast(`${isOp ? 'Open Pending' : 'RC-GD'} Report successfully generated!`);
     }
 
-    // --- 7. COPY HTML FOR MAIL ---
-    async function copyReportHtmlForMail() {
-      const html = generateRcGdHtmlTable();
+    function generateRcGdReport() {
+      generateReport('rcGd');
+    }
+
+    // --- 7. COPY FULL HTML FOR MAIL ---
+    async function copyReportHtmlForMail(tabKey = 'rcGd') {
+      const normKey = normalizeTabKey(tabKey);
+      const matrixTable = generateReportHtmlTable(normKey);
+      // Pure clean report table without "1. Total Summary" and "2. Detailed Pendency Matrix" titles or Total Summary block
+      const html = `
+        <div style="font-family: Calibri, Arial, sans-serif; font-size: 12px; color: #000000;">
+          ${matrixTable}
+        </div>
+      `;
       try {
         if (navigator.clipboard && window.ClipboardItem) {
           const blobHtml = new Blob([html], { type: 'text/html' });
@@ -1153,7 +1917,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
           document.execCommand('copy');
           tempEl.remove();
         }
-        showToast('Report HTML copied to clipboard! Ready to paste into Email (Outlook/Gmail).');
+        showToast(`${normKey === 'openPending' ? 'Open Pending' : 'RC-GD'} Full Report HTML copied to clipboard! Ready to paste into Email.`);
       } catch (err) {
         console.error('Copy failed:', err);
         showToast('Failed to copy. Try using modern browser permissions.', 'error');
@@ -1161,15 +1925,17 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
     }
 
     // --- 8. EXCEL EXPORT (2 SHEETS: STYLED SUMMARY + RAW DATA IN SINGLE FILE) ---
-    async function exportReportToExcel() {
-      if (pageState.svcList.length === 0) {
+    async function exportReportToExcel(tabKey = 'rcGd') {
+      const normKey = normalizeTabKey(tabKey);
+      const activeState = getTabState(normKey);
+      if (activeState.svcList.length === 0) {
         showToast('Please add at least one Service Center before exporting Excel', 'error');
         return;
       }
 
       // Gather all raw records across all added service centers
       const allRawRecords = [];
-      pageState.svcList.forEach(s => {
+      activeState.svcList.forEach(s => {
         if (s.records && s.records.length > 0) {
           allRawRecords.push(...s.records);
         }
@@ -1180,18 +1946,20 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         return;
       }
 
-      // If report table hasn't been generated in UI yet, auto-render it
-      if (document.getElementById('reportOutputSection').classList.contains('hidden')) {
-        generateRcGdReport();
+      const isOp = normKey === 'openPending';
+      const secId = isOp ? 'opReportOutputSection' : 'reportOutputSection';
+      const sec = document.getElementById(secId);
+      if (sec && sec.classList.contains('hidden')) {
+        generateReport(normKey);
       }
 
-      showToast('Generating Excel with 2 Sheets (Styled Summary + Full RAW)...');
+      showToast(`Generating ${isOp ? 'Open Pending' : 'RC-GD'} Excel (Summary + RAW)...`);
 
       try {
         if (typeof ExcelJS !== 'undefined') {
-          await exportStyledWorkbookWithExcelJs(allRawRecords);
+          await exportStyledWorkbookWithExcelJs(allRawRecords, normKey);
         } else {
-          exportWorkbookWithSheetJsFallback(allRawRecords);
+          exportWorkbookWithSheetJsFallback(allRawRecords, normKey);
         }
       } catch (err) {
         console.error('Excel Export Error:', err);
@@ -1223,14 +1991,18 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
      * Sheet 1: "Summary" - Exact colors matching the preview table in code
      * Sheet 2: "RAW" - All call details including Branch Name and SVC Code
      */
-    async function exportStyledWorkbookWithExcelJs(allRawRecords) {
+    async function exportStyledWorkbookWithExcelJs(allRawRecords, tabKey = 'rcGd') {
+      const normKey = normalizeTabKey(tabKey);
+      const activeState = getTabState(normKey);
       const wb = new ExcelJS.Workbook();
       wb.creator = 'GSPN Report Maker';
       wb.lastModifiedBy = 'GSPN Service Reporter';
       wb.created = new Date();
       wb.modified = new Date();
 
-      const dotDate = formatDateToDot(pageState.cutoffDate);
+      const dotDate = formatDateToDot(activeState.cutoffDate);
+      const isOp = normKey === 'openPending';
+      const reportTitle = isOp ? `Open Pending dt ${dotDate}` : `RC-GD Pendency dt ${dotDate}`;
 
       // Common border styles
       const borderThin = {
@@ -1271,14 +2043,14 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       }
 
       // ──────────────────────────────────────────────────────────────────────────
-      // SHEET 1: SUMMARY
+      // SHEET 1: SUMMARY (Left of the details)
       // ──────────────────────────────────────────────────────────────────────────
       const wsSum = wb.addWorksheet('Summary', {
-        properties: { tabColor: { argb: 'FF0F2E59' } },
+        properties: { tabColor: { argb: isOp ? 'FF059669' : 'FF0F2E59' } },
         views: [{ showGridLines: true }]
       });
 
-      // 22 Column Definitions matching preview
+      // 23 Column Definitions matching preview (now with Total D+7 column)
       wsSum.columns = [
         { width: 14 }, // ASC_CODE
         { width: 22 }, // Branch_Name
@@ -1292,6 +2064,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         { width: 12 }, // 30+ Days
         { width: 9 },  // IW
         { width: 9 },  // OW
+        { width: 10 }, // Total D+7 Products
         { width: 9 },  // AC
         { width: 9 },  // WM
         { width: 9 },  // REF
@@ -1309,7 +2082,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       r1.height = 26;
 
       wsSum.mergeCells('A1:C1');
-      wsSum.getCell('A1').value = `RC-GD Pendency dt ${dotDate}`;
+      wsSum.getCell('A1').value = reportTitle;
       for (let c = 1; c <= 3; c++) {
         applyCell(r1.getCell(c), { fill: '#002060', fontColor: '#ffffff', bold: true, size: 11, align: 'left', border: borderHeader });
       }
@@ -1326,9 +2099,9 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         applyCell(r1.getCell(c), { fill: '#ffffff', fontColor: '#0f172a', bold: true, size: 11, align: 'center', border: borderHeader });
       }
 
-      wsSum.mergeCells('M1:V1');
+      wsSum.mergeCells('M1:W1');
       wsSum.getCell('M1').value = 'D+7 Calls By Products';
-      for (let c = 13; c <= 22; c++) {
+      for (let c = 13; c <= 23; c++) {
         applyCell(r1.getCell(c), { fill: '#dce6f1', fontColor: '#991b1b', bold: true, size: 11, align: 'center', border: borderHeader });
       }
 
@@ -1349,6 +2122,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         { text: '30+ Days', fill: '#ffc7ce', textCol: '#991b1b', align: 'center' },
         { text: 'IW', fill: '#c1f0c8', textCol: '#0f172a', align: 'center' },
         { text: 'OW', fill: '#c1f0c8', textCol: '#0f172a', align: 'center' },
+        { text: 'Total', fill: '#cbd5e1', textCol: '#0f172a', align: 'center' },
         { text: 'AC', fill: '#ef4444', textCol: '#ffffff', align: 'center' },
         { text: 'WM', fill: '#22c55e', textCol: '#ffffff', align: 'center' },
         { text: 'REF', fill: '#facc15', textCol: '#000000', align: 'center' },
@@ -1381,8 +2155,8 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       // Calculate totals
       const overall = buildMatrixForRecords(allRawRecords);
       const gt = overall.totalRow;
-      const ascCodeDisplay = pageState.svcList.map(s => s.code).join('/') || 'ALL';
-      const branchDisplay = pageState.svcList.map(s => s.name).join(' / ') || 'Consolidated';
+      const ascCodeDisplay = activeState.svcList.map(s => s.code).join('/') || 'ALL';
+      const branchDisplay = activeState.svcList.map(s => s.name).join(' / ') || 'Consolidated';
 
       let rowCursor = 3;
 
@@ -1403,6 +2177,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         gt.aging['30+ Days'] || 0,
         gt.iw || 0,
         gt.ow || 0,
+        gt.d7Total || 0,
         ...PRODUCT_CATEGORIES.map(p => gt.productsD7[p.code] || 0)
       ];
 
@@ -1417,6 +2192,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         '#fca5a5', // 30+
         '#c1f0c8', // IW
         '#c1f0c8', // OW
+        '#bae6fd', // Total D+7
         ...PRODUCT_CATEGORIES.map(() => '#e0f2fe')
       ];
 
@@ -1438,7 +2214,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       });
 
       // Breakdown by Service Center & Service Type
-      pageState.svcList.forEach(svc => {
+      activeState.svcList.forEach(svc => {
         const svcData = buildMatrixForRecords(svc.records);
         const st = svcData.totalRow;
         rowCursor++;
@@ -1460,6 +2236,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
           st.aging['30+ Days'] || 0,
           st.iw || 0,
           st.ow || 0,
+          st.d7Total || 0,
           ...PRODUCT_CATEGORIES.map(p => st.productsD7[p.code] || 0)
         ];
 
@@ -1474,6 +2251,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
           '#fca5a5', // 30+
           '#c1f0c8', // IW
           '#c1f0c8', // OW
+          '#e2e8f0', // Total D+7
           ...PRODUCT_CATEGORIES.map(() => '#f1f5f9')
         ];
 
@@ -1516,6 +2294,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
             rowData.aging['30+ Days'] || 0,
             rowData.iw || 0,
             rowData.ow || 0,
+            rowData.d7Total || 0,
             ...PRODUCT_CATEGORIES.map(p => rowData.productsD7[p.code] || 0)
           ];
 
@@ -1530,6 +2309,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
             '#fca5a5', // 30+
             '#c1f0c8', // IW
             '#c1f0c8', // OW
+            '#f1f5f9', // Total D+7
             ...PRODUCT_CATEGORIES.map(() => baseBg)
           ];
 
@@ -1538,7 +2318,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
               value: v,
               fill: dFills[idx] || baseBg,
               fontColor: (idx === 8 || idx === 9) ? '#991b1b' : '#0f172a',
-              bold: idx === 3 || idx === 8 || idx === 9,
+              bold: idx === 3 || idx === 8 || idx === 9 || idx === 12,
               size: 10,
               align: idx < 3 ? 'left' : 'center',
               border: borderThin
@@ -1546,6 +2326,96 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
           });
         });
       });
+
+      // ──────────────────────────────────────────────────────────────────────────
+      // TOTAL SUMMARY TABLE (Added into Summary Page at bottom, as requested)
+      // ──────────────────────────────────────────────────────────────────────────
+      rowCursor += 3; // 2 blank separator rows
+
+      // Section Title Banner
+      const rSumBanner = wsSum.getRow(rowCursor);
+      rSumBanner.height = 24;
+      applyCell(rSumBanner.getCell(1), {
+        value: `${isOp ? 'OPEN PENDING' : 'RC-GD'} TOTAL SUMMARY`,
+        fill: '#0f2e59',
+        fontColor: '#ffffff',
+        bold: true,
+        size: 11,
+        align: 'left'
+      });
+      for (let c = 2; c <= 5; c++) {
+        applyCell(rSumBanner.getCell(c), {
+          value: '',
+          fill: '#0f2e59',
+          fontColor: '#ffffff',
+          bold: true,
+          size: 11,
+          align: 'left'
+        });
+      }
+      wsSum.mergeCells(`A${rowCursor}:E${rowCursor}`);
+
+      rowCursor++;
+      // Super Header Row: ASC_CODE | Branch_Name | Total D+7 | WAR Status (merged D:E)
+      const rSumH = wsSum.getRow(rowCursor);
+      rSumH.height = 22;
+
+      applyCell(rSumH.getCell(1), { value: 'ASC_CODE', fill: '#dce6f1', fontColor: '#000000', bold: true, size: 10, align: 'left', border: borderThin });
+      applyCell(rSumH.getCell(2), { value: 'Branch_Name', fill: '#dce6f1', fontColor: '#000000', bold: true, size: 10, align: 'left', border: borderThin });
+      applyCell(rSumH.getCell(3), { value: 'Total D+7', fill: '#dce6f1', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rSumH.getCell(4), { value: 'WAR Status', fill: '#dce6f1', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rSumH.getCell(5), { value: '', fill: '#dce6f1', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      wsSum.mergeCells(`D${rowCursor}:E${rowCursor}`);
+
+      rowCursor++;
+      // Sub Header Row: (A, B, C merged) | IW | OW
+      const rSubH = wsSum.getRow(rowCursor);
+      rSubH.height = 19;
+      applyCell(rSubH.getCell(1), { value: '', fill: '#dce6f1', border: borderThin });
+      applyCell(rSubH.getCell(2), { value: '', fill: '#dce6f1', border: borderThin });
+      applyCell(rSubH.getCell(3), { value: '', fill: '#dce6f1', border: borderThin });
+      applyCell(rSubH.getCell(4), { value: 'IW', fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 9, align: 'center', border: borderThin });
+      applyCell(rSubH.getCell(5), { value: 'OW', fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 9, align: 'center', border: borderThin });
+      wsSum.mergeCells(`A${rowCursor-1}:A${rowCursor}`);
+      wsSum.mergeCells(`B${rowCursor-1}:B${rowCursor}`);
+      wsSum.mergeCells(`C${rowCursor-1}:C${rowCursor}`);
+
+      // Branch Data Rows
+      let sumTotD7 = 0;
+      let sumTotIW = 0;
+      let sumTotOW = 0;
+
+      activeState.svcList.forEach(svc => {
+        rowCursor++;
+        const sMatrix = buildMatrixForRecords(svc.records || []);
+        const sRow = sMatrix.totalRow;
+        const d7 = Number(sRow.d7Total) || 0;
+        const iw = Number(sRow.iw) || 0;
+        const ow = Number(sRow.ow) || 0;
+        sumTotD7 += d7;
+        sumTotIW += iw;
+        sumTotOW += ow;
+
+        const rB = wsSum.getRow(rowCursor);
+        rB.height = 21;
+
+        applyCell(rB.getCell(1), { value: svc.code, fill: '#ffffff', fontColor: '#000000', bold: false, size: 10, align: 'left', border: borderThin });
+        applyCell(rB.getCell(2), { value: svc.name, fill: '#ffffff', fontColor: '#000000', bold: false, size: 10, align: 'left', border: borderThin });
+        applyCell(rB.getCell(3), { value: d7, fill: '#ffffff', fontColor: '#1d4ed8', bold: false, size: 10, align: 'center', border: borderThin });
+        applyCell(rB.getCell(4), { value: iw, fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+        applyCell(rB.getCell(5), { value: ow, fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      });
+
+      // Total Row
+      rowCursor++;
+      const rTot = wsSum.getRow(rowCursor);
+      rTot.height = 23;
+
+      applyCell(rTot.getCell(1), { value: 'Total', fill: '#e0f2fe', fontColor: '#0c4a6e', bold: true, size: 10, align: 'left', border: { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'medium', color: { argb: 'FF0284C7' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } } });
+      applyCell(rTot.getCell(2), { value: `${activeState.svcList.length} Service Centers`, fill: '#e0f2fe', fontColor: '#0c4a6e', bold: true, size: 10, align: 'left', border: { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'medium', color: { argb: 'FF0284C7' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } } });
+      applyCell(rTot.getCell(3), { value: sumTotD7, fill: '#bae6fd', fontColor: '#0369a1', bold: true, size: 10, align: 'center', border: { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'medium', color: { argb: 'FF0284C7' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } } });
+      applyCell(rTot.getCell(4), { value: sumTotIW, fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 10, align: 'center', border: { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'medium', color: { argb: 'FF0284C7' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } } });
+      applyCell(rTot.getCell(5), { value: sumTotOW, fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 10, align: 'center', border: { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'medium', color: { argb: 'FF0284C7' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } } });
 
       // ──────────────────────────────────────────────────────────────────────────
       // SHEET 2: RAW DATA (With Branch Name & SVC Code included)
@@ -1684,7 +2554,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       // Write and trigger download
       const buffer = await wb.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const fileName = `RC_GD_Pendency_Report_${pageState.cutoffDate}.xlsx`;
+      const fileName = isOp ? `Open_Pending_Report_${activeState.cutoffDate}.xlsx` : `RC_GD_Pendency_Report_${activeState.cutoffDate}.xlsx`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -1700,18 +2570,40 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
     /**
      * Fallback to SheetJS if ExcelJS is not available
      */
-    function exportWorkbookWithSheetJsFallback(allRawRecords) {
+    function exportWorkbookWithSheetJsFallback(allRawRecords, tabKey = 'rcGd') {
+      const normKey = normalizeTabKey(tabKey);
+      const activeState = getTabState(normKey);
+      const isOp = normKey === 'openPending';
       const wb = XLSX.utils.book_new();
 
       // Sheet 1: Summary
-      const table = document.querySelector('#reportTableRenderArea table');
-      let wsSum;
-      if (table) {
-        wsSum = XLSX.utils.table_to_sheet(table);
-      } else {
-        const temp = document.createElement('div');
-        temp.innerHTML = generateRcGdHtmlTable();
-        wsSum = XLSX.utils.table_to_sheet(temp.querySelector('table'));
+      const temp = document.createElement('div');
+      temp.innerHTML = `
+        ${generateReportHtmlTable(tabKey)}
+        <br><br>
+        ${generateTotalSummaryHtmlTable(tabKey)}
+      `;
+      const wsSum = XLSX.utils.table_to_sheet(temp.querySelector('table'));
+      
+      // Also append the Total Summary rows if table exists
+      if (activeState.svcList && activeState.svcList.length > 0) {
+        const range = XLSX.utils.decode_range(wsSum['!ref'] || 'A1:A1');
+        const startRow = range.e.r + 3;
+        const sumAoA = [
+          [`${isOp ? 'OPEN PENDING' : 'RC-GD'} TOTAL SUMMARY`],
+          ['ASC_CODE', 'Branch_Name', 'Total D+7', 'WAR Status (IW)', 'WAR Status (OW)']
+        ];
+        let totD7 = 0, totIW = 0, totOW = 0;
+        activeState.svcList.forEach(s => {
+          const sm = buildMatrixForRecords(s.records || []);
+          const sr = sm.totalRow;
+          totD7 += (sr.d7Total || 0);
+          totIW += (sr.iw || 0);
+          totOW += (sr.ow || 0);
+          sumAoA.push([s.code, s.name, sr.d7Total || 0, sr.iw || 0, sr.ow || 0]);
+        });
+        sumAoA.push(['Total', `${activeState.svcList.length} Service Centers`, totD7, totIW, totOW]);
+        XLSX.utils.sheet_add_aoa(wsSum, sumAoA, { origin: { r: startRow, c: 0 } });
       }
       XLSX.utils.book_append_sheet(wb, wsSum, 'Summary');
 
@@ -1743,7 +2635,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       const wsRaw = XLSX.utils.json_to_sheet(rawRows);
       XLSX.utils.book_append_sheet(wb, wsRaw, 'RAW');
 
-      const fileName = `RC_GD_Pendency_Report_${pageState.cutoffDate}.xlsx`;
+      const fileName = isOp ? `Open_Pending_Report_${activeState.cutoffDate}.xlsx` : `RC_GD_Pendency_Report_${activeState.cutoffDate}.xlsx`;
       XLSX.writeFile(wb, fileName);
       showToast(`Downloaded ${fileName} (2 Sheets: Summary & RAW)!`);
     }
@@ -1788,19 +2680,38 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
 
     // --- 10. EVENT LISTENERS SETUP ---
     document.addEventListener('DOMContentLoaded', () => {
-      // Set Date
+      // Set Dates for both tabs
       const datePicker = document.getElementById('reportCutoffDatePicker');
-      datePicker.value = pageState.cutoffDate;
-      datePicker.addEventListener('change', (e) => {
-        pageState.cutoffDate = e.target.value;
-        // Recalculate aging for all SVC records
-        pageState.svcList.forEach(svc => {
-          svc.records = parseManagementLite(svc.rawInput, svc.name, svc.code);
+      if (datePicker) {
+        datePicker.value = pageState.rcGd.cutoffDate;
+        datePicker.addEventListener('change', (e) => {
+          pageState.rcGd.cutoffDate = e.target.value;
+          const rcState = getTabState('rcGd');
+          rcState.svcList.forEach(svc => {
+            svc.records = parseManagementLite(svc.rawInput, svc.name, svc.code, rcState.cutoffDate);
+          });
+          const sec = document.getElementById('reportOutputSection');
+          if (sec && !sec.classList.contains('hidden')) {
+            generateReport('rcGd');
+          }
         });
-        if (!document.getElementById('reportOutputSection').classList.contains('hidden')) {
-          generateRcGdReport();
-        }
-      });
+      }
+
+      const opDatePicker = document.getElementById('opReportCutoffDatePicker');
+      if (opDatePicker) {
+        opDatePicker.value = pageState.openPending.cutoffDate;
+        opDatePicker.addEventListener('change', (e) => {
+          pageState.openPending.cutoffDate = e.target.value;
+          const opState = getTabState('openPending');
+          opState.svcList.forEach(svc => {
+            svc.records = parseManagementLite(svc.rawInput, svc.name, svc.code, opState.cutoffDate);
+          });
+          const sec = document.getElementById('opReportOutputSection');
+          if (sec && !sec.classList.contains('hidden')) {
+            generateReport('openPending');
+          }
+        });
+      }
 
       // TABS LOGIC (RC-GD vs OPEN PENDING)
       const tabBtnRcGd = document.getElementById('tabBtnRcGd');
@@ -1831,7 +2742,11 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       // MODAL 1 (ADD SVC DIALOG) LOGIC
       const addSvcModal = document.getElementById('addSvcModal');
       const btnOpenAddSvcModal = document.getElementById('btnOpenAddSvcModal');
+      const btnOpenAddSvcModalOp = document.getElementById('btnOpenAddSvcModalOp');
+      const btnEmptyAddSvc = document.getElementById('btnEmptyAddSvc');
+      const btnEmptyAddSvcOp = document.getElementById('btnEmptyAddSvcOp');
       const modalBtnClose = document.getElementById('modalBtnClose');
+      const modalTabBadge = document.getElementById('modalTabBadge');
       const modalSvcNameSelect = document.getElementById('modalSvcNameSelect');
       const modalCustomSvcNameInput = document.getElementById('modalCustomSvcNameInput');
       const modalSvcCodeInput = document.getElementById('modalSvcCodeInput');
@@ -1844,22 +2759,10 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       const modalFeedbackStats = document.getElementById('modalFeedbackStats');
       const modalFeedbackIcon = document.getElementById('modalFeedbackIcon');
 
-      function openAddModal() {
-        // Reset dialog fields
-        modalSvcNameSelect.value = 'Gurgaon-CE';
-        modalCustomSvcNameInput.classList.add('hidden');
-        modalCustomSvcNameInput.value = '';
-        modalSvcCodeInput.value = getBranchSvcCode('Gurgaon-CE');
-        modalDataInput.value = '';
-        modalValidationFeedback.classList.add('hidden');
-        modalBtnAddSvc.disabled = true;
-        pageState.stagedValidation = null;
-        addSvcModal.classList.remove('hidden');
-      }
-
-      btnOpenAddSvcModal.addEventListener('click', openAddModal);
-      const btnEmptyAddSvc = document.getElementById('btnEmptyAddSvc');
-      if (btnEmptyAddSvc) btnEmptyAddSvc.addEventListener('click', openAddModal);
+      if (btnOpenAddSvcModal) btnOpenAddSvcModal.addEventListener('click', () => openAddModal('rcGd'));
+      if (btnEmptyAddSvc) btnEmptyAddSvc.addEventListener('click', () => openAddModal('rcGd'));
+      if (btnOpenAddSvcModalOp) btnOpenAddSvcModalOp.addEventListener('click', () => openAddModal('openPending'));
+      if (btnEmptyAddSvcOp) btnEmptyAddSvcOp.addEventListener('click', () => openAddModal('openPending'));
 
       modalBtnClose.addEventListener('click', () => {
         addSvcModal.classList.add('hidden');
@@ -1876,7 +2779,6 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
           modalCustomSvcNameInput.classList.add('hidden');
           modalSvcCodeInput.value = getBranchSvcCode(val);
         }
-        // Invalidate previous staged validation if branch changed
         modalBtnAddSvc.disabled = true;
         pageState.stagedValidation = null;
       });
@@ -1890,6 +2792,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       document.getElementById('modalBtnLoadSample').addEventListener('click', () => {
         const currentBranch = modalSvcNameSelect.value === 'Custom' ? (modalCustomSvcNameInput.value || 'Custom-SVC') : modalSvcNameSelect.value;
         modalDataInput.value = getSampleManagementLiteData(currentBranch);
+        modalBtnAddSvc.disabled = false;
         showToast('Loaded sample Management Lite data');
       });
 
@@ -1899,6 +2802,14 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         modalValidationFeedback.classList.add('hidden');
         modalBtnAddSvc.disabled = true;
         pageState.stagedValidation = null;
+      });
+
+      modalDataInput.addEventListener('input', () => {
+        if (modalDataInput.value.trim().length > 0) {
+          modalBtnAddSvc.disabled = false;
+        } else {
+          modalBtnAddSvc.disabled = !pageState.stagedValidation;
+        }
       });
 
       // Process and Validate Button
@@ -1911,8 +2822,11 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
 
         const bName = modalSvcNameSelect.value === 'Custom' ? (modalCustomSvcNameInput.value.trim() || 'Custom-SVC') : modalSvcNameSelect.value;
         const sCode = modalSvcCodeInput.value.trim() || getBranchSvcCode(bName);
+        const targetTab = normalizeTabKey(pageState.modalTargetTab || pageState.activeTab);
+        const tabState = getTabState(targetTab);
+        const cutoff = tabState.cutoffDate;
 
-        const records = parseManagementLite(rawText, bName, sCode);
+        const records = parseManagementLite(rawText, bName, sCode, cutoff);
 
         if (records.length === 0) {
           modalValidationFeedback.className = 'p-3 rounded-xl border text-xs flex items-center justify-between bg-red-50 text-red-700 border-red-200';
@@ -1946,7 +2860,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         modalValidationFeedback.classList.remove('hidden');
 
         modalBtnAddSvc.disabled = false;
-        showToast(`Validated ${records.length} calls for ${bName}! Click "+ Add SVC" to include.`);
+        showToast(`Validated ${records.length} calls for ${bName}! Click "ADD SVC" to include.`);
       });
 
       // Preview Raw button in dialog header
@@ -1954,7 +2868,6 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         if (pageState.stagedValidation && pageState.stagedValidation.records.length > 0) {
           openRawModal(pageState.stagedValidation.records, `Preview: ${pageState.stagedValidation.name}`);
         } else {
-          // Parse on-the-fly
           const rawText = modalDataInput.value.trim();
           if (!rawText) {
             showToast('No data to preview. Paste data or load sample first.', 'error');
@@ -1962,39 +2875,129 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
           }
           const bName = modalSvcNameSelect.value === 'Custom' ? (modalCustomSvcNameInput.value.trim() || 'Custom-SVC') : modalSvcNameSelect.value;
           const sCode = modalSvcCodeInput.value.trim() || getBranchSvcCode(bName);
-          const records = parseManagementLite(rawText, bName, sCode);
+          const targetTab = normalizeTabKey(pageState.modalTargetTab || pageState.activeTab);
+          const tabState = getTabState(targetTab);
+          const records = parseManagementLite(rawText, bName, sCode, tabState.cutoffDate);
           openRawModal(records, `Preview: ${bName} (${records.length} calls)`);
         }
       });
 
-      // + Add SVC button in Dialog (adds row and automatically closes dialog as requested in audio!)
+      // ADD SVC button in Dialog (adds row or replaces with confirmation)
       modalBtnAddSvc.addEventListener('click', () => {
-        if (!pageState.stagedValidation) return;
+        const targetTab = normalizeTabKey(pageState.modalTargetTab || pageState.activeTab);
+        const tabState = getTabState(targetTab);
+        const activeList = tabState.svcList;
 
-        // Check if an entry for this branch already exists
-        const existingIdx = pageState.svcList.findIndex(s => s.name.toUpperCase() === pageState.stagedValidation.name.toUpperCase());
-        if (existingIdx !== -1) {
-          // Replace/Update
-          pageState.svcList[existingIdx] = pageState.stagedValidation;
-          showToast(`Updated existing data for ${pageState.stagedValidation.name}`);
-        } else {
-          pageState.svcList.push(pageState.stagedValidation);
-          showToast(`Added ${pageState.stagedValidation.name} (${pageState.stagedValidation.records.length} calls)`);
+        if (!pageState.stagedValidation) {
+          const rawText = modalDataInput.value.trim();
+          if (rawText) {
+            modalBtnValidate.click();
+            if (!pageState.stagedValidation) return;
+          } else {
+            showToast('Please paste Management Lite data before adding SVC', 'error');
+            return;
+          }
         }
 
-        // Close dialog automatically
+        const staged = pageState.stagedValidation;
+
+        // Check if an entry for this branch already exists (matching name or code)
+        const existingIdx = activeList.findIndex(s => 
+          s.name.trim().toUpperCase() === staged.name.trim().toUpperCase() || 
+          (s.code && staged.code && s.code.trim() === staged.code.trim())
+        );
+
+        if (existingIdx !== -1) {
+          const existing = activeList[existingIdx];
+          showConfirmationDialog({
+            title: 'Replace Existing Service Center Data?',
+            message: `Data for <strong>${existing.name}</strong> (${existing.code}) already exists in the ${targetTab === 'openPending' ? 'Open Pending' : 'RC-GD'} report list. Do you want to replace it with this new dataset?`,
+            detailsHtml: `
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-slate-500 font-medium">Existing Data:</span>
+                  <span class="font-bold text-slate-700">${existing.records.length} calls</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-slate-500 font-medium">New Dataset:</span>
+                  <span class="font-bold text-blue-700">${staged.records.length} calls</span>
+                </div>
+                <div class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200 mt-1">
+                  Note: Confirming will overwrite the existing calls for this service center with the new data.
+                </div>
+              </div>
+            `,
+            type: 'replace',
+            confirmText: 'Yes, Replace Existing Data',
+            cancelText: 'Cancel',
+            onConfirm: () => {
+              activeList[existingIdx] = staged;
+              showToast(`Updated data for ${staged.name} in ${targetTab === 'openPending' ? 'Open Pending' : 'RC-GD'}`);
+              addSvcModal.classList.add('hidden');
+              renderSvcRows(targetTab);
+              const sec = document.getElementById(targetTab === 'openPending' ? 'opReportOutputSection' : 'reportOutputSection');
+              if (sec && !sec.classList.contains('hidden')) {
+                generateReport(targetTab);
+              }
+            }
+          });
+          return;
+        }
+
+        activeList.push(staged);
+        showToast(`Added ${staged.name} (${staged.records.length} calls) to ${targetTab === 'openPending' ? 'Open Pending' : 'RC-GD'}`);
         addSvcModal.classList.add('hidden');
-        renderSvcRows();
+        renderSvcRows(targetTab);
+        const sec = document.getElementById(targetTab === 'openPending' ? 'opReportOutputSection' : 'reportOutputSection');
+        if (sec && !sec.classList.contains('hidden')) {
+          generateReport(targetTab);
+        }
       });
 
-      // Action: PROCESS & MAKE REPORT Button
-      document.getElementById('btnProcessAndMakeReport').addEventListener('click', generateRcGdReport);
+      // Actions for RC-GD
+      const btnProcessAndMakeReport = document.getElementById('btnProcessAndMakeReport');
+      if (btnProcessAndMakeReport) btnProcessAndMakeReport.addEventListener('click', () => generateReport('rcGd'));
 
-      // Action: Copy HTML for Mail Button
-      document.getElementById('btnCopyHtmlForMail').addEventListener('click', copyReportHtmlForMail);
+      const btnOpenTotalSummaryModal = document.getElementById('btnOpenTotalSummaryModal');
+      if (btnOpenTotalSummaryModal) btnOpenTotalSummaryModal.addEventListener('click', () => openTotalSummaryModal('rcGd'));
 
-      // Action: Export Report to Excel
-      document.getElementById('btnExportReportExcel').addEventListener('click', exportReportToExcel);
+      const btnCopySummaryForMail = document.getElementById('btnCopySummaryForMail');
+      if (btnCopySummaryForMail) btnCopySummaryForMail.addEventListener('click', () => copyTotalSummaryHtmlForMail('rcGd'));
+
+      const btnCopyHtmlForMail = document.getElementById('btnCopyHtmlForMail');
+      if (btnCopyHtmlForMail) btnCopyHtmlForMail.addEventListener('click', () => copyReportHtmlForMail('rcGd'));
+
+      const btnExportReportExcel = document.getElementById('btnExportReportExcel');
+      if (btnExportReportExcel) btnExportReportExcel.addEventListener('click', () => exportReportToExcel('rcGd'));
+
+      // Actions for Open Pending
+      const btnProcessAndMakeReportOp = document.getElementById('btnProcessAndMakeReportOp');
+      if (btnProcessAndMakeReportOp) btnProcessAndMakeReportOp.addEventListener('click', () => generateReport('openPending'));
+
+      const btnOpenTotalSummaryModalOp = document.getElementById('btnOpenTotalSummaryModalOp');
+      if (btnOpenTotalSummaryModalOp) btnOpenTotalSummaryModalOp.addEventListener('click', () => openTotalSummaryModal('openPending'));
+
+      const btnCopySummaryForMailOp = document.getElementById('btnCopySummaryForMailOp');
+      if (btnCopySummaryForMailOp) btnCopySummaryForMailOp.addEventListener('click', () => copyTotalSummaryHtmlForMail('openPending'));
+
+      const btnCopyHtmlForMailOp = document.getElementById('btnCopyHtmlForMailOp');
+      if (btnCopyHtmlForMailOp) btnCopyHtmlForMailOp.addEventListener('click', () => copyReportHtmlForMail('openPending'));
+
+      const btnExportReportExcelOp = document.getElementById('btnExportReportExcelOp');
+      if (btnExportReportExcelOp) btnExportReportExcelOp.addEventListener('click', () => exportReportToExcel('openPending'));
+
+      const btnReloadAppOp = document.getElementById('btnReloadAppOp');
+      if (btnReloadAppOp) btnReloadAppOp.addEventListener('click', () => confirmReloadApp('openPending'));
+
+      // Total Summary Modal Controls
+      const btnCloseTotalSummaryModal = document.getElementById('btnCloseTotalSummaryModal');
+      if (btnCloseTotalSummaryModal) btnCloseTotalSummaryModal.addEventListener('click', closeTotalSummaryModal);
+
+      const btnCloseTotalSummaryModal2 = document.getElementById('btnCloseTotalSummaryModal2');
+      if (btnCloseTotalSummaryModal2) btnCloseTotalSummaryModal2.addEventListener('click', closeTotalSummaryModal);
+
+      const btnModalCopySummary = document.getElementById('btnModalCopySummary');
+      if (btnModalCopySummary) btnModalCopySummary.addEventListener('click', () => copyTotalSummaryHtmlForMail(currentSummaryModalTab));
 
       // Raw Modal Search & Close
       document.getElementById('btnCloseRawModal').addEventListener('click', () => {
@@ -2020,9 +3023,95 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         renderRawTable(filtered);
       });
 
+      // Confirmation Dialog Event Listeners
+      const confirmBtnProceed = document.getElementById('confirmBtnProceed');
+      const confirmBtnCancel = document.getElementById('confirmBtnCancel');
+      const confirmBtnCloseX = document.getElementById('confirmBtnCloseX');
+      const confirmationModal = document.getElementById('confirmationModal');
+
+      if (confirmBtnProceed) {
+        confirmBtnProceed.addEventListener('click', () => {
+          if (typeof pendingConfirmAction === 'function') {
+            const action = pendingConfirmAction;
+            closeConfirmationDialog();
+            action();
+          } else {
+            closeConfirmationDialog();
+          }
+        });
+      }
+
+      if (confirmBtnCancel) {
+        confirmBtnCancel.addEventListener('click', closeConfirmationDialog);
+      }
+      if (confirmBtnCloseX) {
+        confirmBtnCloseX.addEventListener('click', closeConfirmationDialog);
+      }
+
+      if (confirmationModal) {
+        confirmationModal.addEventListener('click', (e) => {
+          if (e.target.id === 'confirmationModal') {
+            closeConfirmationDialog();
+          }
+        });
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const confModal = document.getElementById('confirmationModal');
+          if (confModal && !confModal.classList.contains('hidden')) {
+            closeConfirmationDialog();
+          }
+        }
+      });
+
+      // Reload App Button Handler
+      const btnReloadApp = document.getElementById('btnReloadApp');
+      if (btnReloadApp) {
+        btnReloadApp.addEventListener('click', confirmReloadApp);
+      }
+
       // Initial empty state rendering
       renderSvcRows();
     });
   </script>
+
+  <!-- BOTTOM NAVBAR -->
+  <nav class="bottom-nav glass-nav" id="bottomNav">
+    <div class="bottom-nav-inner">
+      <a href="/index.html" class="bottom-nav-item" id="navHome">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="/tools.html" class="bottom-nav-item" id="navTools">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+        <span>Tools</span>
+      </a>
+      <a href="/openPending.html" class="bottom-nav-item active" id="navMaster">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <span>Master</span>
+      </a>
+      <a href="/reports.html" class="bottom-nav-item" id="navSvcReports">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span>SVC</span>
+      </a>
+      <a href="/Context.html" class="bottom-nav-item" id="navContext">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        <span>Context</span>
+      </a>
+    </div>
+  </nav>
+
+  <script src="/assets/js/main.js"></script>
 </body>
 </html>

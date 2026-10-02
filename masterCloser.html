@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Closer Report — GSPN Operations</title>
+  
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            corporate: {
+              navy: '#0f2e59',
+              dark: '#0a192f',
+              slate: '#1e293b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'sans-serif'],
+            outfit: ['Outfit', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
+    .font-outfit { font-family: 'Outfit', sans-serif; }
+    .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s ease; }
+    .drop-zone.dragover { border-color: #0284c7; background-color: #f0f9ff; transform: scale(1.01); }
+    @media print {
+      body { background: white !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+      @page { size: landscape; margin: 10mm; }
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-5 right-5 flex flex-col gap-2 pointer-events-none" style="z-index: 999999;"></div>
+
+  <!-- Header Navigation -->
+  <header class="bg-white text-slate-900 shadow-sm border-b border-slate-200 sticky top-0 z-30 no-print">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14">
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-lg bg-[#0f2e59] flex items-center justify-center shadow">
+            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-sm font-bold tracking-tight text-[#0f2e59] font-outfit">Master Closer Report</h1>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                Closer % Engine
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-tight">Morning Open Pending vs In Flow Calls vs Current Open Pending Analysis</p>
+          </div>
+        </div>
+
+        <!-- Global Navigation Links -->
+        <div class="flex items-center space-x-2">
+          <nav class="hidden xl:flex items-center space-x-1 mr-2 border-r border-slate-200 pr-3">
+            <a href="/index.html" class="nav-link text-xs py-1.5 px-2.5">Home</a>
+            <a href="/tools.html" class="nav-link text-xs py-1.5 px-2.5">Tools</a>
+            <a href="/openPending.html" class="nav-link text-xs py-1.5 px-2.5">Open Pending</a>
+            <a href="/reportMaking.html" class="nav-link text-xs py-1.5 px-2.5">Report Maker</a>
+            <a href="/masterCloser.html" class="nav-link text-xs py-1.5 px-2.5 active font-bold text-blue-700 bg-blue-50 rounded">Master Closer</a>
+            <a href="/reports.html" class="nav-link text-xs py-1.5 px-2.5">SVC Reports</a>
+            <a href="/Context.html" class="nav-link text-xs py-1.5 px-2.5">Context</a>
+          </nav>
+
+          <!-- Top Quick Actions -->
+          <div class="flex items-center gap-2">
+            <button id="btnTopLoadSample" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm transition active:scale-95">
+              <svg class="w-3.5 h-3.5 mr-1 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Load Sample Data
+            </button>
+            <button id="btnTopCopyMail" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition active:scale-95">
+              <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              Copy for Mail
+            </button>
+            <button id="btnTopExportExcel" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95">
+              <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Export Excel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+    <!-- PAGE TITLE BANNER -->
+    <div class="bg-gradient-to-r from-[#0f2e59] via-[#163d6e] to-[#1e293b] rounded-2xl p-5 sm:p-6 text-white shadow-md relative overflow-hidden">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-bold tracking-wider uppercase text-emerald-400 font-outfit">Master Reports • Operations</span>
+            <span class="text-xs text-slate-300">·</span>
+            <span class="text-xs text-slate-300">Daily Performance</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black font-outfit tracking-tight">Master Closer Wise % Report</h2>
+          <p class="text-xs sm:text-sm text-slate-200 mt-1 max-w-3xl">
+            Track daily call resolution efficiency by comparing <strong class="text-white">Morning Open Pending</strong> + <strong class="text-white">In-Flow Calls</strong> against <strong class="text-white">Current Open Pending</strong> across all products and service centers.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 self-start md:self-auto">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/15 text-right">
+            <div class="text-[11px] text-slate-300 uppercase font-bold">Calculation Formula</div>
+            <div class="text-xs font-extrabold text-emerald-300 mt-0.5 font-mono">Closer % = (Closed Calls ÷ Total Available) × 100</div>
+            <div class="text-[10px] text-slate-300">Closed = (Morning + In Flow) - Current Pending</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 DRAG AND DROP FILE UPLOAD SLOTS -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-800 font-outfit">Upload Daily Datasets (Drag &amp; Drop Excel / XLS)</h3>
+          <p class="text-xs text-slate-400">Drop your 3 respective Excel or CSV files below to instantly compile the Closer % report</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btnLoadSampleFiles" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm">
+            <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Load Sample Datasets
+          </button>
+          <button id="btnClearAll" class="px-3 py-1.5 border border-slate-300 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition">
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- 3 Slots Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <!-- SLOT 1: Morning Open Pending -->
+        <div class="flex flex-col bg-slate-50/70 rounded-xl border border-slate-200 p-4 relative group">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center font-outfit">1</span>
+              <div>
+                <h4 class="text-xs font-black text-slate-900 uppercase font-outfit">1st — Morning Open Pending</h4>
+                <p class="text-[10px] text-slate-400">Collected in morning report (Opening backlog)</p>
+              </div>
+            </div>
+            <span id="badgeMrng" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">Pending File</span>
+          </div>
+
+          <!-- Drop Box -->
+          <div id="dropZoneMrng" class="drop-zone flex-1 rounded-xl p-5 text-center flex flex-col items-center justify-center cursor-pointer bg-white min-h-[140px]">
+            <input type="file" id="fileMrng" accept=".xlsx, .xls, .csv, .tsv" class="hidden">
+            <div id="dropPromptMrng" class="space-y-1">
+              <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+              </div>
+              <p class="text-xs font-bold text-slate-700">Drop Morning Excel here</p>
+              <p class="text-[10px] text-slate-400">or click to browse (.xlsx, .xls)</p>
+            </div>
+            <div id="dropSuccessMrng" class="hidden text-left w-full space-y-1">
+              <div class="flex items-center justify-between text-xs font-bold text-blue-800">
+                <span class="truncate max-w-[180px]" id="fileNameMrng">file.xlsx</span>
+                <span id="recordCountMrng" class="text-emerald-600">0 Calls</span>
+              </div>
+              <p class="text-[10px] text-slate-400">Morning opening pendency loaded</p>
+            </div>
+          </div>
+          <div class="mt-2.5 flex items-center justify-between">
+            <button onclick="document.getElementById('fileMrng').click()" class="text-[11px] font-bold text-blue-600 hover:text-blue-800">Browse File</button>
+            <button onclick="openPasteModal('mrng')" class="text-[11px] font-semibold text-slate-500 hover:text-slate-800">Paste Text Data</button>
+          </div>
+        </div>
+
+        <!-- SLOT 2: In Flow Calls -->
+        <div class="flex flex-col bg-slate-50/70 rounded-xl border border-slate-200 p-4 relative group">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-black flex items-center justify-center font-outfit">2</span>
+              <div>
+                <h4 class="text-xs font-black text-slate-900 uppercase font-outfit">2nd — In Flow Calls</h4>
+                <p class="text-[10px] text-slate-400">Fresh calls registered / assigned today</p>
+              </div>
+            </div>
+            <span id="badgeInflow" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">Pending File</span>
+          </div>
+
+          <!-- Drop Box -->
+          <div id="dropZoneInflow" class="drop-zone flex-1 rounded-xl p-5 text-center flex flex-col items-center justify-center cursor-pointer bg-white min-h-[140px]">
+            <input type="file" id="fileInflow" accept=".xlsx, .xls, .csv, .tsv" class="hidden">
+            <div id="dropPromptInflow" class="space-y-1">
+              <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <p class="text-xs font-bold text-slate-700">Drop In-Flow Excel here</p>
+              <p class="text-[10px] text-slate-400">or click to browse (.xlsx, .xls)</p>
+            </div>
+            <div id="dropSuccessInflow" class="hidden text-left w-full space-y-1">
+              <div class="flex items-center justify-between text-xs font-bold text-amber-800">
+                <span class="truncate max-w-[180px]" id="fileNameInflow">file.xlsx</span>
+                <span id="recordCountInflow" class="text-emerald-600">0 Calls</span>
+              </div>
+              <p class="text-[10px] text-slate-400">Today's call inflow loaded</p>
+            </div>
+          </div>
+          <div class="mt-2.5 flex items-center justify-between">
+            <button onclick="document.getElementById('fileInflow').click()" class="text-[11px] font-bold text-amber-600 hover:text-amber-800">Browse File</button>
+            <button onclick="openPasteModal('inflow')" class="text-[11px] font-semibold text-slate-500 hover:text-slate-800">Paste Text Data</button>
+          </div>
+        </div>
+
+        <!-- SLOT 3: Current Open Pending -->
+        <div class="flex flex-col bg-slate-50/70 rounded-xl border border-slate-200 p-4 relative group">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rose-600 text-white text-xs font-black flex items-center justify-center font-outfit">3</span>
+              <div>
+                <h4 class="text-xs font-black text-slate-900 uppercase font-outfit">3rd — Current Open Pending</h4>
+                <p class="text-[10px] text-slate-400">Current timing report (Remaining backlog)</p>
+              </div>
+            </div>
+            <span id="badgeCurrent" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">Pending File</span>
+          </div>
+
+          <!-- Drop Box -->
+          <div id="dropZoneCurrent" class="drop-zone flex-1 rounded-xl p-5 text-center flex flex-col items-center justify-center cursor-pointer bg-white min-h-[140px]">
+            <input type="file" id="fileCurrent" accept=".xlsx, .xls, .csv, .tsv" class="hidden">
+            <div id="dropPromptCurrent" class="space-y-1">
+              <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <p class="text-xs font-bold text-slate-700">Drop Current Open Pending here</p>
+              <p class="text-[10px] text-slate-400">or click to browse (.xlsx, .xls)</p>
+            </div>
+            <div id="dropSuccessCurrent" class="hidden text-left w-full space-y-1">
+              <div class="flex items-center justify-between text-xs font-bold text-rose-800">
+                <span class="truncate max-w-[180px]" id="fileNameCurrent">file.xlsx</span>
+                <span id="recordCountCurrent" class="text-emerald-600">0 Calls</span>
+              </div>
+              <p class="text-[10px] text-slate-400">Current active pendency loaded</p>
+            </div>
+          </div>
+          <div class="mt-2.5 flex items-center justify-between">
+            <button onclick="document.getElementById('fileCurrent').click()" class="text-[11px] font-bold text-rose-600 hover:text-rose-800">Browse File</button>
+            <button onclick="openPasteModal('current')" class="text-[11px] font-semibold text-slate-500 hover:text-slate-800">Paste Text Data</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- KPI OVERVIEW CARDS -->
+    <section id="kpiSection" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Morning Pending</div>
+        <div class="text-2xl font-black text-slate-900 font-outfit mt-1" id="kpiMrngTotal">0</div>
+        <div class="text-[10px] text-slate-500 mt-0.5">Opening backlog</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">In-Flow Calls</div>
+        <div class="text-2xl font-black text-amber-600 font-outfit mt-1" id="kpiInflowTotal">0</div>
+        <div class="text-[10px] text-slate-500 mt-0.5">New today</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Total Workload</div>
+        <div class="text-2xl font-black text-blue-700 font-outfit mt-1" id="kpiWorkloadTotal">0</div>
+        <div class="text-[10px] text-slate-500 mt-0.5">Morning + In-Flow</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Current Pending</div>
+        <div class="text-2xl font-black text-rose-600 font-outfit mt-1" id="kpiCurrentTotal">0</div>
+        <div class="text-[10px] text-slate-500 mt-0.5">Remaining open</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Calls Closed</div>
+        <div class="text-2xl font-black text-emerald-600 font-outfit mt-1" id="kpiClosedTotal">0</div>
+        <div class="text-[10px] text-slate-500 mt-0.5">Workload - Current</div>
+      </div>
+      <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-xl p-4 shadow-md">
+        <div class="text-[11px] font-bold text-emerald-200 uppercase tracking-wide">Overall Closer %</div>
+        <div class="text-2xl font-black text-white font-outfit mt-1" id="kpiCloserRate">0.0%</div>
+        <div class="text-[10px] text-emerald-100 mt-0.5">Day's closure rate</div>
+      </div>
+    </section>
+
+    <!-- CLOSER REPORT VIEW SECTION -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <h3 class="text-lg font-black uppercase text-[#0f2e59] tracking-wider font-outfit">Closer Wise % Report</h3>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">Live Computed</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Category-wise breakdown: [Mrng Open Pending] / [In Flow] / [Current Open Pending] / [Closed Calls] / [Closer %]</p>
+        </div>
+
+        <!-- Controls: Tab Switcher & Actions -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- View Switcher -->
+          <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button id="tabBtnProducts" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-slate-900 shadow-sm">
+              By Products
+            </button>
+            <button id="tabBtnBranches" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+              By Branches
+            </button>
+          </div>
+
+          <!-- Actions -->
+          <button id="btnCopyCloserHtml" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-black shadow transition active:scale-95 flex items-center gap-1.5" title="Copy clean formatted HTML table ready to paste into Outlook or Gmail">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+            Copy for Mail
+          </button>
+          <button id="btnExportCloserExcel" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition active:scale-95 flex items-center gap-1.5" title="Download Excel workbook with Summary and RAW sheets">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Export Excel
+          </button>
+          <button onclick="window.print()" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold shadow-sm transition">
+            Print
+          </button>
+        </div>
+      </div>
+
+      <!-- Report Table Render Area -->
+      <div id="closerReportRenderArea" class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-inner p-2">
+        <div class="py-12 text-center text-slate-400 text-xs italic">
+          Please upload the 3 Excel files above, or click <button onclick="loadSampleData()" class="text-blue-600 font-bold underline">Load Sample Datasets</button> to generate the Closer % report.
+        </div>
+      </div>
+    </section>
+
+    <!-- PERFORMANCE VISUAL CHART -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-sm font-bold text-slate-800 font-outfit uppercase tracking-wider">Product Closer % Analytics Chart</h3>
+          <p class="text-xs text-slate-400">Visual comparison of Total Workload, Closed Calls, and Closure Rate by Product</p>
+        </div>
+      </div>
+      <div class="h-64 sm:h-80 w-full">
+        <canvas id="closerChartCanvas"></canvas>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- PASTE MODAL -->
+  <div id="pasteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="px-5 py-4 bg-[#0f2e59] text-white flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold font-outfit" id="pasteModalTitle">Paste Data</h3>
+          <p class="text-[11px] text-slate-200" id="pasteModalSubtitle">Paste tabular data copied from Excel or GSPN</p>
+        </div>
+        <button onclick="closePasteModal()" class="text-white/70 hover:text-white p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-4 flex-1">
+        <textarea id="pasteTextarea" rows="10" placeholder="Paste tab-separated or comma-separated call data here..." class="w-full text-xs font-mono border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+      </div>
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+        <button onclick="closePasteModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold">Cancel</button>
+        <button id="btnApplyPaste" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow">Parse &amp; Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <script>
+    // --- 1. CORE DATA STRUCTURES & DEFINITIONS ---
+    const PRODUCT_LIST = [
+      { code: 'AC', name: 'Air Conditioner', color: '#ef4444' },
+      { code: 'WM', name: 'Washing Machine', color: '#22c55e' },
+      { code: 'REF', name: 'Refrigerator', color: '#eab308' },
+      { code: 'AV', name: 'Audio Video / TV', color: '#0f172a' },
+      { code: 'MW', name: 'Microwave', color: '#10b981' },
+      { code: 'AUD', name: 'Audio / Soundbar', color: '#f87171' },
+      { code: 'DW', name: 'Dish Washer', color: '#3b82f6' },
+      { code: 'HHP', name: 'Handheld Phone', color: '#14b8a6' },
+      { code: 'IT', name: 'IT / Monitors', color: '#fb7185' },
+      { code: 'Other', name: 'Other Appliances', color: '#f59e0b' }
+    ];
+
+    const closerState = {
+      mrngRecords: [],
+      inflowRecords: [],
+      currentRecords: [],
+      activeView: 'products', // 'products' or 'branches'
+      chartInstance: null
+    };
+
+    // Product Normalizer matching GSPN logic
+    function normalizeProduct(rawProd, model) {
+      if (rawProd) {
+        const s = String(rawProd).trim().toUpperCase();
+        const direct = ['AC', 'WM', 'REF', 'AV', 'MW', 'AUD', 'DW', 'HHP', 'IT'];
+        if (direct.includes(s)) return s;
+        if (s.includes('AIR') || s.includes('A/C')) return 'AC';
+        if (s.includes('WASH')) return 'WM';
+        if (s.includes('REF') || s.includes('FRIDGE')) return 'REF';
+        if (s.includes('TV') || s.includes('PANEL')) return 'AV';
+        if (s.includes('MICRO') || s.startsWith('MW')) return 'MW';
+        if (s.includes('AUDIO') || s.includes('SOUND')) return 'AUD';
+        if (s.includes('DISH')) return 'DW';
+        if (s.includes('PHONE') || s.includes('MOBILE') || s.startsWith('SM-')) return 'HHP';
+        if (s.includes('MONITOR')) return 'IT';
+      }
+      if (model) {
+        const m = String(model).trim().toUpperCase();
+        if (m.startsWith('AR') || m.startsWith('AC')) return 'AC';
+        if (m.startsWith('WA') || m.startsWith('WW') || m.startsWith('WD')) return 'WM';
+        if (m.startsWith('RT') || m.startsWith('RF') || m.startsWith('RR') || m.startsWith('RS')) return 'REF';
+        if (m.startsWith('UA') || m.startsWith('QA') || m.startsWith('PS') || m.startsWith('LA')) return 'AV';
+        if (m.startsWith('MC') || m.startsWith('MS') || m.startsWith('MG') || m.startsWith('ME')) return 'MW';
+        if (m.startsWith('HW-') || m.startsWith('MX-')) return 'AUD';
+        if (m.startsWith('DW')) return 'DW';
+        if (m.startsWith('SM-') || m.startsWith('GT-')) return 'HHP';
+        if (m.startsWith('LS') || m.startsWith('LF') || m.startsWith('LC')) return 'IT';
+      }
+      return 'Other';
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-3 rounded-xl shadow-lg text-xs font-semibold text-white flex items-center gap-2 transition-all duration-300 ${type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`;
+      toast.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 300); }, 3500);
+    }
+
+    // --- 2. FILE PARSING & DRAG AND DROP ---
+    function parseExcelData(dataArray) {
+      if (!Array.isArray(dataArray) || dataArray.length === 0) return [];
+      const records = [];
+      dataArray.forEach((r, idx) => {
+        if (!r || typeof r !== 'object') return;
+        const so = String(r['Service Order No.'] || r['Service Order No'] || r['SO No'] || r['Tracking No'] || r.serviceOrderNo || r.so || r.SO || (idx + 1)).trim();
+        const branch = String(r['Branch Name'] || r['Branch'] || r.branchName || r.branch || 'Gurgaon-CE').trim();
+        const code = String(r['ASC Code'] || r['CP Code'] || r.ascCode || r.code || '4903753').trim();
+        const model = String(r['Model'] || r['Model Code'] || r.model || '').trim();
+        const prod = normalizeProduct(r['Product'] || r['Product Category'] || r.product, model);
+        records.push({ so, branch, code, model, product: prod });
+      });
+      return records;
+    }
+
+    function setupDropZone(dropZoneId, fileInputId, slotKey) {
+      const dropZone = document.getElementById(dropZoneId);
+      const fileInput = document.getElementById(fileInputId);
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+          handleFile(e.dataTransfer.files[0], slotKey);
+        }
+      });
+      dropZone.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON') fileInput.click();
+      });
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleFile(e.target.files[0], slotKey);
+        }
+      });
+    }
+
+    function handleFile(file, slotKey) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json(firstSheet);
+          const parsed = parseExcelData(json);
+          updateSlotState(slotKey, file.name, parsed);
+        } catch (err) {
+          console.error(err);
+          showToast('Failed to parse Excel file. Check file format.', 'error');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function updateSlotState(slotKey, fileName, records) {
+      const capKey = slotKey.charAt(0).toUpperCase() + slotKey.slice(1);
+      if (slotKey === 'mrng') closerState.mrngRecords = records;
+      else if (slotKey === 'inflow') closerState.inflowRecords = records;
+      else if (slotKey === 'current') closerState.currentRecords = records;
+
+      const promptEl = document.getElementById(`dropPrompt${capKey}`);
+      const successEl = document.getElementById(`dropSuccess${capKey}`);
+      const nameEl = document.getElementById(`fileName${capKey}`);
+      const countEl = document.getElementById(`recordCount${capKey}`);
+      const badgeEl = document.getElementById(`badge${capKey}`);
+
+      if (promptEl) promptEl.classList.add('hidden');
+      if (successEl) successEl.classList.remove('hidden');
+      if (nameEl) nameEl.textContent = fileName;
+      if (countEl) countEl.textContent = `${records.length} Calls`;
+      if (badgeEl) {
+        badgeEl.textContent = 'Loaded ✓';
+        badgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300';
+      }
+
+      showToast(`Loaded ${records.length} calls for ${slotKey === 'mrng' ? 'Morning Open Pending' : (slotKey === 'inflow' ? 'In Flow Calls' : 'Current Open Pending')}!`);
+      computeAndRenderCloserReport();
+    }
+
+    // --- 3. SAMPLE DATA GENERATOR ---
+    function loadSampleData() {
+      // 1. Morning Backlog
+      const mrng = [];
+      const inflow = [];
+      const current = [];
+      const branches = [
+        { name: 'Gurgaon-CE', code: '9225951' },
+        { name: 'Ahmedabad-CE', code: '4917449' },
+        { name: 'Lucknow-CE', code: '8200354' },
+        { name: 'Surat-CE', code: '6451772' },
+        { name: 'Ghaziabad-CE', code: '4936933' }
+      ];
+
+      // Seed Morning Backlog (Total 350 calls)
+      const prodWeightsMrng = { 'AC': 75, 'WM': 65, 'REF': 70, 'AV': 50, 'MW': 25, 'AUD': 15, 'DW': 12, 'HHP': 20, 'IT': 10, 'Other': 8 };
+      let soCounter = 4200000;
+      Object.entries(prodWeightsMrng).forEach(([pCode, count]) => {
+        for (let i = 0; i < count; i++) {
+          soCounter++;
+          const br = branches[i % branches.length];
+          mrng.push({ so: `SO-${soCounter}`, branch: br.name, code: br.code, model: `${pCode}-MODEL-${i}`, product: pCode });
+        }
+      });
+
+      // Seed In-Flow (Total 140 calls)
+      const prodWeightsInflow = { 'AC': 35, 'WM': 30, 'REF': 28, 'AV': 20, 'MW': 8, 'AUD': 5, 'DW': 4, 'HHP': 6, 'IT': 3, 'Other': 1 };
+      Object.entries(prodWeightsInflow).forEach(([pCode, count]) => {
+        for (let i = 0; i < count; i++) {
+          soCounter++;
+          const br = branches[(i + 2) % branches.length];
+          inflow.push({ so: `SO-${soCounter}`, branch: br.name, code: br.code, model: `${pCode}-NEW-${i}`, product: pCode });
+        }
+      });
+
+      // Seed Current Pending (Remaining 185 calls after 305 calls closed!)
+      const prodWeightsCurrent = { 'AC': 38, 'WM': 32, 'REF': 35, 'AV': 28, 'MW': 14, 'AUD': 9, 'DW': 7, 'HHP': 11, 'IT': 6, 'Other': 5 };
+      Object.entries(prodWeightsCurrent).forEach(([pCode, count]) => {
+        for (let i = 0; i < count; i++) {
+          const br = branches[(i + 1) % branches.length];
+          current.push({ so: `SO-${soCounter - 50 + i}`, branch: br.name, code: br.code, model: `${pCode}-CURR-${i}`, product: pCode });
+        }
+      });
+
+      updateSlotState('mrng', 'sample_morning_open_pending.xlsx', mrng);
+      updateSlotState('inflow', 'sample_inflow_calls.xlsx', inflow);
+      updateSlotState('current', 'sample_current_open_pending.xlsx', current);
+      showToast('Sample datasets successfully loaded for all 3 categories!');
+    }
+
+    // --- 4. CALCULATION & REPORT COMPILATION ---
+    function computeCloserMetrics() {
+      const productMap = {};
+      PRODUCT_LIST.forEach(p => {
+        productMap[p.code] = {
+          code: p.code,
+          name: p.name,
+          color: p.color,
+          mrng: 0,
+          inflow: 0,
+          workload: 0,
+          current: 0,
+          closed: 0,
+          closerPct: 0.0
+        };
+      });
+
+      const branchMap = {};
+
+      function getBranchBucket(code, name) {
+        const key = `${code}_${name}`;
+        if (!branchMap[key]) {
+          branchMap[key] = {
+            code: code,
+            name: name,
+            mrng: 0,
+            inflow: 0,
+            workload: 0,
+            current: 0,
+            closed: 0,
+            closerPct: 0.0
+          };
+        }
+        return branchMap[key];
+      }
+
+      // Aggregate Morning
+      closerState.mrngRecords.forEach(r => {
+        if (productMap[r.product]) productMap[r.product].mrng++;
+        else productMap['Other'].mrng++;
+        getBranchBucket(r.code, r.branch).mrng++;
+      });
+
+      // Aggregate In Flow
+      closerState.inflowRecords.forEach(r => {
+        if (productMap[r.product]) productMap[r.product].inflow++;
+        else productMap['Other'].inflow++;
+        getBranchBucket(r.code, r.branch).inflow++;
+      });
+
+      // Aggregate Current
+      closerState.currentRecords.forEach(r => {
+        if (productMap[r.product]) productMap[r.product].current++;
+        else productMap['Other'].current++;
+        getBranchBucket(r.code, r.branch).current++;
+      });
+
+      // Compute Closed and Closer % for Products
+      let grandMrng = 0, grandInflow = 0, grandWorkload = 0, grandCurrent = 0, grandClosed = 0;
+      Object.values(productMap).forEach(p => {
+        p.workload = p.mrng + p.inflow;
+        p.closed = Math.max(0, p.workload - p.current);
+        p.closerPct = p.workload > 0 ? ((p.closed / p.workload) * 100) : 0;
+
+        grandMrng += p.mrng;
+        grandInflow += p.inflow;
+        grandWorkload += p.workload;
+        grandCurrent += p.current;
+        grandClosed += p.closed;
+      });
+
+      // Compute Closed and Closer % for Branches
+      Object.values(branchMap).forEach(b => {
+        b.workload = b.mrng + b.inflow;
+        b.closed = Math.max(0, b.workload - b.current);
+        b.closerPct = b.workload > 0 ? ((b.closed / b.workload) * 100) : 0;
+      });
+
+      const grandCloserPct = grandWorkload > 0 ? ((grandClosed / grandWorkload) * 100) : 0;
+
+      return {
+        products: Object.values(productMap),
+        branches: Object.values(branchMap),
+        totals: {
+          mrng: grandMrng,
+          inflow: grandInflow,
+          workload: grandWorkload,
+          current: grandCurrent,
+          closed: grandClosed,
+          closerPct: grandCloserPct
+        }
+      };
+    }
+
+    function computeAndRenderCloserReport() {
+      const data = computeCloserMetrics();
+      const t = data.totals;
+
+      // Update KPI cards
+      document.getElementById('kpiMrngTotal').textContent = t.mrng.toLocaleString();
+      document.getElementById('kpiInflowTotal').textContent = t.inflow.toLocaleString();
+      document.getElementById('kpiWorkloadTotal').textContent = t.workload.toLocaleString();
+      document.getElementById('kpiCurrentTotal').textContent = t.current.toLocaleString();
+      document.getElementById('kpiClosedTotal').textContent = t.closed.toLocaleString();
+      document.getElementById('kpiCloserRate').textContent = `${t.closerPct.toFixed(1)}%`;
+
+      renderTable(data);
+      renderChart(data);
+    }
+
+    function getCloserPill(pct) {
+      let bg = '#dcfce7', text = '#15803d', border = '#bbf7d0';
+      if (pct < 45) { bg = '#ffe4e6'; text = '#be123c'; border = '#fecdd3'; }
+      else if (pct < 65) { bg = '#fef3c7'; text = '#b45309'; border = '#fde68a'; }
+      return `<span style="display:inline-block; padding:3px 10px; border-radius:9999px; font-weight:800; font-size:11px; background-color:${bg}; color:${text}; border:1px solid ${border};">${pct.toFixed(1)}%</span>`;
+    }
+
+    function renderTable(data) {
+      const area = document.getElementById('closerReportRenderArea');
+      const isProd = closerState.activeView === 'products';
+      const items = isProd ? data.products : data.branches;
+      const t = data.totals;
+
+      if (items.length === 0 || t.workload === 0) {
+        area.innerHTML = `
+          <div class="py-12 text-center text-slate-400 text-xs italic">
+            No calls parsed yet. Upload files or click <button onclick="loadSampleData()" class="text-blue-600 font-bold underline">Load Sample Datasets</button>.
+          </div>
+        `;
+        return;
+      }
+
+      let rowsHtml = '';
+      if (isProd) {
+        rowsHtml = items.map(p => `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-200 text-xs">
+            <td class="p-3 font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full" style="background-color: ${p.color};"></span>
+              <span class="font-outfit font-black">${p.code}</span>
+              <span class="text-slate-400 font-normal">(${p.name})</span>
+            </td>
+            <td class="p-3 text-center text-slate-700">${p.mrng}</td>
+            <td class="p-3 text-center text-amber-700 font-semibold bg-amber-50/50">${p.inflow}</td>
+            <td class="p-3 text-center text-blue-700 font-bold bg-blue-50/50">${p.workload}</td>
+            <td class="p-3 text-center text-rose-700 font-semibold bg-rose-50/50">${p.current}</td>
+            <td class="p-3 text-center text-emerald-700 font-bold bg-emerald-50/50">${p.closed}</td>
+            <td class="p-3 text-center">${getCloserPill(p.closerPct)}</td>
+            <td class="p-3 text-center font-mono font-semibold ${p.current <= p.mrng ? 'text-emerald-600' : 'text-rose-600'}">
+              ${p.current - p.mrng > 0 ? '+' : ''}${p.current - p.mrng}
+            </td>
+          </tr>
+        `).join('');
+      } else {
+        rowsHtml = items.map(b => `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-200 text-xs">
+            <td class="p-3 font-mono text-slate-500">${b.code}</td>
+            <td class="p-3 font-bold text-slate-800">${b.name}</td>
+            <td class="p-3 text-center text-slate-700">${b.mrng}</td>
+            <td class="p-3 text-center text-amber-700 font-semibold bg-amber-50/50">${b.inflow}</td>
+            <td class="p-3 text-center text-blue-700 font-bold bg-blue-50/50">${b.workload}</td>
+            <td class="p-3 text-center text-rose-700 font-semibold bg-rose-50/50">${b.current}</td>
+            <td class="p-3 text-center text-emerald-700 font-bold bg-emerald-50/50">${b.closed}</td>
+            <td class="p-3 text-center">${getCloserPill(b.closerPct)}</td>
+          </tr>
+        `).join('');
+      }
+
+      const theadHtml = isProd ? `
+        <thead class="bg-[#0f2e59] text-white text-xs font-outfit uppercase">
+          <tr>
+            <th class="p-3 text-left">Product Category</th>
+            <th class="p-3 text-center">Mrng Open Pending</th>
+            <th class="p-3 text-center">In Flow Calls</th>
+            <th class="p-3 text-center bg-[#1d4ed8]">Total Workload</th>
+            <th class="p-3 text-center bg-[#991b1b]">Current Open Pending</th>
+            <th class="p-3 text-center bg-[#059669]">Calls Closed</th>
+            <th class="p-3 text-center bg-[#064e3b]">Closer %</th>
+            <th class="p-3 text-center">Backlog Diff</th>
+          </tr>
+        </thead>
+      ` : `
+        <thead class="bg-[#0f2e59] text-white text-xs font-outfit uppercase">
+          <tr>
+            <th class="p-3 text-left">ASC Code</th>
+            <th class="p-3 text-left">Branch Name</th>
+            <th class="p-3 text-center">Mrng Open Pending</th>
+            <th class="p-3 text-center">In Flow Calls</th>
+            <th class="p-3 text-center bg-[#1d4ed8]">Total Workload</th>
+            <th class="p-3 text-center bg-[#991b1b]">Current Open Pending</th>
+            <th class="p-3 text-center bg-[#059669]">Calls Closed</th>
+            <th class="p-3 text-center bg-[#064e3b]">Closer %</th>
+          </tr>
+        </thead>
+      `;
+
+      const tfootHtml = `
+        <tfoot class="bg-[#e0f2fe] text-xs font-black font-outfit border-t-2 border-[#0284c7]">
+          <tr>
+            <td class="p-3 text-left text-slate-900" colspan="${isProd ? 1 : 2}">GRAND TOTAL</td>
+            <td class="p-3 text-center text-slate-900">${t.mrng}</td>
+            <td class="p-3 text-center text-amber-900">${t.inflow}</td>
+            <td class="p-3 text-center text-blue-900 bg-[#bae6fd]">${t.workload}</td>
+            <td class="p-3 text-center text-rose-900 bg-[#fecdd3]">${t.current}</td>
+            <td class="p-3 text-center text-emerald-950 bg-[#a7f3d0]">${t.closed}</td>
+            <td class="p-3 text-center">${getCloserPill(t.closerPct)}</td>
+            ${isProd ? `<td class="p-3 text-center font-mono ${t.current <= t.mrng ? 'text-emerald-700' : 'text-rose-700'}">${t.current - t.mrng > 0 ? '+' : ''}${t.current - t.mrng}</td>` : ''}
+          </tr>
+        </tfoot>
+      `;
+
+      area.innerHTML = `
+        <table class="w-full text-left border-collapse" id="closerMainTable">
+          ${theadHtml}
+          <tbody>${rowsHtml}</tbody>
+          ${tfootHtml}
+        </table>
+      `;
+    }
+
+    function renderChart(data) {
+      const ctx = document.getElementById('closerChartCanvas');
+      if (!ctx) return;
+      if (closerState.chartInstance) closerState.chartInstance.destroy();
+
+      const labels = data.products.map(p => p.code);
+      const workloads = data.products.map(p => p.workload);
+      const closeds = data.products.map(p => p.closed);
+      const rates = data.products.map(p => p.closerPct.toFixed(1));
+
+      closerState.chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Total Workload (Mrng + Inflow)',
+              data: workloads,
+              backgroundColor: '#93c5fd',
+              borderRadius: 4
+            },
+            {
+              label: 'Calls Closed Today',
+              data: closeds,
+              backgroundColor: '#10b981',
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } }
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // --- 5. EXPORT & COPY FOR EMAIL ---
+    function generateCloserHtmlEmailTable() {
+      const data = computeCloserMetrics();
+      const t = data.totals;
+      const todayStr = new Date().toLocaleDateString('en-GB');
+
+      const rows = data.products.map(p => `
+        <tr style="border-bottom: 1px solid #cbd5e1; font-family: Calibri, Arial, sans-serif; font-size: 13px;">
+          <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold;">${p.code} (${p.name})</td>
+          <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: center;">${p.mrng}</td>
+          <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: center; color: #b45309; background-color: #fffbeb;">${p.inflow}</td>
+          <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: center; color: #1d4ed8; font-weight: bold; background-color: #eff6ff;">${p.workload}</td>
+          <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: center; color: #be123c; font-weight: bold; background-color: #fff1f2;">${p.current}</td>
+          <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: center; color: #047857; font-weight: bold; background-color: #ecfdf5;">${p.closed}</td>
+          <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; background-color: #c1f0c8; color: #000000;">${p.closerPct.toFixed(1)}%</td>
+        </tr>
+      `).join('');
+
+      return `
+      <table cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 13px; color: #000000; border: 1px solid #94a3b8; width: 100%; max-width: 800px; background-color: #ffffff;">
+        <thead>
+          <tr style="background-color: #0f2e59; color: #ffffff;">
+            <th colspan="7" style="padding: 10px 14px; text-align: left; font-size: 14px; font-weight: bold; border: 1px solid #0f2e59;">
+              Master Closer Wise % Report dt ${todayStr}
+            </th>
+          </tr>
+          <tr style="background-color: #dce6f1; color: #000000; font-weight: bold;">
+            <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: left;">Product</th>
+            <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">Mrng Open Pending</th>
+            <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">In Flow</th>
+            <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">Total Workload</th>
+            <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">Current Open Pending</th>
+            <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">Calls Closed</th>
+            <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8;">Closer %</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr style="background-color: #e0f2fe; font-weight: bold; border-top: 2px solid #0284c7; border-bottom: 2px solid #0284c7;">
+            <td style="padding: 9px 12px; border: 1px solid #cbd5e1; text-align: left; color: #0c4a6e;">TOTAL</td>
+            <td style="padding: 9px 12px; border: 1px solid #cbd5e1; text-align: center;">${t.mrng}</td>
+            <td style="padding: 9px 12px; border: 1px solid #cbd5e1; text-align: center;">${t.inflow}</td>
+            <td style="padding: 9px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #bae6fd;">${t.workload}</td>
+            <td style="padding: 9px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #fecdd3;">${t.current}</td>
+            <td style="padding: 9px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #a7f3d0;">${t.closed}</td>
+            <td style="padding: 9px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #86efac; color: #064e3b;">${t.closerPct.toFixed(1)}%</td>
+          </tr>
+        </tbody>
+      </table>
+      `;
+    }
+
+    async function copyCloserReportToMail() {
+      const data = computeCloserMetrics();
+      if (data.totals.workload === 0) {
+        showToast('Please load datasets before copying report.', 'error');
+        return;
+      }
+      const html = generateCloserHtmlEmailTable();
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          const blobHtml = new Blob([html], { type: 'text/html' });
+          const blobText = new Blob([html.replace(/<[^>]+>/g, ' ')], { type: 'text/plain' });
+          await navigator.clipboard.write([new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })]);
+        } else {
+          const el = document.createElement('div');
+          el.innerHTML = html;
+          el.style.position = 'fixed';
+          el.style.left = '-9999px';
+          document.body.appendChild(el);
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          document.execCommand('copy');
+          el.remove();
+        }
+        showToast('Master Closer HTML table copied! Ready to paste into Email.');
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to copy. Try modern browser permissions.', 'error');
+      }
+    }
+
+    function exportCloserToExcel() {
+      const data = computeCloserMetrics();
+      if (data.totals.workload === 0) {
+        showToast('Please load datasets before exporting to Excel.', 'error');
+        return;
+      }
+      const todayStr = new Date().toISOString().split('T')[0];
+      const wb = XLSX.utils.book_new();
+
+      // Sheet 1: Product Summary
+      const prodRows = data.products.map(p => ({
+        'Product Category': `${p.code} (${p.name})`,
+        'Morning Open Pending': p.mrng,
+        'In Flow Calls': p.inflow,
+        'Total Workload': p.workload,
+        'Current Open Pending': p.current,
+        'Calls Closed Today': p.closed,
+        'Closer %': `${p.closerPct.toFixed(1)}%`,
+        'Backlog Reduction': p.current - p.mrng
+      }));
+      prodRows.push({
+        'Product Category': 'GRAND TOTAL',
+        'Morning Open Pending': data.totals.mrng,
+        'In Flow Calls': data.totals.inflow,
+        'Total Workload': data.totals.workload,
+        'Current Open Pending': data.totals.current,
+        'Calls Closed Today': data.totals.closed,
+        'Closer %': `${data.totals.closerPct.toFixed(1)}%`,
+        'Backlog Reduction': data.totals.current - data.totals.mrng
+      });
+      const wsProd = XLSX.utils.json_to_sheet(prodRows);
+      XLSX.utils.book_append_sheet(wb, wsProd, 'Product_Closer_Summary');
+
+      // Sheet 2: Branch Summary
+      const branchRows = data.branches.map(b => ({
+        'ASC Code': b.code,
+        'Branch Name': b.name,
+        'Morning Open Pending': b.mrng,
+        'In Flow Calls': b.inflow,
+        'Total Workload': b.workload,
+        'Current Open Pending': b.current,
+        'Calls Closed Today': b.closed,
+        'Closer %': `${b.closerPct.toFixed(1)}%`
+      }));
+      const wsBranch = XLSX.utils.json_to_sheet(branchRows);
+      XLSX.utils.book_append_sheet(wb, wsBranch, 'Branch_Closer_Summary');
+
+      // Sheet 3: Morning RAW
+      if (closerState.mrngRecords.length > 0) {
+        const wsMrng = XLSX.utils.json_to_sheet(closerState.mrngRecords);
+        XLSX.utils.book_append_sheet(wb, wsMrng, 'Morning_RAW');
+      }
+      // Sheet 4: In Flow RAW
+      if (closerState.inflowRecords.length > 0) {
+        const wsInflow = XLSX.utils.json_to_sheet(closerState.inflowRecords);
+        XLSX.utils.book_append_sheet(wb, wsInflow, 'InFlow_RAW');
+      }
+      // Sheet 5: Current RAW
+      if (closerState.currentRecords.length > 0) {
+        const wsCurrent = XLSX.utils.json_to_sheet(closerState.currentRecords);
+        XLSX.utils.book_append_sheet(wb, wsCurrent, 'Current_RAW');
+      }
+
+      XLSX.writeFile(wb, `Master_Closer_Report_${todayStr}.xlsx`);
+      showToast('Master Closer Excel file successfully generated and downloaded!');
+    }
+
+    // --- 6. PASTE MODAL HANDLERS ---
+    let currentPasteSlot = 'mrng';
+    function openPasteModal(slot) {
+      currentPasteSlot = slot;
+      const titles = { mrng: 'Morning Open Pending', inflow: 'In Flow Calls', current: 'Current Open Pending' };
+      document.getElementById('pasteModalTitle').textContent = `Paste ${titles[slot]}`;
+      document.getElementById('pasteTextarea').value = '';
+      document.getElementById('pasteModal').classList.remove('hidden');
+    }
+    function closePasteModal() {
+      document.getElementById('pasteModal').classList.add('hidden');
+    }
+
+    document.getElementById('btnApplyPaste').addEventListener('click', () => {
+      const text = document.getElementById('pasteTextarea').value.trim();
+      if (!text) { showToast('Please paste data before applying.', 'error'); return; }
+      const lines = text.split('\n');
+      const records = [];
+      lines.forEach((line, idx) => {
+        const parts = line.includes('\t') ? line.split('\t') : line.split(',');
+        if (parts.length < 2) return;
+        const so = parts[0].trim();
+        const branch = parts[1] ? parts[1].trim() : 'Gurgaon-CE';
+        const model = parts[2] ? parts[2].trim() : '';
+        const prod = normalizeProduct(parts[3] || '', model);
+        records.push({ so, branch, code: '4903753', model, product: prod });
+      });
+      if (records.length === 0) { showToast('Could not parse valid records.', 'error'); return; }
+      closePasteModal();
+      updateSlotState(currentPasteSlot, `Pasted Data (${records.length} rows)`, records);
+    });
+
+    // --- 7. INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+      setupDropZone('dropZoneMrng', 'fileMrng', 'mrng');
+      setupDropZone('dropZoneInflow', 'fileInflow', 'inflow');
+      setupDropZone('dropZoneCurrent', 'fileCurrent', 'current');
+
+      document.getElementById('btnTopLoadSample').addEventListener('click', loadSampleData);
+      document.getElementById('btnLoadSampleFiles').addEventListener('click', loadSampleData);
+      document.getElementById('btnTopCopyMail').addEventListener('click', copyCloserReportToMail);
+      document.getElementById('btnCopyCloserHtml').addEventListener('click', copyCloserReportToMail);
+      document.getElementById('btnTopExportExcel').addEventListener('click', exportCloserToExcel);
+      document.getElementById('btnExportCloserExcel').addEventListener('click', exportCloserToExcel);
+
+      document.getElementById('btnClearAll').addEventListener('click', () => {
+        closerState.mrngRecords = [];
+        closerState.inflowRecords = [];
+        closerState.currentRecords = [];
+        ['Mrng', 'Inflow', 'Current'].forEach(key => {
+          document.getElementById(`dropPrompt${key}`).classList.remove('hidden');
+          document.getElementById(`dropSuccess${key}`).classList.add('hidden');
+          const badge = document.getElementById(`badge${key}`);
+          badge.textContent = 'Pending File';
+          badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600';
+        });
+        computeAndRenderCloserReport();
+        showToast('All slots cleared.');
+      });
+
+      // View Tab Buttons
+      const tabProducts = document.getElementById('tabBtnProducts');
+      const tabBranches = document.getElementById('tabBtnBranches');
+
+      tabProducts.addEventListener('click', () => {
+        closerState.activeView = 'products';
+        tabProducts.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-slate-900 shadow-sm';
+        tabBranches.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition';
+        computeAndRenderCloserReport();
+      });
+
+      tabBranches.addEventListener('click', () => {
+        closerState.activeView = 'branches';
+        tabBranches.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-slate-900 shadow-sm';
+        tabProducts.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition';
+        computeAndRenderCloserReport();
+      });
+
+      // Automatically load sample data on initial load so the user sees immediate results!
+      loadSampleData();
+    });
+  </script>
+
+  <script src="/assets/js/main.js"></script>
+</body>
+</html>

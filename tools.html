@@ -24,7 +24,7 @@
   <!-- TOP NAVBAR -->
   <nav class="top-nav glass-nav">
     <div class="nav-inner">
-      <a href="index.html" class="nav-brand">
+      <a href="/index.html" class="nav-brand">
         <div class="brand-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
@@ -32,14 +32,143 @@
         </div>
         <span class="brand-name">GSPN Tools</span>
       </a>
+
+      <!-- Desktop Nav Links with Dropdown Menus -->
       <div class="nav-links">
-        <a href="index.html" class="nav-link">Home</a>
-        <a href="tools.html" class="nav-link active">Tools</a>
-        <a href="custom-template.html" class="nav-link">Template Builder</a>
-        <a href="reports.html" class="nav-link">Reports</a>
-        <a href="openPending.html" class="nav-link">Open Pending</a>
-        <a href="reportMaking.html" class="nav-link">Report Making</a>
-        <a href="formats.html" class="nav-link">Formats</a>
+        <a href="/index.html" class="nav-link" id="navHome">Home</a>
+
+        <!-- Tools Dropdown (Extraction + Template Builder) -->
+        <div class="nav-dropdown" id="dropdownTools">
+          <button type="button" class="nav-link nav-dropdown-btn active" aria-haspopup="true" aria-expanded="false">
+            <span>Tools</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu">
+            <a href="/tools.html" class="dropdown-item active">
+              <div class="dropdown-icon icon-blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Data Extraction &amp; Combiner</span>
+                <span class="dropdown-desc">Print Command &amp; Management Lite extractor</span>
+              </div>
+            </a>
+            <a href="/custom-template.html" class="dropdown-item">
+              <div class="dropdown-icon icon-cyan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Template Builder</span>
+                <span class="dropdown-desc">Custom column layout &amp; export profiles</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Reports Dropdown (Two Options: Master Reports & SVC Reports) -->
+        <div class="nav-dropdown" id="dropdownReports">
+          <button type="button" class="nav-link nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+            <span>Reports</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu dropdown-menu-wide">
+            <!-- Option 1: Master Reports (मास्टर रिपोर्ट) -->
+            <div class="dropdown-section">
+              <div class="dropdown-section-header">
+                <span class="section-tag master-tag">Master Reports</span>
+                <span class="section-sub">Executive &amp; Operations</span>
+              </div>
+              <a href="/openPending.html" class="dropdown-item">
+                <div class="dropdown-icon icon-rose">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Open Pending Report</span>
+                    <span class="badge-mini-live">Live Daily</span>
+                  </div>
+                  <span class="dropdown-desc">RC-GD daily tracking, aging matrix &amp; branches</span>
+                </div>
+              </a>
+              <a href="/reportMaking.html" class="dropdown-item">
+                <div class="dropdown-icon icon-blue">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <span class="dropdown-title">Report Maker</span>
+                  <span class="dropdown-desc">Multi-SVC service reporter &amp; mail compiler</span>
+                </div>
+              </a>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            <!-- Option 2: SVC Reports (एसवीसी यानी सर्विस सेंटर) -->
+            <div class="dropdown-section">
+              <div class="dropdown-section-header">
+                <span class="section-tag svc-tag">SVC (Service Center)</span>
+                <span class="section-sub">Center Analytics &amp; TAT</span>
+              </div>
+              <a href="/reports.html" class="dropdown-item">
+                <div class="dropdown-icon icon-orange">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <span class="dropdown-title">SVC Reports &amp; Analytics</span>
+                  <span class="dropdown-desc">TAT performance, aging distribution &amp; summaries</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Context Dropdown (Folder: Dictionary + Formats) -->
+        <div class="nav-dropdown" id="dropdownContext">
+          <button type="button" class="nav-link nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+            <span>Context</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu">
+            <a href="/Context.html" class="dropdown-item">
+              <div class="dropdown-icon icon-purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Context &amp; Column Dictionary</span>
+                <span class="dropdown-desc">28 Standard GGN fields &amp; SVC rules</span>
+              </div>
+            </a>
+            <a href="/context/formats.html" class="dropdown-item">
+              <div class="dropdown-icon icon-green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Formats &amp; Templates</span>
+                <span class="dropdown-desc">Management Lite &amp; Print Command specs</span>
+              </div>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
@@ -257,14 +386,38 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- BOTTOM NAVBAR -->
-  <nav class="bottom-nav glass-nav">
+  <nav class="bottom-nav glass-nav" id="bottomNav">
     <div class="bottom-nav-inner">
-      <a href="index.html" class="bottom-nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
-      <a href="tools.html" class="bottom-nav-item active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span>Tools</span></a>
-      <a href="openPending.html" class="bottom-nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span>Pending</span></a>
-      <a href="reports.html" class="bottom-nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reports</span></a>
-      <a href="formats.html" class="bottom-nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Formats</span></a>
-      <a href="learning.html" class="bottom-nav-item bottom-nav-learn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg><span>Learning</span></a>
+      <a href="/index.html" class="bottom-nav-item" id="navHome">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="/tools.html" class="bottom-nav-item active" id="navTools">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+        <span>Tools</span>
+      </a>
+      <a href="/openPending.html" class="bottom-nav-item" id="navMaster">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <span>Master</span>
+      </a>
+      <a href="/reports.html" class="bottom-nav-item" id="navSvcReports">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span>SVC</span>
+      </a>
+      <a href="/Context.html" class="bottom-nav-item" id="navContext">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        <span>Context</span>
+      </a>
     </div>
   </nav>
 

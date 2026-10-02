@@ -1,0 +1,8 @@
+{
+  "name": "GSPN Helper Tools",
+  "description": "A web-based toolkit for Samsung Service Portal data extraction, formatting, and Excel export.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
