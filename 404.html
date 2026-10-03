@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found — GSPN Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script>
+    // GitHub Pages Smart Redirect: Handles clean URLs and direct routing
+    (function() {
+      var pathname = window.location.pathname;
+      var segments = pathname.split('/').filter(Boolean);
+      var lastSegment = segments.pop() || '';
+      var cleanName = lastSegment.toLowerCase().replace(/\.html$/, '');
+
+      var routeMap = {
+        '': 'index.html',
+        'home': 'index.html',
+        'index': 'index.html',
+        'tools': 'tools.html',
+        'custom-template': 'custom-template.html',
+        'template': 'custom-template.html',
+        'openpending': 'openPending.html',
+        'open-pending': 'openPending.html',
+        'reportmaking': 'reportMaking.html',
+        'report-making': 'reportMaking.html',
+        'mastercloser': 'masterCloser.html',
+        'master-closer': 'masterCloser.html',
+        'closer': 'masterCloser.html',
+        'reports': 'reports.html',
+        'svc': 'reports.html',
+        'context': 'Context.html',
+        'formats': 'formats.html',
+        'learning': 'Context.html'
+      };
+
+      var targetPage = routeMap[cleanName];
+      if (targetPage) {
+        // Calculate relative path redirect
+        var currentDir = pathname.substring(0, pathname.lastIndexOf('/') + 1);
+        window.location.replace(currentDir + targetPage + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      margin: 0;
+    }
+    .error-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 640px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+    }
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-top: 24px;
+      text-align: left;
+    }
+    .nav-box {
+      display: flex;
+      flex-direction: column;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      text-decoration: none;
+      color: #1e293b;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+    }
+    .nav-box:hover {
+      border-color: #2563eb;
+      background: #eff6ff;
+      transform: translateY(-2px);
+    }
+    .nav-box-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f2e59;
+    }
+    .nav-box-desc {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-card">
+    <div style="display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:14px; background:#eff6ff; color:#2563eb; margin-bottom:16px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
+    <h1 style="font-family:'Outfit',sans-serif; font-size:24px; font-weight:800; margin:0 0 8px; color:#0f2e59;">Page Not Found</h1>
+    <p style="font-size:13px; color:#64748b; margin:0 0 20px;">The requested URL could not be located. Choose a module from the portal below:</p>
+
+    <div class="nav-grid">
+      <a href="index.html" class="nav-box">
+        <span class="nav-box-title">Home Portal</span>
+        <span class="nav-box-desc">Main Dashboard</span>
+      </a>
+      <a href="tools.html" class="nav-box">
+        <span class="nav-box-title">Extraction Tools</span>
+        <span class="nav-box-desc">Print &amp; Mgmt Lite</span>
+      </a>
+      <a href="custom-template.html" class="nav-box">
+        <span class="nav-box-title">Template Builder</span>
+        <span class="nav-box-desc">Column layout profiles</span>
+      </a>
+      <a href="openPending.html" class="nav-box">
+        <span class="nav-box-title">Open Pending</span>
+        <span class="nav-box-desc">Daily RC-GD Matrix</span>
+      </a>
+      <a href="reportMaking.html" class="nav-box">
+        <span class="nav-box-title">Report Maker</span>
+        <span class="nav-box-desc">Multi-SVC Reporter</span>
+      </a>
+      <a href="masterCloser.html" class="nav-box">
+        <span class="nav-box-title">Master Closer</span>
+        <span class="nav-box-desc">Closer % Analytics</span>
+      </a>
+      <a href="reports.html" class="nav-box">
+        <span class="nav-box-title">SVC Reports</span>
+        <span class="nav-box-desc">Center TAT Analytics</span>
+      </a>
+      <a href="Context.html" class="nav-box">
+        <span class="nav-box-title">Context &amp; Dict</span>
+        <span class="nav-box-desc">28 Standard Fields</span>
+      </a>
+      <a href="formats.html" class="nav-box">
+        <span class="nav-box-title">Formats</span>
+        <span class="nav-box-desc">File Specifications</span>
+      </a>
+    </div>
+
+    <div style="margin-top:24px;">
+      <a href="index.html" style="display:inline-flex; align-items:center; gap:6px; padding:8px 18px; border-radius:8px; background:#2563eb; color:white; font-size:12px; font-weight:700; text-decoration:none; box-shadow:0 2px 6px rgba(37,99,235,0.3);">
+        &larr; Return to Home
+      </a>
+    </div>
+  </div>
+</body>
+</html>

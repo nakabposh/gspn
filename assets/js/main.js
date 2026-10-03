@@ -89,8 +89,15 @@
   // ── Navigation Active Highlight ─────────────────────────────────────────────
   var currentPath = window.location.pathname;
   var currentPage = currentPath.split('/').pop() || 'index.html';
+  if (!currentPage || currentPage === '') currentPage = 'index.html';
   if (currentPath.indexOf('/context/') !== -1) {
     currentPage = 'context/' + currentPage;
+  }
+
+  // Normalize extension if clean URLs are used (e.g. /tools -> tools.html)
+  var plainPage = currentPage.replace('context/', '');
+  if (plainPage && plainPage.indexOf('.') === -1) {
+    plainPage = plainPage + '.html';
   }
 
   // Define route-to-group mappings
@@ -105,8 +112,9 @@
   topNavLinks.forEach(function(link) {
     var href = link.getAttribute('href') || '';
     var pageName = href.split('/').pop();
+    if (pageName && pageName.indexOf('.') === -1) pageName = pageName + '.html';
     link.classList.remove('active');
-    if (pageName === currentPage || (currentPage === 'index.html' && (pageName === 'index.html' || href === '/'))) {
+    if (pageName === plainPage || (plainPage === 'index.html' && (pageName === 'index.html' || href === '/' || href === 'index.html' || href === './'))) {
       link.classList.add('active');
     }
   });
@@ -115,8 +123,6 @@
   var toolsDd = document.getElementById('dropdownTools');
   var reportsDd = document.getElementById('dropdownReports');
   var contextDd = document.getElementById('dropdownContext');
-
-  var plainPage = currentPage.replace('context/', '');
 
   if (toolsDd && routeMap.tools.indexOf(plainPage) !== -1) {
     var b = toolsDd.querySelector('.nav-dropdown-btn');
@@ -141,7 +147,8 @@
   dropdownItems.forEach(function(item) {
     var href = item.getAttribute('href') || '';
     var itemPage = href.split('/').pop();
-    if (itemPage === plainPage || (currentPage.indexOf('formats') !== -1 && itemPage.indexOf('formats') !== -1)) {
+    if (itemPage && itemPage.indexOf('.') === -1) itemPage = itemPage + '.html';
+    if (itemPage === plainPage || (plainPage.indexOf('formats') !== -1 && itemPage.indexOf('formats') !== -1)) {
       item.classList.add('active');
     }
   });
@@ -151,11 +158,12 @@
   bottomNavItems.forEach(function(item) {
     var href = item.getAttribute('href') || '';
     var itemPage = href.split('/').pop();
+    if (itemPage && itemPage.indexOf('.') === -1) itemPage = itemPage + '.html';
     item.classList.remove('active');
 
     if (itemPage === plainPage || (plainPage === 'index.html' && itemPage === 'index.html')) {
       item.classList.add('active');
-    } else if (item.id === 'navMaster' && (plainPage === 'openPending.html' || plainPage === 'reportMaking.html')) {
+    } else if (item.id === 'navMaster' && (plainPage === 'openPending.html' || plainPage === 'reportMaking.html' || plainPage === 'masterCloser.html')) {
       item.classList.add('active');
     } else if (item.id === 'navSvcReports' && plainPage === 'reports.html') {
       item.classList.add('active');

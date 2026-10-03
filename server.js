@@ -9,14 +9,13 @@ const app = express();
 const PORT = 3000;
 const HOST = '0.0.0.0';
 
-// Redirect learning to Context.html
-app.get(['/learning', '/learning.html'], (req, res) => {
+// Redirect clean URLs to .html files
+app.get('/learning', (req, res) => {
   res.redirect('/Context.html');
 });
 
-// Redirect formats to /context/formats.html
-app.get(['/formats', '/formats.html'], (req, res) => {
-  res.redirect('/context/formats.html');
+app.get('/formats', (req, res) => {
+  res.redirect('/formats.html');
 });
 
 // Handle /context root redirect to Context.html
@@ -29,9 +28,14 @@ app.use(express.static(__dirname, {
   extensions: ['html', 'htm']
 }));
 
-// Fallback to index.html for root or missing routes
+// Root route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// 404 Fallback for unmatched routes
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, '404.html'));
 });
 
 app.listen(PORT, HOST, () => {
