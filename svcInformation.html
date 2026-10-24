@@ -771,7 +771,11 @@
             <h3 style="font-size: 15px; font-weight: 700; color: #0f172a;">Array List JSON Data</h3>
             <p style="font-size: 12px; color: #64748b;">Authoritative JSON array structure for API integration, website state, and automated reporting.</p>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button id="btnOpenGitHubSync" class="btn-action" style="padding: 7px 14px; font-size: 12px; background: #0f172a; color: #ffffff; border: 1px solid #334155;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              <span>🚀 Push to GitHub (nakabposh.github.io)</span>
+            </button>
             <button id="btnCopyJson" class="btn-action btn-action-primary" style="padding: 7px 14px; font-size: 12px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               <span>Copy JSON Array</span>
@@ -783,6 +787,19 @@
             <button id="btnApplyEditedJson" class="btn-action btn-action-outline" style="padding: 7px 14px; font-size: 12px; color: #1e40af;">
               <span>Apply Edited JSON</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Note banner explaining GitHub Pages static hosting & how to update context/manpower.json -->
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; font-size: 12px; color: #1e3a8a; display: flex; align-items: flex-start; gap: 10px;">
+          <span style="font-size: 16px;">💡</span>
+          <div style="line-height: 1.5;">
+            <strong>Why doesn't https://nakabposh.github.io/gspn/context/manpower.json update automatically?</strong><br>
+            GitHub Pages is a <em>static site</em>. When you edit records in the browser, changes are saved to your browser's local memory. To update the public file <code>https://nakabposh.github.io/gspn/context/manpower.json</code> across production so all devices see the updated Team Leaders and engineers:
+            <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+              <button id="btnOpenGitHubSyncFromBanner" class="btn-action" style="background: #0f172a; color: #fff; padding: 5px 12px; font-size: 11px; border-radius: 6px; font-weight: 600;">🚀 1-Click Commit to GitHub</button>
+              <button id="btnDownloadJsonFromBanner" class="btn-action" style="background: #0284c7; color: #fff; padding: 5px 12px; font-size: 11px; border-radius: 6px; font-weight: 600;">📥 Download &amp; Push manpower.json</button>
+            </div>
           </div>
         </div>
 
@@ -947,6 +964,80 @@
         <button type="button" id="btnCancelBulkModal" class="btn-action btn-action-outline">Cancel</button>
         <button type="button" id="btnExecuteBulkImport" class="btn-action btn-action-primary">Process &amp; Import</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: GITHUB DIRECT COMMIT & PUSH (nakabposh.github.io) -->
+  <!-- ======================================================== -->
+  <div id="gitHubSyncModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 580px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">🚀</span>
+          <div>
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 700; color: #0f172a; margin: 0;">Push to GitHub (nakabposh.github.io)</h3>
+            <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">Update public <code>context/manpower.json</code> across production via GitHub REST API</p>
+          </div>
+        </div>
+        <button id="btnCloseGitHubModalX" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer;">&times;</button>
+      </div>
+
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #166534; line-height: 1.5;">
+        <strong>How this works:</strong> GitHub Pages is a static site. This tool sends an authenticated Git commit directly to your GitHub repository (<code>nakabposh/gspn</code>) to update <code>context/manpower.json</code>. Once committed, GitHub Pages deploys the updated file in ~60 seconds.
+      </div>
+
+      <form id="gitHubSyncForm" onsubmit="return false;">
+        <div class="form-grid-2" style="margin-bottom: 12px;">
+          <div class="form-group">
+            <label class="form-label" for="ghOwner">GitHub Username / Owner</label>
+            <input type="text" id="ghOwner" class="form-control" value="nakabposh" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="ghRepo">Repository Name</label>
+            <input type="text" id="ghRepo" class="form-control" value="gspn" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-bottom: 12px;">
+          <div class="form-group">
+            <label class="form-label" for="ghPath">Target File Path</label>
+            <input type="text" id="ghPath" class="form-control" value="context/manpower.json" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="ghBranch">Branch</label>
+            <input type="text" id="ghBranch" class="form-control" value="main" placeholder="main" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <label class="form-label" for="ghToken" style="margin-bottom: 0;">GitHub Personal Access Token (PAT) *</label>
+            <a href="https://github.com/settings/tokens/new?scopes=repo&description=GSPN%20Manpower%20Sync" target="_blank" style="color: #2563eb; font-weight: 600; font-size: 11px; text-decoration: underline;">Generate Token (1-click) &rarr;</a>
+          </div>
+          <input type="password" id="ghToken" class="form-control" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx or github_pat_xxxx" autocomplete="off">
+          <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">Requires token with <code>repo</code> scope (classic) or <code>Contents: Read and write</code> (fine-grained). Token is stored only in your local browser.</span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="ghCommitMsg">Commit Message</label>
+          <input type="text" id="ghCommitMsg" class="form-control" value="Update context/manpower.json manpower roster">
+        </div>
+
+        <div id="ghSyncStatusBox" style="display: none; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 14px; line-height: 1.5;"></div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 18px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+          <button type="button" id="btnDownloadJsonFromModal" class="btn-action btn-action-outline" style="font-size: 11px;">
+            📥 Or Download File
+          </button>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" id="btnCancelGitHubModal" class="btn-action btn-action-outline">Cancel</button>
+            <button type="button" id="btnExecuteGitHubPush" class="btn-action btn-action-primary" style="background: #24292f; border-color: #24292f;">
+              <span>🚀 Commit &amp; Push to GitHub</span>
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1330,44 +1421,90 @@
       // Auto-Get: Automatically retrieved when re-opening or refreshing
       async function autoGetWebsiteDetails() {
         let loaded = false;
+        const cacheBust = `_t=${Date.now()}`;
+        const candidateUrls = [
+          `context/manpower.json?${cacheBust}`,
+          `./context/manpower.json?${cacheBust}`,
+          `https://nakabposh.github.io/gspn/context/manpower.json?${cacheBust}`,
+          `/api/manpower?${cacheBust}`,
+          `/context/manpower.json?${cacheBust}`
+        ];
 
-        // 1. Check LocalStorage first
+        let remoteList = null;
+        let sourceLabel = 'Static File';
+
+        // 1. Probe candidate URLs
+        for (const url of candidateUrls) {
+          try {
+            const resp = await fetch(url, { cache: 'no-store' });
+            if (resp.ok) {
+              const resJson = await resp.json();
+              const list = Array.isArray(resJson) ? resJson : (resJson.data && Array.isArray(resJson.data) ? resJson.data : null);
+              if (list && list.length > 0) {
+                remoteList = list;
+                sourceLabel = url.includes('nakabposh.github.io') ? 'GitHub Pages' : (url.includes('api') ? 'Server' : 'Disk/Repo');
+                console.log(`[SVC Information] Loaded ${list.length} records from: ${url}`);
+                break;
+              }
+            }
+          } catch (e) {
+            // continue to next candidate
+          }
+        }
+
+        // 2. Check LocalStorage
+        let localList = null;
         try {
           const localData = localStorage.getItem(STORAGE_KEY);
-          const localTime = localStorage.getItem(STORAGE_TIMESTAMP_KEY);
           if (localData) {
             const parsed = JSON.parse(localData);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              manpowerList = parsed;
-              storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
-              storageTimestamp.textContent = localTime ? `Saved ${localTime}` : '(Local)';
-              loaded = true;
+              localList = parsed;
             }
           }
         } catch (e) {
           console.warn('LocalStorage read error:', e);
         }
 
-        // 2. Fallback to /api/manpower or Default Seed Data
-        if (!loaded) {
-          try {
-            const resp = await fetch('/api/manpower');
-            if (resp.ok) {
-              const resJson = await resp.json();
-              if (resJson.success && Array.isArray(resJson.data) && resJson.data.length > 0) {
-                manpowerList = resJson.data;
-                storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
-                storageTimestamp.textContent = '(Server)';
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(manpowerList));
-                loaded = true;
-              }
-            }
-          } catch (e) {
-            console.warn('API fetch error:', e);
+        // 3. Resolve and Merge
+        if (remoteList && localList) {
+          // If localList only had the 12 dummy records from initial template, discard it for real remote records
+          const isDummy = localList.length <= 12 && localList.some(m => m.name === 'Ramesh Kumar' && m.tlName === 'Vikram Singh');
+          if (isDummy && remoteList.length > 12) {
+            manpowerList = remoteList;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(manpowerList));
+            storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
+            storageTimestamp.textContent = `(${sourceLabel})`;
+          } else {
+            // Merge: baseline remoteList + local edits take priority
+            const mapById = new Map();
+            remoteList.forEach(m => {
+              const k = String(m.telNo || m.engineerCode || m.name).trim();
+              if (k) mapById.set(k, m);
+            });
+            localList.forEach(p => {
+              const k = String(p.telNo || p.engineerCode || p.name).trim();
+              if (k) mapById.set(k, p);
+            });
+            manpowerList = Array.from(mapById.values());
+            storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
+            storageTimestamp.textContent = `(Merged Local + ${sourceLabel})`;
           }
+          loaded = true;
+        } else if (remoteList) {
+          manpowerList = remoteList;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(manpowerList));
+          storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
+          storageTimestamp.textContent = `(${sourceLabel})`;
+          loaded = true;
+        } else if (localList) {
+          manpowerList = localList;
+          storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
+          storageTimestamp.textContent = '(Local)';
+          loaded = true;
         }
 
-        // 3. Fallback to built-in sample data if completely empty
+        // 4. Fallback to built-in sample data only if completely empty
         if (!loaded) {
           manpowerList = getDefaultSampleData();
           saveToWebsiteDetails(false);
@@ -1820,6 +1957,155 @@
             showToast(`Applied ${parsed.length} records from JSON editor!`);
           } catch (err) {
             showToast(`JSON Parse Error: ${err.message}`, false);
+          }
+        });
+
+        // GitHub Sync Modal Controls
+        const ghModal = document.getElementById('gitHubSyncModal');
+        const ghTokenInput = document.getElementById('ghToken');
+        const ghOwnerInput = document.getElementById('ghOwner');
+        const ghRepoInput = document.getElementById('ghRepo');
+        const ghPathInput = document.getElementById('ghPath');
+        const ghBranchInput = document.getElementById('ghBranch');
+        const ghStatusBox = document.getElementById('ghSyncStatusBox');
+
+        function openGitHubSyncModal() {
+          const savedToken = localStorage.getItem('gspn_github_pat');
+          if (savedToken) ghTokenInput.value = savedToken;
+          ghStatusBox.style.display = 'none';
+          ghModal.classList.add('open');
+        }
+
+        const openBtn1 = document.getElementById('btnOpenGitHubSync');
+        if (openBtn1) openBtn1.addEventListener('click', openGitHubSyncModal);
+
+        const openBtn2 = document.getElementById('btnOpenGitHubSyncFromBanner');
+        if (openBtn2) openBtn2.addEventListener('click', openGitHubSyncModal);
+
+        document.getElementById('btnCloseGitHubModalX').addEventListener('click', () => {
+          ghModal.classList.remove('open');
+        });
+        document.getElementById('btnCancelGitHubModal').addEventListener('click', () => {
+          ghModal.classList.remove('open');
+        });
+
+        function triggerManpowerDownload() {
+          const jsonStr = JSON.stringify(manpowerList, null, 2);
+          const blob = new Blob([jsonStr], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `manpower.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('Downloaded manpower.json');
+        }
+
+        const dlBannerBtn = document.getElementById('btnDownloadJsonFromBanner');
+        if (dlBannerBtn) dlBannerBtn.addEventListener('click', triggerManpowerDownload);
+
+        const dlModalBtn = document.getElementById('btnDownloadJsonFromModal');
+        if (dlModalBtn) dlModalBtn.addEventListener('click', triggerManpowerDownload);
+
+        // Execute Direct GitHub Commit via REST API
+        document.getElementById('btnExecuteGitHubPush').addEventListener('click', async () => {
+          const token = ghTokenInput.value.trim();
+          const owner = ghOwnerInput.value.trim();
+          const repo = ghRepoInput.value.trim();
+          const path = ghPathInput.value.trim();
+          const branch = ghBranchInput.value.trim() || 'main';
+          const commitMsg = document.getElementById('ghCommitMsg').value.trim() || 'Update context/manpower.json';
+
+          if (!token) {
+            ghStatusBox.style.display = 'block';
+            ghStatusBox.style.background = '#fef2f2';
+            ghStatusBox.style.border = '1px solid #fecaca';
+            ghStatusBox.style.color = '#991b1b';
+            ghStatusBox.innerHTML = '<strong>Error:</strong> Please provide a GitHub Personal Access Token (PAT). Click the "Generate Token" link above to create one with <code>repo</code> permissions.';
+            return;
+          }
+
+          // Save token locally
+          localStorage.setItem('gspn_github_pat', token);
+
+          ghStatusBox.style.display = 'block';
+          ghStatusBox.style.background = '#eff6ff';
+          ghStatusBox.style.border = '1px solid #bfdbfe';
+          ghStatusBox.style.color = '#1e40af';
+          ghStatusBox.innerHTML = 'Connecting to GitHub REST API... Checking current file SHA on branch <code>' + branch + '</code>...';
+
+          try {
+            // 1. Fetch current file to get SHA (if file exists)
+            const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+            const getRes = await fetch(getUrl, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+              }
+            });
+
+            let currentSha = null;
+            if (getRes.ok) {
+              const fileData = await getRes.json();
+              currentSha = fileData.sha;
+            } else if (getRes.status === 401) {
+              throw new Error('401 Bad Credentials: Your GitHub Token is invalid or expired. Please generate a new one.');
+            } else if (getRes.status === 404) {
+              // file doesn't exist yet, or branch is master instead of main
+              console.log('File does not exist yet or new path; creating fresh.');
+            }
+
+            // 2. Prepare UTF-8 Base64 payload
+            const rawJson = JSON.stringify(manpowerList, null, 2);
+            const base64Content = btoa(unescape(encodeURIComponent(rawJson)));
+
+            const putUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+            const putBody = {
+              message: commitMsg,
+              content: base64Content,
+              branch: branch
+            };
+            if (currentSha) {
+              putBody.sha = currentSha;
+            }
+
+            ghStatusBox.innerHTML = 'Pushing updated JSON commit to GitHub repository <code>' + owner + '/' + repo + '</code>...';
+
+            const putRes = await fetch(putUrl, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(putBody)
+            });
+
+            const resultData = await putRes.json();
+
+            if (putRes.ok) {
+              const commitUrl = resultData.commit?.html_url || `https://github.com/${owner}/${repo}/commits/${branch}`;
+              ghStatusBox.style.background = '#f0fdf4';
+              ghStatusBox.style.border = '1px solid #86efac';
+              ghStatusBox.style.color = '#166534';
+              ghStatusBox.innerHTML = `
+                <strong>Success! 🎉</strong> Successfully committed <code>${path}</code> to <strong>${owner}/${repo}</strong> (${manpowerList.length} records).<br>
+                <div style="margin-top: 6px;">
+                  <a href="${commitUrl}" target="_blank" style="color: #15803d; font-weight: bold; text-decoration: underline;">View Commit on GitHub &rarr;</a>
+                </div>
+                <div style="margin-top: 4px; font-size: 11px; color: #166534;">
+                  GitHub Pages will build and deploy the update to <code>https://${owner}.github.io/${repo}/${path}</code> in 30-60 seconds!
+                </div>
+              `;
+              showToast(`Committed ${manpowerList.length} records to GitHub!`);
+            } else {
+              throw new Error(resultData.message || `GitHub API error: HTTP ${putRes.status}`);
+            }
+          } catch (err) {
+            ghStatusBox.style.background = '#fef2f2';
+            ghStatusBox.style.border = '1px solid #fecaca';
+            ghStatusBox.style.color = '#991b1b';
+            ghStatusBox.innerHTML = `<strong>Commit Failed:</strong> ${err.message}<br><small style="color: #7f1d1d;">Tip: Check that your token has <code>repo</code> permissions and repository name is <code>${repo}</code>.</small>`;
           }
         });
       });

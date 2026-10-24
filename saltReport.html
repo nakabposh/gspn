@@ -899,48 +899,50 @@
     // ═════════════════════════════════════════════════════════════════════════
     async function loadManpower() {
       let list = [];
-      // 1. Fetch from authoritative backend /api/manpower (reads context/manpower.json on disk)
-      try {
-        const res = await fetch('/api/manpower');
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            list = json.data;
-          }
-        }
-      } catch (e) {
-        console.warn('API manpower fetch failed:', e);
-      }
+      const cacheBust = `_t=${Date.now()}`;
+      // Robust candidate URLs supporting local dev, GitHub Pages (/gspn/), and absolute CDN
+      const candidateUrls = [
+        `context/manpower.json?${cacheBust}`,
+        `./context/manpower.json?${cacheBust}`,
+        `https://nakabposh.github.io/gspn/context/manpower.json?${cacheBust}`,
+        `/api/manpower?${cacheBust}`,
+        `/context/manpower.json?${cacheBust}`
+      ];
 
-      // 2. Fallback to /context/manpower.json directly if API failed
-      if (list.length === 0) {
+      for (const url of candidateUrls) {
         try {
-          const res2 = await fetch('/context/manpower.json');
-          if (res2.ok) {
-            const fJson = await res2.json();
-            if (Array.isArray(fJson) && fJson.length > 0) {
-              list = fJson;
+          const res = await fetch(url, { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json();
+            const data = Array.isArray(json) ? json : (json.data && Array.isArray(json.data) ? json.data : null);
+            if (data && data.length > 0) {
+              list = data;
+              console.log(`[SALT] Loaded ${data.length} manpower records from: ${url}`);
+              break;
             }
           }
-        } catch (e2) {
-          console.warn('Direct file manpower fetch failed:', e2);
+        } catch (e) {
+          // continue to next candidate
         }
       }
 
-      // 3. Merge live additions from localStorage (from SVC Information subpage in Context)
+      // Merge live additions / edits from localStorage (from SVC Information subpage in Context)
       try {
         const cached = localStorage.getItem('gspn_manpower_roster');
         if (cached) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const idSet = new Set(list.map(m => String(m.telNo || m.engineerCode || m.name).trim()));
-            parsed.forEach(p => {
-              const key = String(p.telNo || p.engineerCode || p.name).trim();
-              if (!idSet.has(key)) {
-                list.push(p);
-                idSet.add(key);
-              }
+            const mapById = new Map();
+            list.forEach(m => {
+              const k = String(m.telNo || m.engineerCode || m.name).trim();
+              if (k) mapById.set(k, m);
             });
+            // Local edits take precedence over remote static
+            parsed.forEach(p => {
+              const k = String(p.telNo || p.engineerCode || p.name).trim();
+              if (k) mapById.set(k, p);
+            });
+            list = Array.from(mapById.values());
           }
         }
       } catch (e3) {
