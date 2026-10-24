@@ -951,12 +951,15 @@
         <textarea id="bulkPasteInput" class="form-control" style="font-family: 'Fira Code', monospace; font-size: 11px; height: 180px; resize: vertical;" placeholder="P103	GURGAON	1	ENG-GGN-101	In-Home	Ramesh Kumar	9812345670	Active	Vikram Singh	Pooja Sharma"></textarea>
       </div>
 
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
-        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155; cursor: pointer;">
-          <input type="radio" name="bulkImportMode" value="append" checked> Append to existing list
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #1e3a8a; font-weight: 700; cursor: pointer;">
+          <input type="radio" name="bulkImportMode" value="smart_replace" checked> 🔄 Update &amp; Replace Existing Records
         </label>
-        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155; cursor: pointer;">
-          <input type="radio" name="bulkImportMode" value="replace"> Replace entire list
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #b91c1c; font-weight: 600; cursor: pointer;">
+          <input type="radio" name="bulkImportMode" value="replace_all"> ⚠️ Replace Entire List
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #64748b; cursor: pointer;">
+          <input type="radio" name="bulkImportMode" value="append"> Append Only
         </label>
       </div>
 
@@ -1092,6 +1095,79 @@
         toast._timeout = setTimeout(() => {
           toast.className = '';
         }, 3200);
+      }
+
+      // ==========================================================
+      // EXACT DEDUPLICATION & RECORD MATCHER
+      // Guarantees update events REPLACE existing records, NEVER append duplicates
+      // ==========================================================
+      function findMatchingEngineerIndex(list, target, excludeIdx = -1) {
+        if (!Array.isArray(list) || !target) return -1;
+        const targetCode = String(target.engineerCode || '').trim().toLowerCase();
+        const targetTel = String(target.telNo || '').replace(/\D/g, '');
+        const targetName = String(target.name || '').trim().toLowerCase();
+        const targetNo = parseInt(target.no, 10);
+
+        for (let i = 0; i < list.length; i++) {
+          if (i === excludeIdx) continue;
+          const cur = list[i];
+          if (!cur) continue;
+
+          // 1. Match by unique employee engineerCode
+          if (targetCode && String(cur.engineerCode || '').trim().toLowerCase() === targetCode) {
+            return i;
+          }
+          // 2. Match by phone digits (7+ digits)
+          const curTel = String(cur.telNo || '').replace(/\D/g, '');
+          if (targetTel.length >= 7 && curTel.length >= 7 && targetTel === curTel) {
+            return i;
+          }
+          // 3. Match by full name
+          if (targetName && String(cur.name || '').trim().toLowerCase() === targetName) {
+            return i;
+          }
+          // 4. Match by Sequence No if same branch
+          if (targetNo && cur.no === targetNo && target.branchCode && cur.branchCode === target.branchCode) {
+            return i;
+          }
+        }
+        return -1;
+      }
+
+      function deduplicateManpowerList(arr) {
+        if (!Array.isArray(arr)) return [];
+        const result = [];
+
+        for (let i = 0; i < arr.length; i++) {
+          const item = arr[i];
+          if (!item) continue;
+          const matchIdx = findMatchingEngineerIndex(result, item);
+          if (matchIdx !== -1) {
+            // Overwrite existing record with latest fields
+            result[matchIdx] = { ...result[matchIdx], ...item };
+          } else {
+            result.push({ ...item });
+          }
+        }
+        return result;
+      }
+
+      function smartMergeLists(baseList, updatedList) {
+        if (!Array.isArray(updatedList) || updatedList.length === 0) return deduplicateManpowerList(baseList);
+        if (!Array.isArray(baseList) || baseList.length === 0) return deduplicateManpowerList(updatedList);
+
+        const result = deduplicateManpowerList(baseList);
+        updatedList.forEach(item => {
+          if (!item) return;
+          const matchIdx = findMatchingEngineerIndex(result, item);
+          if (matchIdx !== -1) {
+            // Replace existing record with updated values
+            result[matchIdx] = { ...result[matchIdx], ...item };
+          } else {
+            result.push({ ...item });
+          }
+        });
+        return deduplicateManpowerList(result);
       }
 
       // Default Seed Data (Samsung ASC Standard Manpower)
@@ -1393,9 +1469,12 @@
       // ==========================================================
       function saveToWebsiteDetails(showFeedback = true) {
         try {
+          // Guarantee zero duplicates before saving
+          manpowerList = deduplicateManpowerList(manpowerList);
           const serialized = JSON.stringify(manpowerList);
           const nowStr = new Date().toLocaleTimeString();
           localStorage.setItem(STORAGE_KEY, serialized);
+          localStorage.setItem('gspn_manpower_roster', serialized);
           localStorage.setItem(STORAGE_TIMESTAMP_KEY, nowStr);
 
           // Also asynchronously save to server /api/manpower endpoint
@@ -1441,7 +1520,7 @@
               const resJson = await resp.json();
               const list = Array.isArray(resJson) ? resJson : (resJson.data && Array.isArray(resJson.data) ? resJson.data : null);
               if (list && list.length > 0) {
-                remoteList = list;
+                remoteList = deduplicateManpowerList(list);
                 sourceLabel = url.includes('nakabposh.github.io') ? 'GitHub Pages' : (url.includes('api') ? 'Server' : 'Disk/Repo');
                 console.log(`[SVC Information] Loaded ${list.length} records from: ${url}`);
                 break;
@@ -1455,50 +1534,43 @@
         // 2. Check LocalStorage
         let localList = null;
         try {
-          const localData = localStorage.getItem(STORAGE_KEY);
+          const localData = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('gspn_manpower_roster');
           if (localData) {
             const parsed = JSON.parse(localData);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              localList = parsed;
+              localList = deduplicateManpowerList(parsed);
             }
           }
         } catch (e) {
           console.warn('LocalStorage read error:', e);
         }
 
-        // 3. Resolve and Merge
+        // 3. Resolve and Smart Merge: local edits replace remote matching records, NEVER append duplicates
         if (remoteList && localList) {
           // If localList only had the 12 dummy records from initial template, discard it for real remote records
           const isDummy = localList.length <= 12 && localList.some(m => m.name === 'Ramesh Kumar' && m.tlName === 'Vikram Singh');
           if (isDummy && remoteList.length > 12) {
             manpowerList = remoteList;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(manpowerList));
+            saveToWebsiteDetails(false);
             storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
             storageTimestamp.textContent = `(${sourceLabel})`;
           } else {
-            // Merge: baseline remoteList + local edits take priority
-            const mapById = new Map();
-            remoteList.forEach(m => {
-              const k = String(m.telNo || m.engineerCode || m.name).trim();
-              if (k) mapById.set(k, m);
-            });
-            localList.forEach(p => {
-              const k = String(p.telNo || p.engineerCode || p.name).trim();
-              if (k) mapById.set(k, p);
-            });
-            manpowerList = Array.from(mapById.values());
+            // Smart Merge: Updated local records replace remote matching records without creating duplicates
+            manpowerList = smartMergeLists(remoteList, localList);
+            saveToWebsiteDetails(false);
             storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
-            storageTimestamp.textContent = `(Merged Local + ${sourceLabel})`;
+            storageTimestamp.textContent = `(Synced)`;
           }
           loaded = true;
         } else if (remoteList) {
           manpowerList = remoteList;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(manpowerList));
+          saveToWebsiteDetails(false);
           storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
           storageTimestamp.textContent = `(${sourceLabel})`;
           loaded = true;
         } else if (localList) {
           manpowerList = localList;
+          saveToWebsiteDetails(false);
           storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
           storageTimestamp.textContent = '(Local)';
           loaded = true;
@@ -1867,13 +1939,27 @@
           };
 
           if (editIdx >= 0 && editIdx < manpowerList.length) {
+            // Updating an existing engineer row: replace in-place
+            record.no = record.no || manpowerList[editIdx].no;
             manpowerList[editIdx] = record;
-            showToast(`Updated ${record.name}`);
+            showToast(`Updated ${record.name} (replaced existing record)`);
           } else {
-            manpowerList.push(record);
-            showToast(`Added ${record.name} to roster!`);
+            // Adding/Updating: check if engineer already exists by code, phone digits, or name
+            const matchIdx = findMatchingEngineerIndex(manpowerList, record);
+            if (matchIdx !== -1) {
+              // REPLACES THE EXISTING RECORD instead of appending!
+              record.no = record.no || manpowerList[matchIdx].no;
+              manpowerList[matchIdx] = record;
+              showToast(`Updated ${record.name} (replaced existing record #${record.no})`);
+            } else {
+              // Truly new engineer
+              manpowerList.push(record);
+              showToast(`Added ${record.name} to roster!`);
+            }
           }
 
+          // Clean & Deduplicate to guarantee zero duplicate records
+          manpowerList = deduplicateManpowerList(manpowerList);
           engineerModal.classList.remove('open');
           saveToWebsiteDetails(true);
           syncUi();
@@ -1900,17 +1986,35 @@
             return;
           }
 
-          const mode = document.querySelector('input[name="bulkImportMode"]:checked')?.value || 'append';
-          if (mode === 'replace') {
-            manpowerList = parsed;
+          const mode = document.querySelector('input[name="bulkImportMode"]:checked')?.value || 'smart_replace';
+
+          if (mode === 'replace_all') {
+            manpowerList = deduplicateManpowerList(parsed);
+            showToast(`Replaced entire roster with ${manpowerList.length} imported records!`);
+          } else if (mode === 'smart_replace') {
+            let replacedCount = 0;
+            let addedCount = 0;
+            parsed.forEach(row => {
+              const matchIdx = findMatchingEngineerIndex(manpowerList, row);
+              if (matchIdx !== -1) {
+                row.no = row.no || manpowerList[matchIdx].no;
+                manpowerList[matchIdx] = row; // REPLACES EXISTING
+                replacedCount++;
+              } else {
+                manpowerList.push(row);
+                addedCount++;
+              }
+            });
+            manpowerList = deduplicateManpowerList(manpowerList);
+            showToast(`Smart Update: Replaced ${replacedCount} existing & added ${addedCount} new records!`);
           } else {
-            manpowerList = manpowerList.concat(parsed);
+            manpowerList = deduplicateManpowerList(manpowerList.concat(parsed));
+            showToast(`Appended ${parsed.length} records!`);
           }
 
           bulkModal.classList.remove('open');
           saveToWebsiteDetails(true);
           syncUi();
-          showToast(`Successfully imported ${parsed.length} engineer records!`);
         });
 
         // File Upload Input

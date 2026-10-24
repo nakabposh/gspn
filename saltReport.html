@@ -897,6 +897,56 @@
     // ═════════════════════════════════════════════════════════════════════════
     // MANPOWER LOOKUP & VLOOKUP BY ENGINEER ID
     // ═════════════════════════════════════════════════════════════════════════
+    function findMatchingEngineerIndex(list, target, excludeIdx = -1) {
+      if (!Array.isArray(list) || !target) return -1;
+      const targetCode = String(target.engineerCode || '').trim().toLowerCase();
+      const targetTel = String(target.telNo || '').replace(/\D/g, '');
+      const targetName = String(target.name || '').trim().toLowerCase();
+
+      for (let i = 0; i < list.length; i++) {
+        if (i === excludeIdx) continue;
+        const cur = list[i];
+        if (!cur) continue;
+        if (targetCode && String(cur.engineerCode || '').trim().toLowerCase() === targetCode) return i;
+        const curTel = String(cur.telNo || '').replace(/\D/g, '');
+        if (targetTel.length >= 7 && curTel.length >= 7 && targetTel === curTel) return i;
+        if (targetName && String(cur.name || '').trim().toLowerCase() === targetName) return i;
+      }
+      return -1;
+    }
+
+    function deduplicateManpowerList(arr) {
+      if (!Array.isArray(arr)) return [];
+      const result = [];
+      for (let i = 0; i < arr.length; i++) {
+        const item = arr[i];
+        if (!item) continue;
+        const matchIdx = findMatchingEngineerIndex(result, item);
+        if (matchIdx !== -1) {
+          result[matchIdx] = { ...result[matchIdx], ...item };
+        } else {
+          result.push({ ...item });
+        }
+      }
+      return result;
+    }
+
+    function smartMergeLists(baseList, updatedList) {
+      if (!Array.isArray(updatedList) || updatedList.length === 0) return deduplicateManpowerList(baseList);
+      if (!Array.isArray(baseList) || baseList.length === 0) return deduplicateManpowerList(updatedList);
+      const result = deduplicateManpowerList(baseList);
+      updatedList.forEach(item => {
+        if (!item) return;
+        const matchIdx = findMatchingEngineerIndex(result, item);
+        if (matchIdx !== -1) {
+          result[matchIdx] = { ...result[matchIdx], ...item }; // REPLACES EXISTING
+        } else {
+          result.push({ ...item });
+        }
+      });
+      return deduplicateManpowerList(result);
+    }
+
     async function loadManpower() {
       let list = [];
       const cacheBust = `_t=${Date.now()}`;
@@ -928,26 +978,18 @@
 
       // Merge live additions / edits from localStorage (from SVC Information subpage in Context)
       try {
-        const cached = localStorage.getItem('gspn_manpower_roster');
+        const cached = localStorage.getItem('gspn_manpower_roster') || localStorage.getItem('GSPN_MANPOWER_DATA');
         if (cached) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const mapById = new Map();
-            list.forEach(m => {
-              const k = String(m.telNo || m.engineerCode || m.name).trim();
-              if (k) mapById.set(k, m);
-            });
-            // Local edits take precedence over remote static
-            parsed.forEach(p => {
-              const k = String(p.telNo || p.engineerCode || p.name).trim();
-              if (k) mapById.set(k, p);
-            });
-            list = Array.from(mapById.values());
+            list = smartMergeLists(list, parsed);
           }
         }
       } catch (e3) {
         console.warn('Local cache merge error:', e3);
       }
+
+      list = deduplicateManpowerList(list);
 
       if (list.length > 0) {
         state.manpowerList = list;
