@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Samsung Cancellation Report — Summary Sheet &amp; MIS Automation</title>
+  <meta name="description" content="Samsung Cancellation Report with 4-Block Reporting Matrix (Weekly Trend, OW Detail Grid, MTD Macro View, and Reason Pareto), 3-Tier SLA Thresholds, and Regional Hierarchy.">
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/main.css">
+  <!-- Universal Context & Master Branch Directory -->
+  <script src="assets/js/context.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            },
+            corporate: {
+              navy: '#0f2e59',
+              dark: '#0a192f',
+              slate: '#1e293b',
+              border: '#e2e8f0'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            outfit: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .font-outfit { font-family: 'Outfit', sans-serif; }
+    .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s ease; }
+    .drop-zone.dragover { border-color: #0284c7; background-color: #f0f9ff; transform: scale(1.005); }
+    @media print {
+      body { background: white !important; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-5 right-5 flex flex-col gap-2 pointer-events-none" style="z-index: 999999;"></div>
+
+  <!-- TOP NAVBAR -->
+  <nav class="top-nav glass-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span class="brand-name">GSPN Tools</span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <div class="nav-links">
+        <a href="index.html" class="nav-link" id="navHome">Home</a>
+
+        <!-- Tools Dropdown -->
+        <div class="nav-dropdown" id="dropdownTools">
+          <button type="button" class="nav-link nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+            <span>Tools</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="dropdown-menu">
+            <a href="tools.html" class="dropdown-item">
+              <div class="dropdown-icon icon-blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Data Extraction &amp; Combiner</span>
+                <span class="dropdown-desc">Print Command &amp; Management Lite extractor</span>
+              </div>
+            </a>
+            <a href="custom-template.html" class="dropdown-item">
+              <div class="dropdown-icon icon-cyan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Template Builder</span>
+                <span class="dropdown-desc">Custom column layout &amp; export profiles</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Reports Dropdown (Master Reports + SVC Reports) -->
+        <div class="nav-dropdown active" id="dropdownReports">
+          <button type="button" class="nav-link nav-dropdown-btn active" aria-haspopup="true" aria-expanded="false">
+            <span>Reports</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="dropdown-menu dropdown-menu-wide">
+            <div class="dropdown-section">
+              <div class="dropdown-section-header">
+                <span class="section-tag master-tag">Master Reports</span>
+                <span class="section-sub">Executive &amp; Operations</span>
+              </div>
+              <a href="openPending.html" class="dropdown-item">
+                <div class="dropdown-icon icon-rose"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row"><span class="dropdown-title">Open Pending Report</span><span class="badge-mini-live">Live Daily</span></div>
+                  <span class="dropdown-desc">RC-GD daily tracking, aging matrix &amp; branches</span>
+                </div>
+              </a>
+              <a href="reportMaking.html" class="dropdown-item">
+                <div class="dropdown-icon icon-blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
+                <div class="dropdown-text">
+                  <span class="dropdown-title">Report Maker</span>
+                  <span class="dropdown-desc">Multi-SVC service reporter &amp; mail compiler</span>
+                </div>
+              </a>
+              <a href="masterCloser.html" class="dropdown-item">
+                <div class="dropdown-icon icon-green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row"><span class="dropdown-title">Master Closer</span><span class="badge-mini-live" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0;">Closer %</span></div>
+                  <span class="dropdown-desc">Morning vs Inflow vs Current Closer %</span>
+                </div>
+              </a>
+              <a href="cancellationReport.html" class="dropdown-item active">
+                <div class="dropdown-icon icon-rose" style="background:#ffe4e6; color:#e11d48;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row"><span class="dropdown-title">Cancellation Report</span><span class="badge-mini-live" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;">FDR / GD</span></div>
+                  <span class="dropdown-desc">Cancellation %, X09 % &amp; OW repair analysis</span>
+                </div>
+              </a>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-section-header">
+                <span class="section-tag svc-tag">SVC (Service Center)</span>
+                <span class="section-sub">Center Analytics &amp; TAT</span>
+              </div>
+              <a href="reports.html" class="dropdown-item">
+                <div class="dropdown-icon icon-orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+                <div class="dropdown-text">
+                  <span class="dropdown-title">SVC Reports &amp; Analytics</span>
+                  <span class="dropdown-desc">TAT performance, aging distribution &amp; summaries</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Context Dropdown -->
+        <div class="nav-dropdown" id="dropdownContext">
+          <button type="button" class="nav-link nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+            <span>Context</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="dropdown-menu">
+            <a href="Context.html" class="dropdown-item">
+              <div class="dropdown-icon icon-purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Context &amp; Column Dictionary</span>
+                <span class="dropdown-desc">28 Standard GGN fields &amp; SVC rules</span>
+              </div>
+            </a>
+            <a href="formats.html" class="dropdown-item">
+              <div class="dropdown-icon icon-green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Formats &amp; Templates</span>
+                <span class="dropdown-desc">Management Lite &amp; Print Command specs</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+    <!-- Header Section with Theme Matching reportMaking.html -->
+    <header class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-11 h-11 rounded-xl bg-[#0f2e59] flex items-center justify-center shadow-md">
+          <svg class="w-6 h-6 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke-width="2.2"/>
+            <line x1="15" y1="9" x2="9" y2="15" stroke-width="2.2" stroke-linecap="round"/>
+            <line x1="9" y1="9" x2="15" y2="15" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-bold tracking-tight text-[#0f2e59] font-outfit">Samsung Cancellation Report</h1>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+              Summary Sheet &amp; MIS Automation
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Automated 4-Block Matrix: Weekly Trend (Block A), OW Detail Grid (Block B), MTD Macro View (Block C), and Reason Pareto (Block D).</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex items-center flex-wrap gap-2">
+        <button id="btnLoadSampleData" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold shadow-sm transition active:scale-95 flex items-center gap-1.5" title="Load comprehensive master dataset across all 9 SVCs and timelines">
+          <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Load Master Dataset
+        </button>
+        <button id="btnClearAll" class="px-3 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-600 rounded-lg text-xs font-semibold shadow-sm transition active:scale-95" title="Clear all uploaded files">
+          Clear All
+        </button>
+      </div>
+    </header>
+
+    <!-- Master KPI & SLA Threshold Indicator Box -->
+    <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-md border border-slate-800 space-y-3">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+          <span class="text-xs font-extrabold uppercase tracking-wider text-slate-200">Master KPI Metric Definitions &amp; Logic</span>
+        </div>
+        <div class="flex items-center flex-wrap gap-2 text-[11px]">
+          <span class="px-2.5 py-1 rounded-md bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-bold">🟢 High Performing: Cancel &amp; X09 &le; 20.9% | OW Repair &ge; 60.0%</span>
+          <span class="px-2.5 py-1 rounded-md bg-amber-950/80 border border-amber-500/50 text-amber-300 font-bold">🟡 Warning: 21.0%–24.9% | OW Repair 50.0%–59.9%</span>
+          <span class="px-2.5 py-1 rounded-md bg-rose-950/80 border border-rose-500/50 text-rose-300 font-bold">🔴 Critical: &gt; 25.0% | OW Repair &le; 50.0%</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+        <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+          <div class="text-[11px] font-bold text-rose-400 uppercase">1. Cancel % (Cancellation Rate)</div>
+          <code class="block font-mono text-[11px] text-slate-200 mt-1">[Cancelled Status Jobs] / [Total Closed or Cancelled]</code>
+        </div>
+        <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+          <div class="text-[11px] font-bold text-amber-400 uppercase">2. X09 % (Diagnostic-Only Rate)</div>
+          <code class="block font-mono text-[11px] text-slate-200 mt-1">[Repair Code 'X09' or 'X10'] / [Total Closed Jobs]</code>
+        </div>
+        <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+          <div class="text-[11px] font-bold text-emerald-400 uppercase">3. OW Repair % (Volume Share)</div>
+          <code class="block font-mono text-[11px] text-slate-200 mt-1">[Out-of-Warranty (OFW) Jobs Closed] / [Total Closed Jobs]</code>
+        </div>
+      </div>
+
+      <div class="flex items-center flex-wrap gap-2 text-[11px] text-slate-400 pt-1">
+        <strong class="text-slate-300">Core Network Hierarchy:</strong>
+        <span>9 SVC Locations (Gurgaon-CE, Ahmedabad-CE, Lucknow-HHP, Moradabad-HHP, Surat-CE, Lucknow-CE, Gandhinagar-CE, Ghaziabad-CE, Cochin-CE)</span>
+        <span class="text-slate-600">•</span>
+        <strong class="text-indigo-300">Total</strong>
+        <span class="text-slate-600">•</span>
+        <strong class="text-emerald-300">India-1 Hub</strong> (North: Gurgaon, Ghaziabad, Lucknow HHP/CE, Moradabad)
+        <span class="text-slate-600">•</span>
+        <strong class="text-cyan-300">India-2 Hub</strong> (West/South: Ahmedabad, Surat, Gandhinagar, Cochin)
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- TOP CARDS: CANCELLATION BOX & FDR / GD CALLS BOX (Matching Image 1)    -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- BOX 1: CANCELLATION FILES CONTAINER -->
+      <section class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+            <h3 class="text-base font-bold text-slate-800 font-outfit">Cancellation Files</h3>
+            <span id="cancelFileBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">0 Files</span>
+          </div>
+          <button id="btnOpenAddCancelModal" class="px-3 py-1.5 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-lg text-xs font-bold shadow transition active:scale-95 flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Add Cancellation File
+          </button>
+        </div>
+
+        <!-- Files List Area -->
+        <div id="cancelFilesList" class="space-y-2.5 min-h-[160px] max-h-[280px] overflow-y-auto pr-1">
+          <!-- Empty State -->
+          <div id="cancelEmptyState" class="py-10 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+            <svg class="w-9 h-9 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <p class="text-xs font-semibold text-slate-600">No Cancellation files added</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Click "Add Cancellation File" or drop Excel/XLS/XLSX/ODS file</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOX 2: FDR / GD CALLS BOX -->
+      <section class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+            <h3 class="text-base font-bold text-slate-800 font-outfit">FDR / GD Calls Files</h3>
+            <span id="fdrFileBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">0 Files</span>
+          </div>
+          <button id="btnOpenAddFdrModal" class="px-3 py-1.5 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-lg text-xs font-bold shadow transition active:scale-95 flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Add FDR / GD File
+          </button>
+        </div>
+
+        <!-- Files List Area -->
+        <div id="fdrFilesList" class="space-y-2.5 min-h-[160px] max-h-[280px] overflow-y-auto pr-1">
+          <!-- Empty State -->
+          <div id="fdrEmptyState" class="py-10 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+            <svg class="w-9 h-9 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <p class="text-xs font-semibold text-slate-600">No FDR / GD files added</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Click "Add FDR / GD File" or drop Excel/XLS/XLSX/ODS file</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- ACTION BUTTONS: [Copy Markdown] [Copy Email HTML] [Download Multi-Sheet Excel] & [Process & Validate] -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center flex-wrap gap-2.5 w-full sm:w-auto">
+        <!-- Copy Markdown Button (As Requested in Master Prompt) -->
+        <button id="btnCopyMarkdown" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-black shadow transition active:scale-95 flex items-center gap-1.5 focus:outline-none" title="Copy clean Markdown Tables for all 4 Blocks (Weekly, OW Detail, MTD Macro, Pareto)">
+          <svg class="w-4 h-4 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Copy Markdown Tables</span>
+        </button>
+
+        <!-- Copy HTML for Email Button -->
+        <button id="btnCopyReportHtml" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white rounded-xl text-xs font-black shadow transition active:scale-95 flex items-center gap-1.5 focus:outline-none" title="Copy clean report HTML with SLA threshold colors ready to paste into Outlook / Gmail">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+          <span>Copy Email Table</span>
+        </button>
+
+        <!-- Download Multi-Sheet Excel Workbook Button -->
+        <button id="btnDownloadWithRaw" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl text-xs font-black shadow transition active:scale-95 flex items-center gap-1.5 focus:outline-none" title="Export Excel workbook with Block A, B, C, D and Full RAW Sheets">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Download Excel Workbook</span>
+        </button>
+
+        <!-- View Reason Matrix Button -->
+        <button id="btnViewReasonModal" class="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold shadow-sm transition active:scale-95 flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>Reason Pareto</span>
+        </button>
+      </div>
+
+      <!-- Process & Validate Button -->
+      <button id="btnProcessValidate" class="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#0f2e59] to-[#1e4976] hover:from-[#0a192f] hover:to-[#0f2e59] text-white rounded-xl text-sm font-black tracking-wide shadow-md hover:shadow-lg transition active:scale-95 flex items-center justify-center gap-2.5">
+        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>Process &amp; Recompute</span>
+      </button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- REPORTS SECTION (Automated 4 Blocks Architecture)                      -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="reportsContainer" class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-6">
+      
+      <!-- Section Header with Block Navigation Tabs and Period Selector -->
+      <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h2 class="text-lg font-black tracking-wider text-[#0f2e59] uppercase font-outfit">Samsung Cancellation Report Summary Sheet</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Unified 4-Block Matrix with Regional Hierarchy &amp; 3-Tier SLA Threshold Colors</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Block Switcher Pills -->
+          <div class="inline-flex p-1 bg-slate-100 rounded-xl text-xs font-bold border border-slate-200" id="blockTabsContainer">
+            <button type="button" data-block="ALL" class="block-tab px-3 py-1.5 rounded-lg transition active-tab bg-white text-[#0f2e59] shadow-sm">
+              Unified Summary (All Blocks)
+            </button>
+            <button type="button" data-block="BLOCK_A" class="block-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">
+              Block A: Weekly Trend
+            </button>
+            <button type="button" data-block="BLOCK_B" class="block-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">
+              Block B: OW Detail Grid
+            </button>
+            <button type="button" data-block="BLOCK_C" class="block-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">
+              Block C: MTD Macro
+            </button>
+            <button type="button" data-block="BLOCK_D" class="block-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">
+              Block D: Reason Pareto
+            </button>
+          </div>
+
+          <!-- Period / View Controls -->
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-600">Month / Timeline:</label>
+            <select id="selectMonthPeriod" class="text-xs font-bold bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-slate-800 focus:ring-2 focus:ring-blue-500">
+              <option value="ALL">Continuous Timeline (All Months)</option>
+              <option value="Nov" selected>Nov (Current / Active)</option>
+              <option value="Apr'26">Apr'26 MTD</option>
+              <option value="May'26">May'26 MTD</option>
+              <option value="Jun'26">Jun'26 MTD</option>
+              <option value="Jul'26">Jul'26 MTD</option>
+              <option value="Aug'26">Aug'26 MTD</option>
+              <option value="Sep'26">Sep'26 MTD</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Render Area for Blocks A, B, C, D -->
+      <div id="reportRenderOutput" class="space-y-8">
+        <!-- Rendered dynamically by cancellation.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: ADD FILE DIALOG (For both Cancellation & FDR)                    -->
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <div id="addFileModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-xl overflow-hidden modal-animate flex flex-col">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span id="modalFileTag" class="text-[11px] font-black uppercase px-2.5 py-1 rounded-full bg-[#0f2e59] text-white tracking-wider">Cancellation</span>
+          <h3 class="text-sm font-bold text-slate-800 font-outfit" id="modalFileTitle">Add Data File</h3>
+        </div>
+        <button id="modalBtnCloseFile" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4">
+        <!-- Branch Selector -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Select Service Center / Branch</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <select id="modalBranchSelect" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 shadow-sm">
+                <option value="Ghaziabad" data-code="4915414">Ghaziabad (4915414)</option>
+                <option value="Ahmedabad" data-code="4917449">Ahmedabad (4917449)</option>
+                <option value="Surat" data-code="4936933">Surat (4936933)</option>
+                <option value="Gandhinagar" data-code="6451772">Gandhinagar (6451772)</option>
+                <option value="Cochin" data-code="6458704">Cochin (6458704)</option>
+                <option value="Lucknow" data-code="8200354">Lucknow (8200354)</option>
+                <option value="Gurgaon" data-code="9225951" selected>Gurgaon (9225951)</option>
+                <option value="Lucknow-HHP" data-code="3871175">Lucknow-HHP (3871175)</option>
+                <option value="Moradabad-HHP" data-code="4776004">Moradabad-HHP (4776004)</option>
+                <option value="Custom" data-code="CUSTOM">Custom Service Center...</option>
+              </select>
+            </div>
+            <div>
+              <input type="text" id="modalBranchCode" class="w-full bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-lg p-2.5" placeholder="Branch Code" value="9225951" readonly>
+            </div>
+          </div>
+          <!-- Custom branch inputs if selected -->
+          <div id="modalCustomBranchRow" class="hidden grid grid-cols-2 gap-3 mt-2">
+            <input type="text" id="modalCustomName" placeholder="Branch Name" class="border border-slate-300 rounded-lg p-2 text-xs">
+            <input type="text" id="modalCustomCode" placeholder="Branch Code" class="border border-slate-300 rounded-lg p-2 text-xs">
+          </div>
+        </div>
+
+        <!-- Period / Month Selector -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Reporting Month / Period</label>
+          <select id="modalPeriodSelect" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 shadow-sm">
+            <option value="Sep'26" selected>Sep'26 MTD</option>
+            <option value="Aug'26">Aug'26 MTD</option>
+            <option value="Jul'26">Jul'26 MTD</option>
+          </select>
+        </div>
+
+        <!-- Input Method Tabs -->
+        <div>
+          <div class="flex border-b border-slate-200 mb-3">
+            <button id="modalTabUploadFile" type="button" class="py-1.5 px-3 border-b-2 border-[#0f2e59] text-[#0f2e59] font-bold text-xs flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+              Upload Excel / ODS File
+            </button>
+            <button id="modalTabPasteText" type="button" class="py-1.5 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-xs flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              Paste GSPN Text / Table
+            </button>
+          </div>
+
+          <!-- Mode 1: File Drop Zone -->
+          <div id="modalUploadPane">
+            <div id="modalDropZone" class="drop-zone rounded-xl p-5 text-center cursor-pointer bg-slate-50 hover:bg-slate-100/70 border-2 border-dashed border-slate-300 transition">
+              <input type="file" id="modalFileInput" accept=".xlsx, .xls, .ods, .csv, .txt, .tsv" class="hidden">
+              <div id="modalDropPrompt">
+                <svg class="w-9 h-9 text-slate-400 mx-auto mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                <p class="text-xs font-bold text-slate-700">Drag &amp; Drop or <span class="text-blue-600 underline">Select File</span></p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Supports Excel .xlsx, .xls, .ods, .csv (Handles GSPN 2-row merged format)</p>
+              </div>
+              <div id="modalDropSuccess" class="hidden">
+                <span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold inline-flex items-center justify-center mb-1">✓</span>
+                <p id="modalLoadedFileName" class="text-xs font-bold text-emerald-800 break-all"></p>
+                <p id="modalLoadedFileStats" class="text-[11px] text-slate-500 mt-0.5"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode 2: Paste Raw Text Area -->
+          <div id="modalPastePane" class="hidden">
+            <textarea id="modalTextInput" rows="5" class="w-full p-2.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white text-slate-800 placeholder-slate-400" placeholder="Paste GSPN tabular text copied from Management Lite or Excel here (e.g. 2-row multi-line calls)..."></textarea>
+            <div class="flex items-center justify-between mt-1 text-[11px]">
+              <span class="text-slate-400">Supports tab-separated 2-line GSPN cancellation records</span>
+              <button id="modalBtnParseText" type="button" class="text-blue-600 font-bold hover:underline">Process Pasted Text</button>
+            </div>
+          </div>
+
+          <!-- Auto-Detected Info Badge -->
+          <div id="modalAutoDetectBadge" class="hidden mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold">Auto-detected:</span>
+              <span id="modalAutoDetectText" class="font-semibold"></span>
+            </div>
+            <span class="text-[10px] font-bold text-emerald-700 uppercase bg-white px-2 py-0.5 rounded border border-emerald-300">Auto Mapped</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+        <button id="modalBtnCancel" type="button" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold shadow-sm transition">Cancel</button>
+        <button id="modalBtnConfirmAdd" type="button" class="px-5 py-2 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-lg text-xs font-bold shadow-md transition disabled:opacity-50" disabled>Save &amp; Add File</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: RAW DATA VIEWER                                                  -->
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <div id="rawViewerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-5xl overflow-hidden modal-animate flex flex-col max-h-[90vh]">
+      <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-slate-800 font-outfit" id="rawViewerTitle">Raw Data Records</h3>
+          <p class="text-xs text-slate-400" id="rawViewerSubtitle">Showing mapped records</p>
+        </div>
+        <button id="rawViewerClose" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-4 flex-1 overflow-auto bg-slate-50">
+        <div id="rawViewerTableArea" class="border border-slate-200 rounded-lg overflow-x-auto bg-white"></div>
+      </div>
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
+        <span id="rawViewerCount" class="text-slate-500 font-semibold">0 records</span>
+        <button id="rawViewerCloseBtn" class="px-4 py-1.5 bg-[#0f2e59] text-white rounded-lg font-bold">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: REASON ANALYSIS BREAKDOWN                                        -->
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <div id="reasonAnalysisModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="px-5 py-4 bg-[#0f2e59] text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-400/30 flex items-center justify-center">
+            <svg class="w-4 h-4 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white font-outfit">Cancellation Reason Classification Analysis</h3>
+            <p class="text-[11px] text-slate-300">Detailed breakdown mapped into 8 standard GSPN Main Reason categories</p>
+          </div>
+        </div>
+        <button id="reasonModalClose" class="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-5 flex-1 overflow-auto bg-slate-50 space-y-5">
+        <!-- Reason Distribution Summary Grid -->
+        <div id="reasonGridContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Full Reason Table -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="px-4 py-3 bg-slate-100/70 border-b border-slate-200 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Raw Reason to Main Reason Reference Mapping (26 Rules)</span>
+            <span class="text-[11px] font-semibold text-slate-500">GSPN Standard Dictionary</span>
+          </div>
+          <div class="max-h-72 overflow-y-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 sticky top-0">
+                <tr>
+                  <th class="py-2 px-3 border-r border-slate-200">#</th>
+                  <th class="py-2 px-3 border-r border-slate-200">GSPN Raw Reason In Excel</th>
+                  <th class="py-2 px-3">Classified Main Reason</th>
+                </tr>
+              </thead>
+              <tbody id="reasonMappingTableBody" class="divide-y divide-slate-100 text-slate-700">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 bg-slate-100 border-t border-slate-200 flex items-center justify-end">
+        <button id="reasonModalCloseBtn" class="px-4 py-1.5 bg-[#0f2e59] text-white rounded-lg font-bold text-xs">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVBAR -->
+  <nav class="bottom-nav glass-nav" id="bottomNav">
+    <div class="bottom-nav-inner">
+      <a href="index.html" class="bottom-nav-item" id="navHome">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </a>
+      <a href="tools.html" class="bottom-nav-item" id="navTools">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <span>Tools</span>
+      </a>
+      <a href="cancellationReport.html" class="bottom-nav-item active" id="navMaster">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span>Cancel</span>
+      </a>
+      <a href="reports.html" class="bottom-nav-item" id="navSvcReports">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>SVC</span>
+      </a>
+      <a href="Context.html" class="bottom-nav-item" id="navContext">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span>Context</span>
+      </a>
+    </div>
+  </nav>
+
+  <script src="assets/js/cancellation.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

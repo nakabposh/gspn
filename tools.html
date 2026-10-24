@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/main.css">
+  <!-- Universal Context & Master Branch Directory -->
+  <script src="assets/js/context.js"></script>
   <style>
     html {
       scroll-behavior: smooth;
@@ -123,6 +125,18 @@
                     <span class="badge-mini-live" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0;">Closer %</span>
                   </div>
                   <span class="dropdown-desc">Morning vs Inflow vs Current Closer %</span>
+                </div>
+              </a>
+              <a href="cancellationReport.html" class="dropdown-item">
+                <div class="dropdown-icon icon-rose" style="background:#ffe4e6; color:#e11d48;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Cancellation Report</span>
+                    <span class="badge-mini-live" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;">FDR / GD</span>
+                  </div>
+                  <span class="dropdown-desc">Cancellation %, X09 % &amp; OW repair analysis</span>
                 </div>
               </a>
             </div>
@@ -349,9 +363,10 @@
         <div class="section-card" style="margin-bottom: 20px;">
           <div class="stats-strip" id="combinedStats"></div>
         </div>
+
         <!-- Master Data Preview Card -->
         <div class="section-card">
-          <div class="section-header">
+          <div class="section-header" style="flex-wrap: wrap; gap: 12px;">
             <div class="section-title-group">
               <div class="section-icon icon-green">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -363,11 +378,13 @@
                 <div class="section-subtitle" id="combinedPreviewInfo">Showing extracted &amp; combined calls</div>
               </div>
             </div>
+
+            <!-- Table Actions: Search + Export + Copy + Back -->
             <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items:center;">
               <!-- Search Box -->
               <div style="position:relative;">
                 <svg style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;" width="13" height="13" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input id="tableSearchBox" type="text" oninput="onTableSearch()" placeholder="Search table..." style="padding:6px 10px 6px 28px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;outline:none;width:160px;font-family:inherit;" />
+                <input id="tableSearchBox" type="text" oninput="onTableSearch()" placeholder="Search table..." style="padding:6px 10px 6px 28px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;outline:none;width:150px;font-family:inherit;" />
               </div>
               <button class="btn-secondary" onclick="exportCombinedExcel()" style="display:flex;align-items:center;gap:6px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -380,6 +397,49 @@
               <button class="btn-ghost" onclick="scrollToTop()" style="display:flex;align-items:center;gap:6px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
                 Back ↑
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Filter & Sort Toolbar -->
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 10px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; font-size: 12px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span style="font-weight: 700; color: #475569; text-transform: uppercase; font-size: 11px; margin-right: 2px;">Filters:</span>
+              <button type="button" class="btn-filter-tag active" id="filterTagAll" onclick="setToolsTableFilter('ALL')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: 1px solid #2563eb; background: #2563eb; color: #fff; font-weight: 700; cursor: pointer;">
+                All Calls
+              </button>
+              <button type="button" class="btn-filter-tag" id="filterTagInstallAll" onclick="setToolsTableFilter('INSTALL_ALL')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #0284c7; font-weight: 700; cursor: pointer;">
+                🛠️ Installation Only
+              </button>
+              <button type="button" class="btn-filter-tag" id="filterTagInstallAc" onclick="setToolsTableFilter('INSTALL_AC')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #0369a1; font-weight: 700; cursor: pointer;">
+                ❄️ Demo+Install AC
+              </button>
+              <button type="button" class="btn-filter-tag" id="filterTagInstallNonAc" onclick="setToolsTableFilter('INSTALL_NON_AC')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #b45309; font-weight: 700; cursor: pointer;">
+                📦 Demo+Install Non-AC
+              </button>
+              <button type="button" class="btn-filter-tag" id="filterTagIhPs" onclick="setToolsTableFilter('IH_PS')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #475569; font-weight: 700; cursor: pointer;">
+                🏠 IH / PS Only
+              </button>
+              <button type="button" class="btn-filter-tag" id="filterTagOthers" onclick="setToolsTableFilter('OTHERS')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #475569; font-weight: 700; cursor: pointer;">
+                📞 Others / CC
+              </button>
+            </div>
+
+            <!-- Sort By Selector -->
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-weight: 700; color: #475569; text-transform: uppercase; font-size: 11px;">Sort By:</span>
+              <select id="toolsTableSortSelect" onchange="onToolsSortSelectChange(this.value)" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-size: 12px; color: #1e293b; font-weight: 600; outline: none; cursor: pointer;">
+                <option value="No"># Default Order</option>
+                <option value="Service Order No.">Service Order No.</option>
+                <option value="Service Type">Service Type</option>
+                <option value="Product">Product Category</option>
+                <option value="Model Name">Model Name</option>
+                <option value="Aging">Aging (Days)</option>
+                <option value="Wty Status">Warranty Status</option>
+                <option value="Customer Name">Customer Name</option>
+              </select>
+              <button type="button" id="btnToggleSortDir" onclick="toggleToolsSortDirection()" title="Toggle Ascending / Descending" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-size: 11px; font-weight: 700; color: #1e293b; cursor: pointer;">
+                ▲ ASC
               </button>
             </div>
           </div>

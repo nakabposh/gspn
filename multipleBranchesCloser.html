@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiple Branches Closer — GSPN Tools</title>
+  <meta name="description" content="Consolidated Multi-Branch Closer Report for Samsung Service Centers. Supports Morning, Inflow, and Current uploads per branch with IIDM+DM, IH+PS, and Others service type quick toggles.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+    .font-outfit { font-family: 'Outfit', sans-serif; }
+    .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s ease; }
+    .drop-zone.dragover { border-color: #0f2e59; background-color: #eff6ff; }
+    
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    @media print {
+      body { background: white !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+      @page { size: landscape; margin: 8mm; }
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-5 right-5 flex flex-col gap-2 pointer-events-none" style="z-index: 999999;"></div>
+
+  <!-- Header Navigation -->
+  <header class="bg-white text-slate-900 shadow-sm border-b border-slate-200 sticky top-0 z-30 no-print">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14">
+        <!-- Logo & Title -->
+        <a href="index.html" class="flex items-center space-x-3 text-slate-900 hover:opacity-90 transition">
+          <div class="w-9 h-9 rounded-lg bg-[#0f2e59] flex items-center justify-center shadow text-white font-black text-sm font-outfit">
+            MB
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-outfit font-bold text-base text-[#0f2e59]">Multiple Branches Closer</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-300">
+                Multi-Branch Batch
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 leading-tight">Consolidated Closure Tracking: Morning + Inflow - Current = Closed • Closer % = (Closed ÷ Flow) × 100</p>
+          </div>
+        </a>
+
+        <!-- Global Navigation Links -->
+        <div class="flex items-center space-x-2">
+          <nav class="hidden xl:flex items-center space-x-1 mr-2 border-r border-slate-200 pr-3">
+            <a href="index.html" class="nav-link text-xs py-1.5 px-2.5">Home</a>
+            <a href="tools.html" class="nav-link text-xs py-1.5 px-2.5">Tools</a>
+            <a href="openPending.html" class="nav-link text-xs py-1.5 px-2.5">Open Pending</a>
+            <a href="reportMaking.html" class="nav-link text-xs py-1.5 px-2.5">Report Maker</a>
+            <a href="masterCloser.html" class="nav-link text-xs py-1.5 px-2.5">Master Closer</a>
+            <a href="multipleBranchesCloser.html" class="nav-link text-xs py-1.5 px-2.5 active font-bold text-blue-900 bg-blue-50 rounded">Multiple Branches</a>
+            <a href="cancellationReport.html" class="nav-link text-xs py-1.5 px-2.5">Cancellation</a>
+            <a href="reports.html" class="nav-link text-xs py-1.5 px-2.5">SVC Reports</a>
+          </nav>
+
+          <!-- Top Quick Actions -->
+          <div class="flex items-center gap-2">
+            <button id="btnTopLoadSample" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 shadow-sm transition active:scale-95">
+              <svg class="w-3.5 h-3.5 mr-1 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Load Sample Data
+            </button>
+            <button id="btnTopCopyMail" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition active:scale-95">
+              <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              Copy for Mail
+            </button>
+            <button id="btnTopExportExcel" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95">
+              <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Export Excel (Summary + Branches + Closed)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+    <!-- PAGE TITLE / HERO BANNER -->
+    <div class="bg-gradient-to-r from-[#0f2e59] via-[#1e40af] to-[#0f2e59] text-white rounded-2xl p-5 sm:p-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-400/20 text-blue-200 border border-blue-300/30">
+            Multi-Branch Closer Engine
+          </span>
+          <span class="text-xs text-blue-200">CE-Service Center Closer Algorithm</span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-black font-outfit mt-1 text-white">Multiple Branches Closer Report</h1>
+        <p class="text-xs sm:text-sm text-blue-100/90 max-w-2xl mt-0.5">
+          Select branches like in REPORT_MAKER, upload Morning, Inflow, and Current calls for each branch, and view a consolidated table with individual branch rows and overall total.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <button id="btnOpenAddBranchModal" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-xs rounded-xl shadow-lg transition active:scale-95 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          ADD BRANCH
+        </button>
+        <button id="btnClearAllBranches" class="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 transition">
+          Clear All Branches
+        </button>
+      </div>
+    </div>
+
+    <!-- ACTIVE BRANCHES LIST CARD -->
+    <section class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+        <div>
+          <h2 class="text-sm font-black text-slate-800 font-outfit uppercase tracking-wide">Configured Service Branches</h2>
+          <p class="text-xs text-slate-400">Branches included in the consolidated closer table</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="badgeBranchCount" class="px-3 py-1 text-xs font-black rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+            0 Branches Configured
+          </span>
+        </div>
+      </div>
+
+      <!-- Branches Container -->
+      <div id="branchCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <!-- Empty state -->
+        <div id="branchEmptyState" class="col-span-full py-10 px-4 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+          <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-700">No Branches Added Yet</h3>
+          <p class="text-xs text-slate-400 max-w-md mx-auto mt-1 mb-4">Click "ADD BRANCH" to choose from predefined branches (Ghaziabad, Ahmedabad, Surat, etc.) and upload Morning, Flow & Current calls.</p>
+          <button onclick="openAddBranchModal()" class="inline-flex items-center px-4 py-2 bg-[#0f2e59] hover:bg-blue-900 text-white rounded-lg text-xs font-bold shadow transition">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            ADD BRANCH NOW
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPI SUMMARY BAR -->
+    <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
+      <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Morning Open</div>
+        <div class="text-xl font-black text-slate-900 font-outfit mt-0.5" id="kpiMrngTotal">0</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+        <div class="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Flow (Inflow)</div>
+        <div class="text-xl font-black text-amber-700 font-outfit mt-0.5" id="kpiInflowTotal">0</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+        <div class="text-[10px] font-bold text-blue-800 uppercase tracking-wider">Total Workload</div>
+        <div class="text-xl font-black text-blue-800 font-outfit mt-0.5" id="kpiWorkloadTotal">0</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+        <div class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Closed Calls</div>
+        <div class="text-xl font-black text-emerald-700 font-outfit mt-0.5" id="kpiClosedTotal">0</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+        <div class="text-[10px] font-bold text-rose-700 uppercase tracking-wider">Current Open</div>
+        <div class="text-xl font-black text-rose-700 font-outfit mt-0.5" id="kpiCurrentTotal">0</div>
+      </div>
+      <div class="bg-[#0f2e59] text-white rounded-xl p-3 shadow-sm">
+        <div class="text-[10px] font-bold text-amber-300 uppercase tracking-wider">Overall Closer %</div>
+        <div class="text-xl font-black text-amber-400 font-outfit mt-0.5" id="kpiCloserRate">0.0%</div>
+      </div>
+    </section>
+
+    <!-- CONSOLIDATED CLOSURE TRACKING REPORT SECTION -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-md p-4 sm:p-6 space-y-4">
+      
+      <!-- Top Controls: Title + Quick Toggle Buttons + Action Buttons -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h2 class="text-lg font-black text-slate-900 font-outfit uppercase tracking-tight">Consolidated Multiple Branches Closer Report</h2>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Formula: Workload = Morning + Flow • Closed = Workload - Current • Closer % = (Closed ÷ Flow) × 100
+          </p>
+        </div>
+
+        <!-- QUICK-TOGGLE BUTTON GROUP (USER PREFERENCE REQUIREMENT) -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-300 shadow-inner">
+            <span class="text-[11px] font-extrabold text-slate-500 uppercase px-2.5">Filter:</span>
+            
+            <!-- All Service Types -->
+            <button id="filterBtnAll" onclick="setServiceTypeFilter('ALL')" class="filter-toggle-btn px-3 py-1.5 rounded-lg text-xs font-black transition shadow-sm bg-[#0f2e59] text-white">
+              ALL
+            </button>
+            
+            <!-- IIDM + DM -->
+            <button id="filterBtnIidmDm" onclick="setServiceTypeFilter('IIDM_DM')" class="filter-toggle-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-700 hover:text-slate-900 hover:bg-white">
+              IIDM + DM
+            </button>
+            
+            <!-- IH + PS -->
+            <button id="filterBtnIhPs" onclick="setServiceTypeFilter('IH_PS')" class="filter-toggle-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-700 hover:text-slate-900 hover:bg-white">
+              IH + PS
+            </button>
+            
+            <!-- Others -->
+            <button id="filterBtnOthers" onclick="setServiceTypeFilter('OTHERS')" class="filter-toggle-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-700 hover:text-slate-900 hover:bg-white">
+              Others
+            </button>
+          </div>
+
+          <!-- Report Date Picker -->
+          <div class="flex items-center bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs">
+            <span class="font-bold text-slate-500 uppercase mr-2">Report Date:</span>
+            <input type="date" id="reportDatePicker" class="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer">
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2">
+            <button id="btnCopyReportHtml" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow transition active:scale-95 flex items-center gap-1.5" title="Copy table for Outlook/Gmail">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              Copy for Mail
+            </button>
+            <button id="btnExportWorkbook" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition active:scale-95 flex items-center gap-1.5" title="Export Excel with Summary, Branch breakdown, and Closed calls">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Export Excel
+            </button>
+            <button onclick="window.print()" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold shadow-sm transition">
+              Print
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONSOLIDATED REPORT TABLE RENDER AREA -->
+      <div id="multiCloserTableRenderArea" class="overflow-x-auto flex justify-center py-2">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: ADD BRANCH DIALOG (WITH MORNING, INFLOW & CURRENT SLOTS)         -->
+  <!-- ═════════════════════════════════════════════════════════════════════════ -->
+  <div id="addBranchModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Dialog Header: Branch Select + SVC Code (same as REPORT_MAKER) -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="text-[11px] font-black uppercase px-2.5 py-1 rounded-full bg-[#0f2e59] text-white tracking-wider">
+            ADD / EDIT BRANCH
+          </span>
+
+          <!-- Branch Name Select (Same list as REPORT_MAKER) -->
+          <div class="flex items-center gap-2">
+            <label for="modalBranchSelect" class="text-xs font-black text-[#0f2e59] uppercase tracking-wider whitespace-nowrap">Branch Name</label>
+            <select id="modalBranchSelect" class="bg-white border border-slate-300 text-slate-800 text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 shadow-sm">
+              <option value="Ghaziabad">Ghaziabad (4915414)</option>
+              <option value="Ahmedabad">Ahmedabad (4917449)</option>
+              <option value="Surat">Surat (4936933)</option>
+              <option value="Gandhinagar">Gandhinagar (6451772)</option>
+              <option value="Cochin">Cochin (6458704)</option>
+              <option value="Lucknow">Lucknow (8200354)</option>
+              <option value="Gurgaon" selected>Gurgaon (9225951)</option>
+              <option value="Lucknow-HHP">Lucknow-HHP (3871175)</option>
+              <option value="Moradabad-HHP">Moradabad-HHP (4776004)</option>
+              <option value="Custom">Custom Branch...</option>
+            </select>
+          </div>
+
+          <!-- Custom branch name input -->
+          <input type="text" id="modalCustomBranchInput" placeholder="Enter branch name..." class="hidden bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500 w-36">
+
+          <!-- SVC Code Field -->
+          <div class="flex items-center gap-2">
+            <label for="modalBranchCodeInput" class="text-xs font-black text-[#0f2e59] uppercase tracking-wider whitespace-nowrap">SVC Code</label>
+            <input type="text" id="modalBranchCodeInput" value="9225951" class="bg-white border border-slate-300 text-slate-800 text-xs font-bold rounded-lg px-2.5 py-1.5 w-24 focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="e.g. 9225951">
+          </div>
+        </div>
+
+        <button onclick="closeAddBranchModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition" title="Close dialog">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Dialog Body: 3 Slots (Morning, Inflow, Current) -->
+      <div class="p-6 flex-1 overflow-y-auto space-y-5 bg-white">
+        <p class="text-xs text-slate-500">
+          Upload spreadsheets (.xlsx / .xls / .csv / .tsv) or paste copied table text for this branch's Morning Open, Inflow, and Current calls. Automatically supports 1-row, 2-row, and multi-column GSPN formats.
+        </p>
+
+        <!-- 3 Slots Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <!-- SLOT 1: Morning Open -->
+          <div class="bg-blue-50/40 border border-blue-200 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-blue-100">
+                <span class="text-xs font-black text-blue-900 uppercase font-outfit">1. Morning Open</span>
+                <span id="modalBadgeMrng" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">0 Calls</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-2">Backlog calls carried over at start of day.</p>
+            </div>
+
+            <div class="mt-4 space-y-2">
+              <input type="file" id="modalFileMrng" accept=".xlsx, .xls, .csv, .tsv, .txt" class="hidden">
+              <button onclick="document.getElementById('modalFileMrng').click()" class="w-full py-2 px-3 bg-white border border-blue-300 hover:bg-blue-50 text-blue-800 rounded-lg text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Upload File
+              </button>
+              <button onclick="openSlotPasteBox('mrng')" class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Paste Data Text
+              </button>
+            </div>
+          </div>
+
+          <!-- SLOT 2: Flow (Today Inflow) -->
+          <div class="bg-amber-50/40 border border-amber-200 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-amber-100">
+                <span class="text-xs font-black text-amber-900 uppercase font-outfit">2. Flow (Inflow)</span>
+                <span id="modalBadgeInflow" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">0 Calls</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-2">New incoming calls received today.</p>
+            </div>
+
+            <div class="mt-4 space-y-2">
+              <input type="file" id="modalFileInflow" accept=".xlsx, .xls, .csv, .tsv, .txt" class="hidden">
+              <button onclick="document.getElementById('modalFileInflow').click()" class="w-full py-2 px-3 bg-white border border-amber-300 hover:bg-amber-50 text-amber-900 rounded-lg text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Upload File
+              </button>
+              <button onclick="openSlotPasteBox('inflow')" class="w-full py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Paste Data Text
+              </button>
+            </div>
+          </div>
+
+          <!-- SLOT 3: Current Open -->
+          <div class="bg-rose-50/40 border border-rose-200 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-rose-100">
+                <span class="text-xs font-black text-rose-900 uppercase font-outfit">3. Current Open</span>
+                <span id="modalBadgeCurrent" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">0 Calls</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-2">Open / pending calls remaining right now.</p>
+            </div>
+
+            <div class="mt-4 space-y-2">
+              <input type="file" id="modalFileCurrent" accept=".xlsx, .xls, .csv, .tsv, .txt" class="hidden">
+              <button onclick="document.getElementById('modalFileCurrent').click()" class="w-full py-2 px-3 bg-white border border-rose-300 hover:bg-rose-50 text-rose-900 rounded-lg text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Upload File
+              </button>
+              <button onclick="openSlotPasteBox('current')" class="w-full py-2 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Paste Data Text
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Optional Text Paste Box (Shown when a slot's Paste button is clicked) -->
+        <div id="slotPasteAreaContainer" class="hidden p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-800" id="slotPasteTitle">Paste Data for Slot</span>
+            <button onclick="document.getElementById('slotPasteAreaContainer').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">Close</button>
+          </div>
+          <textarea id="slotPasteTextarea" rows="6" class="w-full p-3 text-xs font-mono bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Paste tabular GSPN text copied from GSPN or Excel (Ctrl+V)..."></textarea>
+          <div class="flex justify-end gap-2">
+            <button onclick="document.getElementById('slotPasteAreaContainer').classList.add('hidden')" class="px-3 py-1.5 border border-slate-300 text-slate-600 rounded-lg text-xs font-semibold">Cancel</button>
+            <button id="btnApplySlotPaste" class="px-4 py-1.5 bg-[#0f2e59] text-white rounded-lg text-xs font-bold shadow">Parse &amp; Save Slot</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Dialog Footer -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="text-[11px] text-slate-400">
+          Consolidates calls for this branch across Morning, Inflow, and Current datasets.
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="closeAddBranchModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-100 transition">Cancel</button>
+          <button id="btnSaveBranchToBatch" class="px-6 py-2.5 bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 text-white rounded-xl text-xs font-black shadow-md transition active:scale-95 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            SAVE BRANCH DATA
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT ENGINE -->
+  <script>
+    (function () {
+      'use strict';
+
+      // --- DATA STRUCTURES ---
+      // Stores all configured branches
+      // Each branch: { name, code, mrngRecords: [], inflowRecords: [], currentRecords: [] }
+      const branches = [];
+      let activeFilter = 'ALL'; // 'ALL' | 'IIDM_DM' | 'IH_PS' | 'OTHERS'
+      let activeModalSlot = 'mrng';
+      let modalStagedRecords = {
+        mrng: [],
+        inflow: [],
+        current: []
+      };
+
+      const predefinedBranches = {
+        'Ghaziabad': '4915414',
+        'Ahmedabad': '4917449',
+        'Surat': '4936933',
+        'Gandhinagar': '6451772',
+        'Cochin': '6458704',
+        'Lucknow': '8200354',
+        'Gurgaon': '9225951',
+        'Lucknow-HHP': '3871175',
+        'Moradabad-HHP': '4776004'
+      };
+
+      // Toast notification helper
+      function showToast(msg, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `px-4 py-3 rounded-xl shadow-lg text-xs font-semibold text-white flex items-center gap-2 transition-all duration-300 pointer-events-auto ${
+          type === 'success' ? 'bg-emerald-600' : (type === 'error' ? 'bg-rose-600' : 'bg-amber-600')
+        }`;
+        toast.innerHTML = `
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ${type === 'success' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'}
+          </svg>
+          <span>${msg}</span>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-[-8px]');
+          setTimeout(() => toast.remove(), 300);
+        }, 3500);
+      }
+
+      // Clean SO number
+      function cleanSO(val) {
+        if (!val && val !== 0) return '';
+        return String(val)
+          .replace(/[\u00A0\s]*Edit[\u00A0\s]*$/i, '')
+          .replace(/[\u00A0\s]*View[\u00A0\s]*$/i, '')
+          .replace(/[\u00A0\s]+/g, ' ')
+          .trim();
+      }
+
+      function isDateOrTime(val) {
+        if (!val) return false;
+        const s = String(val).trim();
+        return /^\d{1,4}[.\-\/]\d{1,2}[.\-\/]\d{2,4}$/.test(s) || /^\d{1,2}:\d{2}(:\d{2})?$/.test(s);
+      }
+
+      function inferProductFromModel(model) {
+        if (!model) return 'Others';
+        const m = String(model).toUpperCase().trim();
+        if (m.startsWith('A') || m.includes('AR1') || m.includes('AR2') || m.includes('AC')) return 'AC';
+        if (m.startsWith('R') || m.includes('RT') || m.includes('RF') || m.includes('RS') || m.includes('REF')) return 'REF';
+        if (m.startsWith('W') || m.includes('WW') || m.includes('WA') || m.includes('WD') || m.includes('WM')) return 'WM';
+        if (m.startsWith('U') || m.startsWith('Q') || m.startsWith('L') || m.startsWith('P') || m.includes('UA') || m.includes('QA') || m.includes('TV') || m.includes('AV')) return 'AV';
+        return 'Others';
+      }
+
+      function isIHorPS(st) {
+        if (!st) return false;
+        const s = String(st).toUpperCase().trim();
+        return s === 'IH' || s === 'PS' || s.includes('IN-HOME') || s.includes('IN HOME') || s.includes('PICK-UP') || s.includes('PICKUP');
+      }
+
+      function isIIDM(st) {
+        if (!st) return false;
+        const s = String(st).toUpperCase().trim();
+        return s.includes('INSTALLATION') || s.includes('II') || s.includes('DEMO') || s === 'IIDM' || s.includes('DM');
+      }
+
+      function isCC(st) {
+        if (!st) return false;
+        const s = String(st).toUpperCase().trim();
+        return s.includes('CUSTOMER CARE') || s === 'CC';
+      }
+
+      // Check whether a call passes the active service type filter
+      function matchesServiceFilter(record, filter) {
+        if (!filter || filter === 'ALL') return true;
+        const st = record.serviceType || record.svcType || '';
+        if (filter === 'IIDM_DM') {
+          return isIIDM(st);
+        }
+        if (filter === 'IH_PS') {
+          return isIHorPS(st);
+        }
+        if (filter === 'OTHERS') {
+          return !isIIDM(st) && !isIHorPS(st);
+        }
+        return true;
+      }
+
+      // Standard Robust GSPN Parser
+      function parseGspnLines(rawText) {
+        if (!rawText || !rawText.trim()) return [];
+        const lines = rawText
+          .replace(/\r\n/g, '\n')
+          .replace(/\r/g, '\n')
+          .split('\n')
+          .filter(l => l.trim().length > 0);
+
+        if (lines.length === 0) return [];
+
+        let startRow = 0;
+        let colIdxMap = { so: -1, model: -1, status: -1, serviceType: -1, reason: -1, customer: -1, city: -1 };
+
+        // Look for header row
+        for (let i = 0; i < Math.min(lines.length, 5); i++) {
+          const cells = lines[i].split('\t').map(c => c.trim().toLowerCase());
+          cells.forEach((c, idx) => {
+            if (c.includes('service order') || c.includes('so no') || c.includes('order no')) colIdxMap.so = idx;
+            if (c.includes('model')) colIdxMap.model = idx;
+            if (c.includes('service type') || c.includes('svc type')) colIdxMap.serviceType = idx;
+            if (c.includes('status') && !c.includes('wty')) colIdxMap.status = idx;
+            if (c.includes('reason')) colIdxMap.reason = idx;
+            if (c.includes('customer')) colIdxMap.customer = idx;
+            if (c.includes('city')) colIdxMap.city = idx;
+          });
+          if (colIdxMap.so !== -1) {
+            startRow = i + 1;
+            break;
+          }
+        }
+
+        // If next row is a second header row (like City, App Date, Service Type...)
+        if (startRow < lines.length) {
+          const cells2 = lines[startRow].split('\t').map(c => c.trim().toLowerCase());
+          if (cells2.some(c => c.includes('service type') || c.includes('status') || c.includes('city') || c.includes('reason'))) {
+            cells2.forEach((c, idx) => {
+              if (c.includes('service type') || c.includes('svc type')) colIdxMap.serviceType = idx;
+              if (c.includes('status') && !c.includes('wty')) colIdxMap.status = idx;
+              if (c.includes('reason')) colIdxMap.reason = idx;
+              if (c.includes('city')) colIdxMap.city = idx;
+            });
+            startRow++;
+          }
+        }
+
+        const records = [];
+
+        // Distinguish 2-row vs 1-row
+        let isTwoRowFormat = false;
+        let sampleCount = 0;
+        for (let i = startRow; i < Math.min(lines.length, startRow + 8); i += 2) {
+          if (i + 1 < lines.length) {
+            const row1 = lines[i].split('\t').map(c => c.trim());
+            const row2 = lines[i + 1].split('\t').map(c => c.trim());
+            const soCandidate = row1[colIdxMap.so !== -1 ? colIdxMap.so : 1] || row1[0];
+            const cleanCandidate = cleanSO(soCandidate);
+            const isRow1So = /^\d{8,12}$/.test(cleanCandidate);
+            const isRow2NotSo = !/^\d{8,12}$/.test(cleanSO(row2[colIdxMap.so !== -1 ? colIdxMap.so : 1] || ''));
+            if (isRow1So && isRow2NotSo) sampleCount++;
+          }
+        }
+        if (sampleCount >= 2) isTwoRowFormat = true;
+
+        if (isTwoRowFormat) {
+          for (let i = startRow; i < lines.length; i += 2) {
+            const cells1 = lines[i].split('\t').map(c => c.trim());
+            const cells2 = (i + 1 < lines.length) ? lines[i + 1].split('\t').map(c => c.trim()) : [];
+            const soIdx = colIdxMap.so !== -1 ? colIdxMap.so : 1;
+            const so = cleanSO(cells1[soIdx] || cells1[0]);
+            if (!so || !/^\d{8,12}$/.test(so)) continue;
+
+            const modelIdx = colIdxMap.model !== -1 ? colIdxMap.model : 5;
+            const model = cells1[modelIdx] || '';
+            const stIdx = colIdxMap.serviceType !== -1 ? colIdxMap.serviceType : 4;
+            const serviceType = cells2[stIdx] || cells1[stIdx] || 'IH';
+            const statusIdx = colIdxMap.status !== -1 ? colIdxMap.status : 5;
+            const status = cells2[statusIdx] || cells1[statusIdx] || 'Pending';
+            const reasonIdx = colIdxMap.reason !== -1 ? colIdxMap.reason : 6;
+            const reason = cells2[reasonIdx] || '';
+
+            records.push({
+              serviceOrderNo: so,
+              callNo: so,
+              ascJobNo: cells1[2] || `${so}-01`,
+              model: model,
+              product: inferProductFromModel(model),
+              serviceType: serviceType,
+              svcType: serviceType,
+              status: status,
+              reason: reason,
+              city: cells2[3] || 'ERNAKULAM'
+            });
+          }
+        } else {
+          // Standard 1-row format
+          for (let i = startRow; i < lines.length; i++) {
+            const cells = lines[i].split('\t').map(c => c.trim());
+            if (cells.length < 2) continue;
+            let so = '';
+            if (colIdxMap.so !== -1 && cells[colIdxMap.so]) {
+              so = cleanSO(cells[colIdxMap.so]);
+            } else {
+              for (const cell of cells) {
+                const cleaned = cleanSO(cell);
+                if (/^\d{8,12}$/.test(cleaned) && !isDateOrTime(cell)) {
+                  so = cleaned;
+                  break;
+                }
+              }
+            }
+            if (!so) continue;
+
+            let model = colIdxMap.model !== -1 ? cells[colIdxMap.model] : '';
+            let serviceType = colIdxMap.serviceType !== -1 ? cells[colIdxMap.serviceType] : '';
+            let status = colIdxMap.status !== -1 ? cells[colIdxMap.status] : '';
+            let reason = colIdxMap.reason !== -1 ? cells[colIdxMap.reason] : '';
+
+            records.push({
+              serviceOrderNo: so,
+              callNo: so,
+              model: model,
+              product: inferProductFromModel(model),
+              serviceType: serviceType || 'IH',
+              svcType: serviceType || 'IH',
+              status: status || 'Pending',
+              reason: reason,
+              city: 'Service Area'
+            });
+          }
+        }
+
+        return records;
+      }
+
+      // --- BRANCH COMPUTATION LOGIC (MATCHING CE-SERVICE CENTER CLOSER FORMULA) ---
+      // Formula: Workload = Opening + Flow • Closed = Workload - Current • Closer % = (Closed ÷ Flow) * 100
+      function computeBranchMetrics(branch, filter) {
+        const mrng = branch.mrngRecords.filter(r => matchesServiceFilter(r, filter));
+        const flow = branch.inflowRecords.filter(r => matchesServiceFilter(r, filter));
+        const current = branch.currentRecords.filter(r => matchesServiceFilter(r, filter));
+
+        const openingCount = mrng.length;
+        const flowCount = flow.length;
+        const totalWorkload = openingCount + flowCount;
+        const currentCount = current.length;
+        const closedCount = Math.max(0, totalWorkload - currentCount);
+
+        let closerPct = 0;
+        if (flowCount > 0) {
+          closerPct = (closedCount / flowCount) * 100;
+        } else if (closedCount > 0) {
+          closerPct = 100;
+        }
+
+        return {
+          name: branch.name,
+          code: branch.code,
+          opening: openingCount,
+          flow: flowCount,
+          workload: totalWorkload,
+          closed: closedCount,
+          current: currentCount,
+          closerPct: closerPct
+        };
+      }
+
+      // Render Closer % badge with styled conditional backgrounds
+      function renderCloserPctHtml(pct) {
+        let bg = '#10b981'; // Green
+        let textColor = '#ffffff';
+
+        if (pct === 0) {
+          bg = '#dc2626'; // Alert Red
+        } else if (pct < 50) {
+          bg = '#f59e0b'; // Amber
+        } else if (pct < 80) {
+          bg = '#3b82f6'; // Blue
+        } else if (pct > 100) {
+          bg = '#047857'; // Deep Emerald
+        }
+
+        return `
+          <span style="display: inline-block; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 12.5px; background-color: ${bg}; color: ${textColor}; min-width: 58px; text-align: center;">
+            ${pct.toFixed(1)}%
+          </span>
+        `;
+      }
+
+      // --- RENDER CONSOLIDATED TABLE ---
+      function renderConsolidatedTable() {
+        const area = document.getElementById('multiCloserTableRenderArea');
+        if (!area) return;
+
+        // Update branch count badge
+        const badge = document.getElementById('badgeBranchCount');
+        if (badge) badge.textContent = `${branches.length} Branches Configured`;
+
+        const datePicker = document.getElementById('reportDatePicker');
+        const reportDate = (datePicker && datePicker.value) ? datePicker.value : new Date().toLocaleDateString('en-GB');
+
+        if (branches.length === 0) {
+          area.innerHTML = `
+            <div class="py-16 text-center text-slate-400 text-xs italic">
+              No branch closer data loaded yet. Click 
+              <button onclick="openAddBranchModal()" class="text-blue-700 font-bold underline hover:text-blue-900 mx-1">ADD BRANCH</button>
+              or 
+              <button onclick="loadSampleMultiBranchData()" class="text-amber-700 font-bold underline hover:text-amber-900 mx-1">Load Sample Data</button> 
+              to see the consolidated report.
+            </div>
+          `;
+          updateKpis({ opening: 0, flow: 0, workload: 0, closed: 0, current: 0, closerPct: 0 });
+          return;
+        }
+
+        // Calculate rows per branch
+        const branchRows = branches.map(b => computeBranchMetrics(b, activeFilter));
+
+        // Calculate Overall Total
+        let totOpening = 0, totFlow = 0, totWorkload = 0, totClosed = 0, totCurrent = 0;
+        branchRows.forEach(r => {
+          totOpening += r.opening;
+          totFlow += r.flow;
+          totWorkload += r.workload;
+          totClosed += r.closed;
+          totCurrent += r.current;
+        });
+
+        let totCloserPct = 0;
+        if (totFlow > 0) {
+          totCloserPct = (totClosed / totFlow) * 100;
+        } else if (totClosed > 0) {
+          totCloserPct = 100;
+        }
+
+        updateKpis({
+          opening: totOpening,
+          flow: totFlow,
+          workload: totWorkload,
+          closed: totClosed,
+          current: totCurrent,
+          closerPct: totCloserPct
+        });
+
+        // Filter label text
+        let filterLabel = 'ALL SERVICE TYPES';
+        if (activeFilter === 'IIDM_DM') filterLabel = 'IIDM + DM ONLY';
+        if (activeFilter === 'IH_PS') filterLabel = 'IH + PS ONLY';
+        if (activeFilter === 'OTHERS') filterLabel = 'OTHERS SERVICE TYPES';
+
+        // Build HTML Table (Exact matching closer style with bronze header & gold total)
+        let rowsHtml = '';
+        branchRows.forEach((r, idx) => {
+          const bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+          rowsHtml += `
+            <tr style="border-bottom: 1px solid #e2e8f0; font-size: 14px; background-color: ${bg};">
+              <td style="padding: 10px 14px; font-weight: 800; color: #0f2e59; text-align: left;">
+                <div style="font-weight: 800;">${r.name}</div>
+                <div style="font-size: 11px; color: #64748b; font-weight: 500;">Code: ${r.code}</div>
+              </td>
+              <td style="padding: 10px 8px; text-align: center; color: #334155; font-weight: 600;">${r.opening}</td>
+              <td style="padding: 10px 8px; text-align: center; color: #92400e; font-weight: 700; background-color: #fffbeb;">${r.flow}</td>
+              <td style="padding: 10px 8px; text-align: center; color: #1e40af; font-weight: 800; background-color: #eff6ff;">${r.workload}</td>
+              <td style="padding: 10px 8px; text-align: center; color: #065f46; font-weight: 800; background-color: #ecfdf5;">${r.closed}</td>
+              <td style="padding: 10px 8px; text-align: center; color: #991b1b; font-weight: 600; background-color: #fff1f2;">${r.current}</td>
+              <td style="padding: 10px 8px; text-align: center;">${renderCloserPctHtml(r.closerPct)}</td>
+            </tr>
+          `;
+        });
+
+        const tableHtml = `
+          <div style="width: 100%; max-width: 950px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 12px; overflow: hidden; border: 1.5px solid #cbd5e1; background-color: #ffffff;">
+            
+            <!-- Table Header Banner -->
+            <div style="background-color: #0f2e59; color: #ffffff; padding: 12px 16px; text-align: center; border-bottom: 2px solid #1e40af;">
+              <div style="font-size: 15px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase;">
+                MULTIPLE BRANCHES CLOSER REPORT — ${reportDate}
+              </div>
+              <div style="font-size: 11px; opacity: 0.9; margin-top: 3px; font-weight: 600;">
+                Consolidated Scope: ${branchRows.length} Branches • Active Filter: <span style="background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 4px;">${filterLabel}</span>
+              </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; text-align: center;">
+              <thead>
+                <tr style="background-color: #1e293b; color: #ffffff; font-size: 12.5px; font-weight: 800; letter-spacing: 0.5px;">
+                  <th style="padding: 10px 14px; text-align: left; width: 30%;">SERVICE BRANCH</th>
+                  <th style="padding: 10px 8px; width: 11%;">Morning Open</th>
+                  <th style="padding: 10px 8px; width: 11%; background-color: #334155;">Flow (Inflow)</th>
+                  <th style="padding: 10px 8px; width: 11%;">Total Workload</th>
+                  <th style="padding: 10px 8px; width: 12%; background-color: #334155;">Closed Calls</th>
+                  <th style="padding: 10px 8px; width: 11%;">Current Open</th>
+                  <th style="padding: 10px 8px; width: 14%;">CLOSURE %</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+
+                <!-- CONSOLIDATED OVERALL TOTAL ROW (GOLD / AMBER) -->
+                <tr style="background-color: #f59e0b; color: #000000; font-size: 15px; font-weight: 900; border-top: 2.5px solid #d97706; border-bottom: 2.5px solid #d97706;">
+                  <td style="padding: 12px 14px; text-align: left; text-transform: uppercase;">
+                    OVERALL TOTAL (${branchRows.length} BRANCHES)
+                  </td>
+                  <td style="padding: 12px 8px; text-align: center;">${totOpening}</td>
+                  <td style="padding: 12px 8px; text-align: center;">${totFlow}</td>
+                  <td style="padding: 12px 8px; text-align: center;">${totWorkload}</td>
+                  <td style="padding: 12px 8px; text-align: center;">${totClosed}</td>
+                  <td style="padding: 12px 8px; text-align: center;">${totCurrent}</td>
+                  <td style="padding: 12px 8px; text-align: center;">${renderCloserPctHtml(totCloserPct)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+          </div>
+        `;
+
+        area.innerHTML = tableHtml;
+        renderBranchCards();
+      }
+
+      function updateKpis(kpis) {
+        document.getElementById('kpiMrngTotal').textContent = kpis.opening;
+        document.getElementById('kpiInflowTotal').textContent = kpis.flow;
+        document.getElementById('kpiWorkloadTotal').textContent = kpis.workload;
+        document.getElementById('kpiClosedTotal').textContent = kpis.closed;
+        document.getElementById('kpiCurrentTotal').textContent = kpis.current;
+        document.getElementById('kpiCloserRate').textContent = `${kpis.closerPct.toFixed(1)}%`;
+      }
+
+      // Render branch mini-cards
+      function renderBranchCards() {
+        const container = document.getElementById('branchCardsContainer');
+        const empty = document.getElementById('branchEmptyState');
+        if (!container) return;
+
+        if (branches.length === 0) {
+          if (empty) empty.classList.remove('hidden');
+          return;
+        }
+
+        if (empty) empty.classList.add('hidden');
+
+        container.innerHTML = branches.map((b, idx) => `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between shadow-sm">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                <span class="text-xs font-black text-slate-800 uppercase">${b.name}</span>
+                <span class="text-[10px] text-slate-400 font-mono">(${b.code})</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-1 flex items-center gap-2">
+                <span class="text-blue-700 font-bold">${b.mrngRecords.length} Open</span> • 
+                <span class="text-amber-700 font-bold">${b.inflowRecords.length} Flow</span> • 
+                <span class="text-rose-700 font-bold">${b.currentRecords.length} Current</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button onclick="editBranch(${idx})" class="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition" title="Edit branch data">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </button>
+              <button onclick="deleteBranch(${idx})" class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition" title="Delete branch">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // --- FILTER TOGGLE CONTROLLER ---
+      window.setServiceTypeFilter = function (filter) {
+        activeFilter = filter;
+        const btnAll = document.getElementById('filterBtnAll');
+        const btnIidm = document.getElementById('filterBtnIidmDm');
+        const btnIhPs = document.getElementById('filterBtnIhPs');
+        const btnOthers = document.getElementById('filterBtnOthers');
+
+        const resetBtn = (btn) => {
+          if (!btn) return;
+          btn.className = 'filter-toggle-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-700 hover:text-slate-900 hover:bg-white';
+        };
+        const activateBtn = (btn) => {
+          if (!btn) return;
+          btn.className = 'filter-toggle-btn px-3 py-1.5 rounded-lg text-xs font-black transition shadow-sm bg-[#0f2e59] text-white';
+        };
+
+        resetBtn(btnAll);
+        resetBtn(btnIidm);
+        resetBtn(btnIhPs);
+        resetBtn(btnOthers);
+
+        if (filter === 'ALL') activateBtn(btnAll);
+        if (filter === 'IIDM_DM') activateBtn(btnIidm);
+        if (filter === 'IH_PS') activateBtn(btnIhPs);
+        if (filter === 'OTHERS') activateBtn(btnOthers);
+
+        renderConsolidatedTable();
+        showToast(`Filtered table to show: ${filter === 'ALL' ? 'All Service Types' : (filter === 'IIDM_DM' ? 'IIDM + DM only' : (filter === 'IH_PS' ? 'IH + PS only' : 'Others only'))}`);
+      };
+
+      // --- ADD BRANCH MODAL HANDLERS ---
+      window.openAddBranchModal = function (branchToEdit = null) {
+        modalStagedRecords = {
+          mrng: branchToEdit ? [...branchToEdit.mrngRecords] : [],
+          inflow: branchToEdit ? [...branchToEdit.inflowRecords] : [],
+          current: branchToEdit ? [...branchToEdit.currentRecords] : []
+        };
+
+        const select = document.getElementById('modalBranchSelect');
+        const codeInput = document.getElementById('modalBranchCodeInput');
+        const customInput = document.getElementById('modalCustomBranchInput');
+
+        if (branchToEdit) {
+          if (select.querySelector(`option[value="${branchToEdit.name}"]`)) {
+            select.value = branchToEdit.name;
+            if (customInput) customInput.classList.add('hidden');
+          } else {
+            select.value = 'Custom';
+            if (customInput) {
+              customInput.classList.remove('hidden');
+              customInput.value = branchToEdit.name;
+            }
+          }
+          if (codeInput) codeInput.value = branchToEdit.code;
+        } else {
+          select.value = 'Gurgaon';
+          if (codeInput) codeInput.value = '9225951';
+          if (customInput) customInput.classList.add('hidden');
+        }
+
+        updateModalBadges();
+        document.getElementById('slotPasteAreaContainer').classList.add('hidden');
+        document.getElementById('addBranchModal').classList.remove('hidden');
+      };
+
+      window.closeAddBranchModal = function () {
+        document.getElementById('addBranchModal').classList.add('hidden');
+      };
+
+      function updateModalBadges() {
+        document.getElementById('modalBadgeMrng').textContent = `${modalStagedRecords.mrng.length} Calls`;
+        document.getElementById('modalBadgeInflow').textContent = `${modalStagedRecords.inflow.length} Calls`;
+        document.getElementById('modalBadgeCurrent').textContent = `${modalStagedRecords.current.length} Calls`;
+      }
+
+      window.openSlotPasteBox = function (slot) {
+        activeModalSlot = slot;
+        const container = document.getElementById('slotPasteAreaContainer');
+        const title = document.getElementById('slotPasteTitle');
+        const textarea = document.getElementById('slotPasteTextarea');
+
+        let slotLabel = slot === 'mrng' ? 'Morning Open' : (slot === 'inflow' ? 'Flow (Inflow)' : 'Current Open');
+        title.textContent = `Paste Tabular Data for ${slotLabel}`;
+        textarea.value = '';
+        container.classList.remove('hidden');
+        textarea.focus();
+      };
+
+      document.getElementById('btnApplySlotPaste').addEventListener('click', () => {
+        const text = document.getElementById('slotPasteTextarea').value;
+        if (!text.trim()) {
+          showToast('Please paste data text first', 'error');
+          return;
+        }
+        const parsed = parseGspnLines(text);
+        if (parsed.length === 0) {
+          showToast('No valid service order calls found in pasted text', 'error');
+          return;
+        }
+
+        modalStagedRecords[activeModalSlot] = parsed;
+        updateModalBadges();
+        document.getElementById('slotPasteAreaContainer').classList.add('hidden');
+        showToast(`Parsed and applied ${parsed.length} calls for ${activeModalSlot.toUpperCase()} slot!`);
+      });
+
+      // File upload handler for modal slots
+      function handleModalSlotFile(slot, file) {
+        if (!file) return;
+        const reader = new FileReader();
+        const fileName = file.name.toLowerCase();
+
+        if (fileName.endsWith('.txt') || fileName.endsWith('.csv') || fileName.endsWith('.tsv')) {
+          reader.onload = (e) => {
+            const parsed = parseGspnLines(e.target.result);
+            if (parsed.length > 0) {
+              modalStagedRecords[slot] = parsed;
+              updateModalBadges();
+              showToast(`Loaded ${parsed.length} calls for ${slot.toUpperCase()} slot!`);
+            } else {
+              showToast('Could not find service calls in file', 'error');
+            }
+          };
+          reader.readAsText(file);
+        } else {
+          reader.onload = (e) => {
+            try {
+              const data = new Uint8Array(e.target.result);
+              const workbook = XLSX.read(data, { type: 'array' });
+              const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+              const tsv = XLSX.utils.sheet_to_txt(firstSheet);
+              let parsed = parseGspnLines(tsv);
+
+              if (parsed.length === 0) {
+                const aoa = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                const joined = aoa.map(row => (Array.isArray(row) ? row.join('\t') : '')).join('\n');
+                parsed = parseGspnLines(joined);
+              }
+
+              if (parsed.length > 0) {
+                modalStagedRecords[slot] = parsed;
+                updateModalBadges();
+                showToast(`Loaded ${parsed.length} calls for ${slot.toUpperCase()} slot!`);
+              } else {
+                showToast('Could not extract calls from spreadsheet', 'error');
+              }
+            } catch (err) {
+              console.error(err);
+              showToast('Failed to parse spreadsheet file', 'error');
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        }
+      }
+
+      ['Mrng', 'Inflow', 'Current'].forEach(slot => {
+        const fileInput = document.getElementById(`modalFile${slot}`);
+        if (fileInput) {
+          fileInput.addEventListener('change', (e) => {
+            handleModalSlotFile(slot.toLowerCase(), e.target.files[0]);
+          });
+        }
+      });
+
+      // Branch select change listener
+      document.getElementById('modalBranchSelect').addEventListener('change', (e) => {
+        const val = e.target.value;
+        const customInput = document.getElementById('modalCustomBranchInput');
+        const codeInput = document.getElementById('modalBranchCodeInput');
+        if (val === 'Custom') {
+          customInput.classList.remove('hidden');
+          customInput.focus();
+        } else {
+          customInput.classList.add('hidden');
+          if (codeInput && predefinedBranches[val]) {
+            codeInput.value = predefinedBranches[val];
+          }
+        }
+      });
+
+      // Save branch to batch
+      document.getElementById('btnSaveBranchToBatch').addEventListener('click', () => {
+        const select = document.getElementById('modalBranchSelect');
+        const customInput = document.getElementById('modalCustomBranchInput');
+        const codeInput = document.getElementById('modalBranchCodeInput');
+
+        let bName = select.value === 'Custom' ? customInput.value.trim() : select.value;
+        if (!bName) bName = 'Custom Branch';
+        let bCode = codeInput.value.trim() || '0000000';
+
+        // Check if branch already exists, update or add
+        const existingIdx = branches.findIndex(b => b.name.toLowerCase() === bName.toLowerCase());
+        const branchObj = {
+          name: bName,
+          code: bCode,
+          mrngRecords: modalStagedRecords.mrng,
+          inflowRecords: modalStagedRecords.inflow,
+          currentRecords: modalStagedRecords.current
+        };
+
+        if (existingIdx !== -1) {
+          branches[existingIdx] = branchObj;
+          showToast(`Updated branch ${bName}!`);
+        } else {
+          branches.push(branchObj);
+          showToast(`Added branch ${bName} to batch!`);
+        }
+
+        closeAddBranchModal();
+        renderConsolidatedTable();
+      });
+
+      window.editBranch = function (idx) {
+        if (branches[idx]) {
+          openAddBranchModal(branches[idx]);
+        }
+      };
+
+      window.deleteBranch = function (idx) {
+        if (branches[idx]) {
+          const removed = branches.splice(idx, 1);
+          renderConsolidatedTable();
+          showToast(`Removed branch ${removed[0].name}`);
+        }
+      };
+
+      document.getElementById('btnClearAllBranches').addEventListener('click', () => {
+        if (branches.length === 0) return;
+        branches.length = 0;
+        renderConsolidatedTable();
+        showToast('Cleared all branches');
+      });
+
+      // --- SAMPLE DATA GENERATOR ---
+      function loadSampleMultiBranchData() {
+        branches.length = 0;
+
+        function makeCall(so, model, svcType, status, reason = 'Normal') {
+          return {
+            serviceOrderNo: String(so),
+            callNo: String(so),
+            model: model,
+            product: inferProductFromModel(model),
+            serviceType: svcType,
+            svcType: svcType,
+            status: status,
+            reason: reason,
+            city: 'North'
+          };
+        }
+
+        // Branch 1: Gurgaon (9225951)
+        branches.push({
+          name: 'Gurgaon',
+          code: '9225951',
+          mrngRecords: [
+            makeCall('4443100101', 'AR18BY3APWK', 'IN-HOME', 'Pending', 'Parts ordered'),
+            makeCall('4443100102', 'RT28T3722S8', 'IN-HOME', 'Pending', 'Gas charge pending'),
+            makeCall('4443100103', 'WA65A4002VS', 'IN-HOME', 'Pending', 'Customer unavail'),
+            makeCall('4443100104', 'AR12TY5APWK', 'Initial Installation', 'Pending', 'Scheduled'),
+            makeCall('4443100105', 'RT34T4513S8', 'Initial Installation', 'Pending', 'Scheduled'),
+            makeCall('4443100106', 'UA55CU7700', 'Customer Care', 'Pending', 'Follow up')
+          ],
+          inflowRecords: [
+            makeCall('4443100201', 'AR18BY3APWK', 'IN-HOME', 'Assigned'),
+            makeCall('4443100202', 'RT28T3722S8', 'IN-HOME', 'Assigned'),
+            makeCall('4443100203', 'WW70T4020CX', 'IN-HOME', 'Assigned'),
+            makeCall('4443100204', 'AR18AY4ATWK', 'Initial Installation', 'Assigned'),
+            makeCall('4443100205', 'UA65CU8000', 'Initial Installation', 'Assigned'),
+            makeCall('4443100206', 'UA50CU7700', 'Customer Care', 'Assigned')
+          ],
+          currentRecords: [
+            makeCall('4443100101', 'AR18BY3APWK', 'IN-HOME', 'Pending', 'Parts ordered'),
+            makeCall('4443100202', 'RT28T3722S8', 'IN-HOME', 'Pending', 'In transit'),
+            makeCall('4443100104', 'AR12TY5APWK', 'Initial Installation', 'Pending')
+          ]
+        });
+
+        // Branch 2: Ghaziabad (4915414)
+        branches.push({
+          name: 'Ghaziabad',
+          code: '4915414',
+          mrngRecords: [
+            makeCall('4443200101', 'RT38M5538S8', 'IN-HOME', 'Pending'),
+            makeCall('4443200102', 'WW80T504DAX', 'IN-HOME', 'Pending'),
+            makeCall('4443200103', 'AR18CY3AAGB', 'Initial Installation', 'Pending'),
+            makeCall('4443200104', 'MC28A5013AK', 'Customer Care', 'Pending')
+          ],
+          inflowRecords: [
+            makeCall('4443200201', 'RT38M5538S8', 'IN-HOME', 'Assigned'),
+            makeCall('4443200202', 'WW80T504DAX', 'IN-HOME', 'Assigned'),
+            makeCall('4443200203', 'AR18CY3AAGB', 'Initial Installation', 'Assigned'),
+            makeCall('4443200204', 'WA70BG4441BY', 'Initial Installation', 'Assigned')
+          ],
+          currentRecords: [
+            makeCall('4443200101', 'RT38M5538S8', 'IN-HOME', 'Pending'),
+            makeCall('4443200202', 'WW80T504DAX', 'IN-HOME', 'Pending')
+          ]
+        });
+
+        // Branch 3: Ahmedabad (4917449)
+        branches.push({
+          name: 'Ahmedabad',
+          code: '4917449',
+          mrngRecords: [
+            makeCall('4443300101', 'AR18BY3APWK', 'IN-HOME', 'Pending'),
+            makeCall('4443300102', 'RT28T3722S8', 'IN-HOME', 'Pending'),
+            makeCall('4443300103', 'UA43CU7700', 'Initial Installation', 'Pending')
+          ],
+          inflowRecords: [
+            makeCall('4443300201', 'AR18BY3APWK', 'IN-HOME', 'Assigned'),
+            makeCall('4443300202', 'WW70T4020CX', 'IN-HOME', 'Assigned'),
+            makeCall('4443300203', 'AR12TY5APWK', 'Initial Installation', 'Assigned')
+          ],
+          currentRecords: [
+            makeCall('4443300101', 'AR18BY3APWK', 'IN-HOME', 'Pending')
+          ]
+        });
+
+        // Branch 4: Cochin (6458704)
+        branches.push({
+          name: 'Cochin',
+          code: '6458704',
+          mrngRecords: [
+            makeCall('4443400101', 'LS32HG800SWXXL', 'Initial Installation', 'Pending'),
+            makeCall('4443400102', 'RT28T3453S9/HL', 'IN-HOME', 'Pending'),
+            makeCall('4443400103', 'RT39M5538UT/TL', 'IN-HOME', 'Pending'),
+            makeCall('4443400104', 'MC28M6055CK', 'IN-HOME', 'Pending'),
+            makeCall('4443400105', 'WW60R20GLMA/TL', 'IN-HOME', 'Pending')
+          ],
+          inflowRecords: [
+            makeCall('4443400201', 'WW12DB8B54GBTL', 'Initial Installation', 'Assigned'),
+            makeCall('4443400202', 'RT39C5532SL/HL', 'IN-HOME', 'Assigned'),
+            makeCall('4443400203', 'WT85B4200GD/TL', 'IN-HOME', 'Assigned'),
+            makeCall('4443400204', 'MC28A5013AK/TL', 'IN-HOME', 'Assigned')
+          ],
+          currentRecords: [
+            makeCall('4443400102', 'RT28T3453S9/HL', 'IN-HOME', 'Pending'),
+            makeCall('4443400103', 'RT39M5538UT/TL', 'IN-HOME', 'Pending'),
+            makeCall('4443400202', 'RT39C5532SL/HL', 'IN-HOME', 'Pending')
+          ]
+        });
+
+        renderConsolidatedTable();
+        showToast('Loaded Sample Data for 4 Branches (Gurgaon, Ghaziabad, Ahmedabad, Cochin)!');
+      }
+      window.loadSampleMultiBranchData = loadSampleMultiBranchData;
+
+      document.getElementById('btnTopLoadSample').addEventListener('click', loadSampleMultiBranchData);
+      document.getElementById('btnOpenAddBranchModal').addEventListener('click', () => openAddBranchModal());
+
+      // --- COPY FOR MAIL ---
+      async function copyReportForMail() {
+        const area = document.getElementById('multiCloserTableRenderArea');
+        if (!area || branches.length === 0) {
+          showToast('No table data to copy', 'error');
+          return;
+        }
+
+        const table = area.querySelector('table');
+        if (!table) return;
+
+        try {
+          const htmlBlob = new Blob([area.innerHTML], { type: 'text/html' });
+          const textBlob = new Blob([table.innerText], { type: 'text/plain' });
+          const item = new ClipboardItem({
+            'text/html': htmlBlob,
+            'text/plain': textBlob
+          });
+          await navigator.clipboard.write([item]);
+          showToast('Table copied to clipboard! Paste directly into Outlook or Gmail.');
+        } catch (err) {
+          console.warn('ClipboardItem write failed, fallback to execCommand', err);
+          const range = document.createRange();
+          range.selectNode(area);
+          window.getSelection().removeAllRanges();
+          window.getSelection().addRange(range);
+          document.execCommand('copy');
+          window.getSelection().removeAllRanges();
+          showToast('Copied HTML table to clipboard!');
+        }
+      }
+
+      document.getElementById('btnTopCopyMail').addEventListener('click', copyReportForMail);
+      document.getElementById('btnCopyReportHtml').addEventListener('click', copyReportForMail);
+
+      // --- EXPORT TO EXCEL WORKBOOK (EXCELJS WITH STYLING + 24 STANDARD COLUMNS) ---
+      async function exportWorkbook() {
+        if (branches.length === 0) {
+          showToast('No branch data to export', 'error');
+          return;
+        }
+
+        const datePicker = document.getElementById('reportDatePicker');
+        const reportDate = (datePicker && datePicker.value) ? datePicker.value : new Date().toLocaleDateString('en-GB');
+        const fileDate = reportDate.replace(/[\.\/]/g, '-');
+
+        // Identify closed calls across all branches
+        const allClosedCalls = [];
+        branches.forEach(b => {
+          const currentCallNos = new Set(b.currentRecords.map(r => cleanSO(r.serviceOrderNo || r.callNo)));
+          const seen = new Set();
+          [...b.mrngRecords, ...b.inflowRecords].forEach(r => {
+            const so = cleanSO(r.serviceOrderNo || r.callNo);
+            if (so && !currentCallNos.has(so) && !seen.has(so) && matchesServiceFilter(r, activeFilter)) {
+              seen.add(so);
+              allClosedCalls.push({
+                ...r,
+                branch: b.name,
+                branchCode: b.code,
+                status: 'Closed',
+                reasonRemarks: r.reason ? `Closed — ${r.reason}` : 'Job Completed'
+              });
+            }
+          });
+        });
+
+        if (window.ExcelJS) {
+          try {
+            const wb = new ExcelJS.Workbook();
+            wb.creator = 'GSPN Helper Tools';
+            wb.created = new Date();
+
+            // SHEET 1: Consolidated Summary
+            const wsSummary = wb.addWorksheet('Summary', { views: [{ showGridLines: true }] });
+            wsSummary.columns = [
+              { width: 30 }, // Service Branch
+              { width: 16 }, // Morning Open
+              { width: 16 }, // Flow
+              { width: 16 }, // Workload
+              { width: 16 }, // Closed
+              { width: 16 }, // Current
+              { width: 16 }  // Closure %
+            ];
+
+            const borderThin = {
+              top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+              left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+              bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+              right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+            };
+
+            const borderDouble = {
+              top: { style: 'thin', color: { argb: 'FF000000' } },
+              left: { style: 'thin', color: { argb: 'FF000000' } },
+              bottom: { style: 'double', color: { argb: 'FF000000' } },
+              right: { style: 'thin', color: { argb: 'FF000000' } }
+            };
+
+            // Row 1: Header Banner
+            wsSummary.mergeCells('A1:G1');
+            const r1 = wsSummary.getCell('A1');
+            r1.value = `MULTIPLE BRANCHES CLOSER REPORT - ${reportDate} (Filter: ${activeFilter})`;
+            r1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F2E59' } };
+            r1.font = { name: 'Arial', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+            r1.alignment = { vertical: 'middle', horizontal: 'center' };
+            wsSummary.getRow(1).height = 28;
+
+            // Row 2: Columns
+            const r2 = wsSummary.getRow(2);
+            r2.values = ['SERVICE BRANCH', 'Morning Open', 'Flow (Inflow)', 'Total Workload', 'Closed Calls', 'Current Open', 'CLOSURE %'];
+            r2.height = 24;
+            for (let c = 1; c <= 7; c++) {
+              const cell = r2.getCell(c);
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+              cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+              cell.alignment = { vertical: 'middle', horizontal: c === 1 ? 'left' : 'center' };
+              cell.border = borderThin;
+            }
+
+            let curRow = 3;
+            let totOpening = 0, totFlow = 0, totWorkload = 0, totClosed = 0, totCurrent = 0;
+
+            branches.forEach(b => {
+              const m = computeBranchMetrics(b, activeFilter);
+              totOpening += m.opening;
+              totFlow += m.flow;
+              totWorkload += m.workload;
+              totClosed += m.closed;
+              totCurrent += m.current;
+
+              const r = wsSummary.getRow(curRow);
+              r.values = [`${m.name} (${m.code})`, m.opening, m.flow, m.workload, m.closed, m.current, `${m.closerPct.toFixed(1)}%`];
+              r.height = 20;
+
+              for (let c = 1; c <= 7; c++) {
+                const cell = r.getCell(c);
+                cell.font = { name: 'Arial', size: 10, bold: c === 1, color: { argb: 'FF1E293B' } };
+                cell.border = borderThin;
+                if (c === 3) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFBEB' } };
+                if (c === 4) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } };
+                if (c === 5) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
+                if (c === 6) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF1F2' } };
+                cell.alignment = { vertical: 'middle', horizontal: c === 1 ? 'left' : 'center' };
+              }
+              curRow++;
+            });
+
+            // Overall Total Row
+            const totCloserPct = totFlow > 0 ? (totClosed / totFlow * 100) : (totClosed > 0 ? 100 : 0);
+            const rTot = wsSummary.getRow(curRow);
+            rTot.values = [`OVERALL TOTAL (${branches.length} BRANCHES)`, totOpening, totFlow, totWorkload, totClosed, totCurrent, `${totCloserPct.toFixed(1)}%`];
+            rTot.height = 24;
+            for (let c = 1; c <= 7; c++) {
+              const cell = rTot.getCell(c);
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF59E0B' } };
+              cell.font = { name: 'Arial', size: 10.5, bold: true, color: { argb: 'FF000000' } };
+              cell.border = borderDouble;
+              cell.alignment = { vertical: 'middle', horizontal: c === 1 ? 'left' : 'center' };
+            }
+
+            // SHEET 2: Closed calls (Standard 24 columns for manual verification)
+            const rawColDefs = [
+              { header: 'No', key: 'no', width: 8 },
+              { header: 'Branch Name', key: 'branch', width: 18 },
+              { header: 'Branch Code', key: 'branchCode', width: 14 },
+              { header: 'Service Order No', key: 'serviceOrderNo', width: 18 },
+              { header: 'ASC Job No', key: 'ascJobNo', width: 18 },
+              { header: 'Model', key: 'model', width: 18 },
+              { header: 'Serial No', key: 'serialNo', width: 18 },
+              { header: 'Product Category', key: 'product', width: 16 },
+              { header: 'Warranty Status', key: 'warrantyStatus', width: 16 },
+              { header: 'Warranty Code', key: 'warrantyCode', width: 14 },
+              { header: 'Service Type', key: 'serviceType', width: 18 },
+              { header: 'Created Date', key: 'createdDate', width: 14 },
+              { header: 'Assigned Date', key: 'assignedDate', width: 14 },
+              { header: 'Assigned Time', key: 'assignedTime', width: 14 },
+              { header: 'Aging (Days)', key: 'aging', width: 12 },
+              { header: 'TAT Bucket', key: 'tatBucket', width: 14 },
+              { header: 'Customer Name', key: 'customerName', width: 20 },
+              { header: 'City', key: 'city', width: 16 },
+              { header: 'App Date', key: 'appDate', width: 14 },
+              { header: 'App Time', key: 'appTime', width: 14 },
+              { header: 'Status', key: 'status', width: 18 },
+              { header: 'Reason / Remarks', key: 'reasonRemarks', width: 26 },
+              { header: 'Status', key: 'status2', width: 18 },
+              { header: 'Reason', key: 'reason', width: 24 },
+              { header: 'B2B', key: 'b2b', width: 8 },
+              { header: 'Risk Reason', key: 'riskReason', width: 22 }
+            ];
+
+            const wsClosed = wb.addWorksheet('Closed calls', { views: [{ showGridLines: true }] });
+            wsClosed.columns = rawColDefs;
+            const hr = wsClosed.getRow(1);
+            hr.height = 24;
+            for (let i = 1; i <= rawColDefs.length; i++) {
+              const c = hr.getCell(i);
+              c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF065F46' } };
+              c.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FFFFFFFF' } };
+              c.alignment = { vertical: 'middle', horizontal: 'center' };
+              c.border = borderThin;
+            }
+
+            allClosedCalls.forEach((r, idx) => {
+              const so = r.serviceOrderNo || r.callNo || '';
+              const m = r.model || '';
+              const p = r.product || inferProductFromModel(m);
+              const wty = r.warrantyStatus || 'In Warranty';
+              const st = r.serviceType || r.svcType || 'IH';
+              const rsn = r.reason || r.subReason || '';
+
+              const row = wsClosed.addRow({
+                no: idx + 1,
+                branch: r.branch || 'Branch',
+                branchCode: r.branchCode || '0000000',
+                serviceOrderNo: so,
+                ascJobNo: r.ascJobNo || `${so}-01`,
+                model: m,
+                serialNo: r.serialNo || '',
+                product: p,
+                warrantyStatus: wty,
+                warrantyCode: r.warrantyCode || (wty.toLowerCase().includes('in') ? 'IW' : 'OW'),
+                serviceType: st,
+                createdDate: r.createdDate || reportDate,
+                assignedDate: r.assignedDate || reportDate,
+                assignedTime: r.assignedTime || '10:00:00',
+                aging: r.aging !== undefined ? r.aging : '1',
+                tatBucket: r.tatBucket || '0–2 Days',
+                customerName: r.customerName || 'Demo Customer',
+                city: r.city || 'Service Area',
+                appDate: r.appDate || reportDate,
+                appTime: r.appTime || '14:00 - 16:00',
+                status: 'Closed',
+                reasonRemarks: rsn || 'Job Closed & Verified',
+                status2: 'Closed',
+                reason: rsn,
+                b2b: r.b2b || 'N',
+                riskReason: r.riskReason || 'None'
+              });
+              row.height = 18;
+              for (let i = 1; i <= rawColDefs.length; i++) {
+                const cell = row.getCell(i);
+                cell.font = { name: 'Arial', size: 9.5 };
+                cell.border = borderThin;
+                if (idx % 2 === 1) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                cell.alignment = { vertical: 'middle', horizontal: [1, 3, 4, 5, 7, 8, 10, 12, 13, 14, 15, 16, 19, 20, 25].includes(i) ? 'center' : 'left' };
+              }
+            });
+
+            // Trigger download
+            const buffer = await wb.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Multiple_Branches_Closer_${fileDate}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Exported Workbook with Summary and ${allClosedCalls.length} Closed calls!`);
+            return;
+          } catch (err) {
+            console.error('ExcelJS export error, falling back to SheetJS', err);
+          }
+        }
+
+        // SheetJS Fallback
+        const wb = XLSX.utils.book_new();
+        const summaryData = [
+          ['MULTIPLE BRANCHES CLOSER REPORT', '', '', '', '', '', ''],
+          ['SERVICE BRANCH', 'Morning Open', 'Flow (Inflow)', 'Total Workload', 'Closed Calls', 'Current Open', 'CLOSURE %']
+        ];
+        let totOpening = 0, totFlow = 0, totWorkload = 0, totClosed = 0, totCurrent = 0;
+        branches.forEach(b => {
+          const m = computeBranchMetrics(b, activeFilter);
+          totOpening += m.opening;
+          totFlow += m.flow;
+          totWorkload += m.workload;
+          totClosed += m.closed;
+          totCurrent += m.current;
+          summaryData.push([`${m.name} (${m.code})`, m.opening, m.flow, m.workload, m.closed, m.current, `${m.closerPct.toFixed(1)}%`]);
+        });
+        const totCloserPct = totFlow > 0 ? (totClosed / totFlow * 100) : (totClosed > 0 ? 100 : 0);
+        summaryData.push([`OVERALL TOTAL (${branches.length} BRANCHES)`, totOpening, totFlow, totWorkload, totClosed, totCurrent, `${totCloserPct.toFixed(1)}%`]);
+
+        const ws = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Summary');
+        XLSX.writeFile(wb, `Multiple_Branches_Closer_${fileDate}.xlsx`);
+        showToast('Exported Multiple Branches Closer Report (SheetJS)!');
+      }
+
+      document.getElementById('btnTopExportExcel').addEventListener('click', exportWorkbook);
+      document.getElementById('btnExportWorkbook').addEventListener('click', exportWorkbook);
+
+      // Initialize
+      renderConsolidatedTable();
+    })();
+  </script>
+</body>
+</html>

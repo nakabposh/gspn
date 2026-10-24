@@ -50,6 +50,12 @@
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <!-- SheetJS for Fallback Excel Export/Import -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Universal Context & Master Branch Directory -->
+  <script src="assets/js/context.js"></script>
+  <!-- Authoritative Open Pending Formulations & Column Registry -->
+  <script src="assets/js/openPendingContext.js"></script>
+  <!-- Universal Multi-Source Data Dialog (Page Fragments Architecture) -->
+  <script src="assets/js/universalDataDialog.js"></script>
 
   <style>
     body {
@@ -164,6 +170,26 @@
                     <span class="dropdown-desc">Morning vs Inflow vs Current Closer %</span>
                   </div>
                 </a>
+                <a href="multipleBranchesCloser.html" class="dropdown-item">
+                  <div class="dropdown-icon" style="background:#eff6ff; color:#1d4ed8;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div>
+                  <div class="dropdown-text">
+                    <div class="dropdown-title-row">
+                      <span class="dropdown-title">Multiple Branches Closer</span>
+                      <span class="badge-mini-live" style="background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;">Multi-SVC</span>
+                    </div>
+                    <span class="dropdown-desc">Consolidated branch rows &amp; quick-filter</span>
+                  </div>
+                </a>
+                <a href="cancellationReport.html" class="dropdown-item">
+                  <div class="dropdown-icon icon-rose" style="background:#ffe4e6; color:#e11d48;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+                  <div class="dropdown-text">
+                    <div class="dropdown-title-row">
+                      <span class="dropdown-title">Cancellation Report</span>
+                      <span class="badge-mini-live" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;">FDR / GD</span>
+                    </div>
+                    <span class="dropdown-desc">Cancellation %, X09 % &amp; OW repair analysis</span>
+                  </div>
+                </a>
               </div>
 
               <div class="dropdown-divider"></div>
@@ -196,6 +222,10 @@
               <a href="formats.html" class="dropdown-item">
                 <div class="dropdown-icon icon-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
                 <div class="dropdown-text"><span class="dropdown-title">Formats &amp; Templates</span><span class="dropdown-desc">ML &amp; Print Command specs</span></div>
+              </a>
+              <a href="svcInformation.html" class="dropdown-item">
+                <div class="dropdown-icon icon-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <div class="dropdown-text"><span class="dropdown-title">SVC Information</span><span class="dropdown-desc">Center &amp; Manpower management</span></div>
               </a>
             </div>
           </div>
@@ -248,6 +278,12 @@
             <p class="text-xs text-slate-400">Branches included in current report batch</p>
           </div>
           <div class="flex items-center gap-2">
+            <button id="btnUniversalImportReport" type="button" class="px-3 py-1.5 text-xs font-black rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Universal Data Importer with Page Fragments (Multi-Source Support)">
+              <svg class="w-3.5 h-3.5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/>
+              </svg>
+              <span>Universal Importer +</span>
+            </button>
             <button id="btnReloadApp" type="button" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-600 transition flex items-center gap-1.5 shadow-sm" title="Reload application and reset all loaded SVC data">
               <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -528,15 +564,15 @@
           <div class="flex items-center gap-2">
             <label for="modalSvcNameSelect" class="text-xs font-black text-[#0f2e59] uppercase tracking-wider whitespace-nowrap">SVC Name</label>
             <select id="modalSvcNameSelect" class="bg-white border border-slate-300 text-slate-800 text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm">
-              <option value="Gurgaon-CE">Gurgaon-CE</option>
-              <option value="Ghaziabad-CE">Ghaziabad-CE</option>
-              <option value="Lucknow-CE">Lucknow-CE</option>
-              <option value="Lucknow-HHP">Lucknow-HHP</option>
-              <option value="Moradabad-HHP">Moradabad-HHP</option>
-              <option value="Ahmedabad-CE">Ahmedabad-CE</option>
-              <option value="Gandhinagar-CE">Gandhinagar-CE</option>
-              <option value="Surat-CE">Surat-CE</option>
-              <option value="Cochin-CE">Cochin-CE</option>
+              <option value="Ghaziabad">Ghaziabad (4915414)</option>
+              <option value="Ahmedabad">Ahmedabad (4917449)</option>
+              <option value="Surat">Surat (4936933)</option>
+              <option value="Gandhinagar">Gandhinagar (6451772)</option>
+              <option value="Cochin">Cochin (6458704)</option>
+              <option value="Lucknow">Lucknow (8200354)</option>
+              <option value="Gurgaon" selected>Gurgaon (9225951)</option>
+              <option value="Lucknow-HHP">Lucknow-HHP (3871175)</option>
+              <option value="Moradabad-HHP">Moradabad-HHP (4776004)</option>
               <option value="Custom">Custom / Other...</option>
             </select>
           </div>
@@ -626,17 +662,53 @@
   <!-- ═════════════════════════════════════════════════════════════════════════ -->
   <!-- MODAL 2: RAW RECORDS PREVIEW MODAL                                       -->
   <!-- ═════════════════════════════════════════════════════════════════════════ -->
-  <div id="rawPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
-    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-5xl overflow-hidden modal-animate flex flex-col max-h-[92vh]">
-      <!-- Header -->
-      <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+  <div id="rawPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-[96vw] overflow-hidden modal-animate flex flex-col max-h-[94vh]">
+      <!-- Header & Filter Bar -->
+      <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h3 class="text-sm font-bold text-slate-800 font-outfit" id="rawPreviewTitle">Raw Records Preview</h3>
-          <p class="text-[11px] text-slate-400" id="rawPreviewSubtitle">Inspecting parsed call records</p>
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-bold text-slate-800 font-outfit" id="rawPreviewTitle">Raw Records Preview</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">Aging from Created Date</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-0.5" id="rawPreviewSubtitle">Inspecting parsed call records with all columns and header-to-header mapping</p>
         </div>
-        <div class="flex items-center gap-3">
-          <input type="text" id="rawSearchInput" placeholder="Search SO, Model, CX..." class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-700 w-44 focus:ring-2 focus:ring-blue-500">
-          <button id="btnCloseRawModal" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+        
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap items-center gap-2">
+          <input type="text" id="rawSearchInput" placeholder="Search SO, Model, CX, Reason..." class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-700 w-44 focus:ring-2 focus:ring-blue-500">
+          
+          <select id="rawFilterBranch" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-700 focus:ring-2 focus:ring-blue-500 font-medium">
+            <option value="ALL">All Branches</option>
+          </select>
+
+          <select id="rawFilterMainReason" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-700 focus:ring-2 focus:ring-blue-500 font-medium">
+            <option value="ALL">All Main Reasons</option>
+            <option value="Samsung">Samsung</option>
+            <option value="Svc Working">Svc Working</option>
+            <option value="Part Pending">Part Pending</option>
+            <option value="Confirmation Br/Cx">Confirmation Br/Cx</option>
+            <option value="Eng Assigned">Eng Assigned</option>
+            <option value="Support">Support</option>
+          </select>
+
+          <select id="rawFilterTatBucket" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-700 focus:ring-2 focus:ring-blue-500 font-medium">
+            <option value="ALL">All TAT</option>
+            <option value="0–2 Days">0–2 Days</option>
+            <option value="3–7 Days">3–7 Days</option>
+            <option value="8–10 Days">8–10 Days</option>
+            <option value="11–14 Days">11–14 Days</option>
+            <option value="15–30 Days">15–30 Days</option>
+            <option value="30+ Days">30+ Days</option>
+          </select>
+
+          <select id="rawFilterWarranty" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-700 focus:ring-2 focus:ring-blue-500 font-medium">
+            <option value="ALL">All Wty</option>
+            <option value="IW">In Warranty (IW)</option>
+            <option value="OW">Out of Warranty (OW)</option>
+          </select>
+
+          <button id="btnCloseRawModal" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition" title="Close">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
@@ -644,22 +716,35 @@
 
       <!-- Table Body -->
       <div class="p-4 flex-1 overflow-auto">
-        <table class="w-full text-left text-[11px] border-collapse" id="rawPreviewTable">
-          <thead>
+        <table class="w-full text-left text-[11px] border-collapse whitespace-nowrap" id="rawPreviewTable">
+          <thead class="sticky top-0 z-10 shadow-sm">
             <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
-              <th class="p-2">#</th>
-              <th class="p-2">Branch</th>
-              <th class="p-2">SVC Code</th>
-              <th class="p-2">SO Number</th>
-              <th class="p-2">ASC Job No</th>
-              <th class="p-2">Model</th>
-              <th class="p-2">Product</th>
-              <th class="p-2">Warranty</th>
-              <th class="p-2">Service Type</th>
-              <th class="p-2">Age</th>
-              <th class="p-2">TAT</th>
-              <th class="p-2">Customer</th>
-              <th class="p-2">Status</th>
+              <th class="p-2 border-r border-slate-200 text-center">#</th>
+              <th class="p-2 border-r border-slate-200">Branch Name</th>
+              <th class="p-2 border-r border-slate-200 text-center">SVC Code</th>
+              <th class="p-2 border-r border-slate-200 text-center">Service Order No.</th>
+              <th class="p-2 border-r border-slate-200 text-center">ASC Job No</th>
+              <th class="p-2 bg-blue-50 text-blue-900 border-r border-blue-200 text-center font-black">Created Date</th>
+              <th class="p-2 border-r border-slate-200 text-center">Assigned Date</th>
+              <th class="p-2 border-r border-slate-200 text-center">Assigned Time</th>
+              <th class="p-2 border-r border-slate-200">Model</th>
+              <th class="p-2 border-r border-slate-200">Serial No</th>
+              <th class="p-2 border-r border-slate-200 text-center">Product</th>
+              <th class="p-2 border-r border-slate-200 text-center">Warranty Status</th>
+              <th class="p-2 border-r border-slate-200 text-center">Wty</th>
+              <th class="p-2 border-r border-slate-200">Service Type</th>
+              <th class="p-2 bg-amber-50 text-amber-900 border-r border-amber-200 text-center font-black">Aging (Created)</th>
+              <th class="p-2 border-r border-slate-200 text-center">TAT Bucket</th>
+              <th class="p-2 border-r border-slate-200">Customer Name</th>
+              <th class="p-2 border-r border-slate-200">City</th>
+              <th class="p-2 border-r border-slate-200 text-center">App Date</th>
+              <th class="p-2 border-r border-slate-200 text-center">App Time</th>
+              <th class="p-2 border-r border-slate-200">Status</th>
+              <th class="p-2 border-r border-slate-200">Reason</th>
+              <th class="p-2 bg-emerald-50 text-emerald-900 border-r border-emerald-200 text-center font-black">Main Reason (Context)</th>
+              <th class="p-2 border-r border-slate-200">VOC</th>
+              <th class="p-2 border-r border-slate-200">B2B</th>
+              <th class="p-2">VOC B2B</th>
             </tr>
           </thead>
           <tbody id="rawPreviewTableBody" class="divide-y divide-slate-200 text-slate-800">
@@ -768,36 +853,46 @@
   <!-- JAVASCRIPT LOGIC ENGINE                                                  -->
   <!-- ═════════════════════════════════════════════════════════════════════════ -->
   <script>
-    // --- 1. CORE BRANCH CODE MAPPING ---
-    const BRANCH_SVC_CODES = {
-      'Gandhinagar-CE': '6458704',
-      'Lucknow-HHP': '8200354',
-      'Surat-CE': '6451772',
-      'Ahmdabad-CE': '4917449',
-      'Ahmedabad-CE': '4917449',
-      'Moradabad-HHP': '8200354',
-      'Cochin': '3871175',
-      'Cochin-CE': '3871175',
-      'Lucknow-CE': '8200354',
-      'Ghaziabad-CE': '4936933',
-      'Gurgaon-CE': '9225951'
-    };
+    // --- 1. CORE BRANCH CODE MAPPING (MASTER CONTEXT REFERENCED) ---
+    const BRANCH_SVC_CODES = (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getBranchMap === 'function')
+      ? window.GSPN_CONTEXT.getBranchMap()
+      : {
+          'Ghaziabad': '4915414',
+          'Ghaziabad-CE': '4915414',
+          'Ahmedabad': '4917449',
+          'Ahmedabad-CE': '4917449',
+          'Surat': '4936933',
+          'Surat-CE': '4936933',
+          'Gandhinagar': '6451772',
+          'Gandhinagar-CE': '6451772',
+          'Cochin': '6458704',
+          'Cochin-CE': '6458704',
+          'Lucknow': '8200354',
+          'Lucknow-CE': '8200354',
+          'Gurgaon': '9225951',
+          'Gurgaon-CE': '9225951',
+          'Lucknow-HHP': '3871175',
+          'Moradabad-HHP': '4776004'
+        };
 
     function getBranchSvcCode(branchName) {
-      if (!branchName) return 'Not Found';
+      if (!branchName) return '9225951';
+      if (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getMscCode === 'function') {
+        return window.GSPN_CONTEXT.getMscCode(branchName);
+      }
       const clean = String(branchName).trim();
       if (BRANCH_SVC_CODES[clean]) return BRANCH_SVC_CODES[clean];
       const lower = clean.toLowerCase();
-      if (lower.includes('gurgaon')) return '9225951';
-      if (lower.includes('lucknow') && lower.includes('hhp')) return '8200354';
-      if (lower.includes('lucknow')) return '8200354';
+      if (lower.includes('ghaziabad')) return '4915414';
       if (lower.includes('ahmedabad') || lower.includes('ahmdabad')) return '4917449';
-      if (lower.includes('ghaziabad')) return '4936933';
-      if (lower.includes('surat')) return '6451772';
-      if (lower.includes('gandhinagar')) return '6458704';
-      if (lower.includes('cochin')) return '3871175';
-      if (lower.includes('moradabad')) return '8200354';
-      return '4903753';
+      if (lower.includes('surat')) return '4936933';
+      if (lower.includes('gandhinagar')) return '6451772';
+      if (lower.includes('cochin') || lower.includes('kochi') || lower.includes('ernakulam')) return '6458704';
+      if (lower.includes('lucknow') && lower.includes('hhp')) return '3871175';
+      if (lower.includes('lucknow')) return '8200354';
+      if (lower.includes('moradabad')) return '4776004';
+      if (lower.includes('gurgaon') || lower.includes('gurugram')) return '9225951';
+      return '9225951';
     }
 
     // Product Category Definitions & Color Tokens matching openPending.html
@@ -938,20 +1033,94 @@
       return 'IW';
     }
 
-    function calcAging(assignedDateStr, cutoffDateStr) {
-      if (!assignedDateStr) return 0;
-      let d = null;
-      const clean = String(assignedDateStr).trim();
-      // Test formats: DD.MM.YYYY or DD-MM-YYYY or DD/MM/YYYY or YYYY-MM-DD
-      const m1 = clean.match(/^(\d{1,2})[\.\-\/](\d{1,2})[\.\-\/](\d{4})/);
-      if (m1) {
-        d = new Date(parseInt(m1[3], 10), parseInt(m1[2], 10) - 1, parseInt(m1[1], 10));
-      } else if (/^\d{4}-\d{2}-\d{2}/.test(clean)) {
-        d = new Date(clean);
+    /**
+     * Intelligent & Accurate Date Parser for Samsung GSPN:
+     * - Handles DD.MM.YYYY, MM.DD.YYYY, DD-MM-YYYY, MM/DD/YYYY, YYYY-MM-DD
+     * - Handles Excel serial date numbers (e.g. 45000+)
+     * - Corrects Month/Day swap: In Samsung GSPN (India & Global), standard dot-notation
+     *   "04.09.2026" is strictly 4th Sept (DD.MM.YYYY), NEVER April 9th!
+     * - Disambiguates only if p1 <= 12 and p2 > 12 (MM/DD/YYYY)
+     * - Strips trailing times / timestamps
+     */
+    function parseDateSmart(val) {
+      if (!val && val !== 0) return null;
+      if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+
+      // Handle Excel serial date numbers (e.g. 45564 = 2024, 46270 = Sep 2026)
+      if (typeof val === 'number' || (/^\d{5}$/.test(String(val).trim()) && Number(val) > 30000 && Number(val) < 65000)) {
+        const num = Number(val);
+        if (!isNaN(num) && num > 1000) {
+          const utcDays = Math.floor(num - 25569);
+          const d = new Date(utcDays * 86400 * 1000);
+          return isNaN(d.getTime()) ? null : d;
+        }
       }
+
+      let str = String(val).trim();
+      if (!str || str === '00.00.0000' || str === '00/00/0000' || str === '00-00-00' || str === '00-00-0000' || str === '-' || str === 'N/A' || str === 'null') return null;
+
+      // Strip time in parentheses or trailing time: "04.09.2026 (17:58:10)" or "04.09.2026 17:58:10"
+      str = str.replace(/\s*\(.*?\)\s*/g, ' ').trim();
+      if (str.includes(' ')) {
+        str = str.split(/\s+/)[0];
+      }
+
+      // Check numeric date parts: DD.MM.YYYY or MM.DD.YYYY or DD-MM-YYYY or MM/DD/YYYY
+      let m = str.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/);
+      if (m) {
+        let p1 = parseInt(m[1], 10);
+        let p2 = parseInt(m[2], 10);
+        let y = parseInt(m[3], 10);
+        if (y < 100) y = 2000 + y;
+        
+        let day = p1;
+        let month = p2;
+
+        // Disambiguation:
+        // If p1 <= 12 and p2 > 12: MM/DD/YYYY format (e.g. 09.27.2026 -> Month 9, Day 27)
+        if (p1 <= 12 && p2 > 12) {
+          month = p1;
+          day = p2;
+        } else if (p1 > 12 && p2 <= 12) {
+          // DD/MM/YYYY format (e.g. 27.09.2026 -> Day 27, Month 9)
+          day = p1;
+          month = p2;
+        } else {
+          // Both <= 12 (ambiguous: e.g. 04.09.2026 or 05.10.2026):
+          // In Samsung GSPN India and standard regional portals, standard format is DD.MM.YYYY!
+          // 04.09.2026 = 4th Sept, 05.10.2026 = 5th Oct. First part is Day, second is Month.
+          day = p1;
+          month = p2;
+        }
+        const d = new Date(y, month - 1, day);
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      // YYYY-MM-DD or YYYY.MM.DD
+      m = str.match(/^(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})$/);
+      if (m) {
+        const d = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      const native = new Date(str);
+      return isNaN(native.getTime()) ? null : native;
+    }
+
+    /**
+     * Accurate Aging Formula:
+     * Aging (Days) = Max(0, Floor( (Cutoff Date - Created Date) / 1 Day ))
+     * Both Cutoff Date and Created Date are normalized to 00:00:00 to prevent timezone/time skew.
+     * Strictly calculated from Created Date (created_date), NOT assigned_date.
+     */
+    function calcAging(createdDateStr, cutoffDateStr) {
+      if (!createdDateStr) return 0;
+      const d = parseDateSmart(createdDateStr);
       if (!d || isNaN(d.getTime())) return 0;
 
-      const cutoff = cutoffDateStr ? new Date(cutoffDateStr) : new Date();
+      const cutoff = cutoffDateStr ? parseDateSmart(cutoffDateStr) : new Date();
+      if (!cutoff || isNaN(cutoff.getTime())) return 0;
+
       cutoff.setHours(0, 0, 0, 0);
       d.setHours(0, 0, 0, 0);
       const diffMs = cutoff.getTime() - d.getTime();
@@ -975,7 +1144,45 @@
     }
 
     /**
-     * Parses Management Lite data from plain text or HTML table
+     * Formats Date to strict DD.MM.YYYY string
+     */
+    function formatStandardDateStr(val) {
+      if (!val) return '';
+      const s = String(val).trim();
+      if (s === '00.00.0000' || s === '00/00/0000' || s === '00-00-0000' || s === '-') return '';
+      const d = parseDateSmart(s);
+      if (!d || isNaN(d.getTime())) return s;
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+    }
+
+    /**
+     * Context VLOOKUP for Master Reason based on Sub-Reason and Status
+     */
+    function lookupMasterReason(subReasonStr, statusStr = '') {
+      const sub = String(subReasonStr || '').trim();
+      if (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getReasonBySubReason === 'function') {
+        const res = window.GSPN_CONTEXT.getReasonBySubReason(sub);
+        if (res) return res;
+      }
+      if (statusStr && window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getReasonBySubReason === 'function') {
+        const resStatus = window.GSPN_CONTEXT.getReasonBySubReason(statusStr);
+        if (resStatus) return resStatus;
+      }
+      const lower = (sub + ' ' + (statusStr || '')).toLowerCase();
+      if (lower.includes('so cancellation') || lower.includes('cancel') || lower.includes('samsung') || lower.includes('voc') || lower.includes('exchange') || lower.includes('approval') || lower.includes('foc')) return 'Samsung';
+      if (lower.includes('part') || lower.includes('eta') || lower.includes('back order') || lower.includes('defective part')) return 'Part Pending';
+      if (lower.includes('price') || lower.includes('waiting for confirm') || lower.includes('customer not') || lower.includes('pop/bos') || lower.includes('oow') || lower.includes('natural disaster')) return 'Confirmation Br/Cx';
+      if (lower.includes('tech support') || lower.includes('credit block') || lower.includes('support') || lower.includes('exchange saw')) return 'Support';
+      if (lower.includes('repair in progress') || lower.includes('departure') || lower.includes('arrived') || lower.includes('monitoring') || lower.includes('eng assigned') || lower.includes('gas charging') || lower.includes('compressor')) return 'Eng Assigned';
+      if (lower.includes('demo') || lower.includes('goods delivered') || lower.includes('installation done') || lower.includes('repair completed') || lower.includes('assigned to service center') || lower.includes('assign to service center') || lower.includes('acknowledged') || lower.includes('waiting for product receive')) return 'Svc Working';
+      return 'Svc Working';
+    }
+
+    /**
+     * Parses Management Lite & Bulk data with exact Header-to-Header matching
+     * Supports both Service Order Management Light and Service Order Management(Bulk)
+     * Computes Aging strictly from Created Date (created_date) in DD.MM.YYYY format
      */
     function parseManagementLite(rawText, branchName, svcCode, cutoffDateStr = null) {
       if (!rawText || !rawText.trim()) return [];
@@ -983,142 +1190,331 @@
       const trimmed = rawText.trim();
       const cutoff = cutoffDateStr || pageState[getActiveTabKey()].cutoffDate;
 
-      // Check if HTML table was pasted
+      // Extract 2D matrix of cell texts
+      let rawGrid = [];
       if (/<table[\s>]/i.test(trimmed) || /<tr[\s>]/i.test(trimmed)) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(trimmed, 'text/html');
-        const rows = Array.from(doc.querySelectorAll('tr'));
-        
-        let i = 0;
-        while (i < rows.length) {
-          const cells1 = Array.from(rows[i].querySelectorAll('td, th')).map(c => c.textContent.trim());
-          // Look for SO number in row 1
-          const soCandidate = cells1.find(txt => /^\d{10}$/.test(txt) || /^\d{10}\s*(Edit|View)?$/i.test(txt));
-          if (soCandidate) {
-            const cleanSo = cleanTrackingNumber(soCandidate);
-            const ascJobNo = cells1[2] && /^\d{10}/.test(cells1[2]) ? cleanTrackingNumber(cells1[2]) : cleanSo;
-            const created = cells1[3] || '';
-            const assigned = cells1[4] || cells1[3] || '';
-            const assignedTime = cells1[5] || '';
-            const model = cells1[6] || cells1[5] || '';
-            const serial = cells1[7] || '';
-            const wty = cells1[8] || cells1[7] || 'In Warranty';
+        const trs = Array.from(doc.querySelectorAll('tr'));
+        rawGrid = trs.map(tr => Array.from(tr.querySelectorAll('td, th')).map(c => c.textContent.trim()));
+      } else {
+        const lines = trimmed.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        rawGrid = lines.map(line => splitLineFields(line));
+      }
 
-            // Secondary row
-            let custName = '';
-            let city = '';
-            let appDate = '';
-            let appTime = '';
-            let sType = 'IN-HOME';
-            let status = 'Open';
-            let reason = '';
-            if (i + 1 < rows.length) {
-              const cells2 = Array.from(rows[i + 1].querySelectorAll('td, th')).map(c => c.textContent.trim());
-              custName = cells2[0] || '';
-              city = cells2[1] || '';
-              appDate = cells2[2] || '';
-              appTime = cells2[3] || '';
-              sType = cells2[4] || 'IN-HOME';
-              status = cells2[5] || '';
-              reason = cells2[6] || '';
-            }
+      if (rawGrid.length === 0) return [];
 
-            const age = calcAging(assigned, cutoff);
-            records.push({
-              no: records.length + 1,
-              serviceOrderNo: cleanSo,
-              ascJobNo: ascJobNo,
-              created: created || assigned,
-              assigned: assigned,
-              assignedTime: assignedTime,
-              model: model,
-              serial: serial,
-              wtyStatus: wty,
-              warrantyCode: getWarrantyCode(wty),
-              customerName: custName,
-              city: city,
-              appDate: appDate,
-              appTime: appTime,
-              serviceType: convertServiceType(sType),
-              status: status,
-              reason: reason,
-              branchName: branchName,
-              svcCode: svcCode,
-              aging: age,
-              tatBucket: getTATBucket(age),
-              product: getSamsungCategory(model)
-            });
-            i += 2;
-            continue;
-          }
-          i++;
+      // Detect Header Rows (Header 1 and Header 2)
+      let header1Idx = -1;
+      let header2Idx = -1;
+      let h1Map = null;
+      let h2Map = null;
+
+      for (let r = 0; r < Math.min(rawGrid.length, 6); r++) {
+        const row = rawGrid[r];
+        const rowStr = row.join(' ').toLowerCase();
+
+        // Check if row matches Header 1
+        if ((rowStr.includes('service order') || rowStr.includes('tracking') || rowStr.includes('asc job')) &&
+            (rowStr.includes('model') || rowStr.includes('serial') || rowStr.includes('wty') || rowStr.includes('created'))) {
+          header1Idx = r;
+          h1Map = {};
+          row.forEach((colName, cIdx) => {
+            const clean = colName.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (clean.includes('serviceorder') || clean === 'sono' || clean === 'order') h1Map.so = cIdx;
+            else if (clean.includes('ascjob') || clean.includes('ascref')) h1Map.ascJob = cIdx;
+            else if (clean === 'created' || clean === 'createddate' || clean === 'reqdate') h1Map.created = cIdx;
+            else if (clean.includes('assignedtime')) h1Map.assignedTime = cIdx;
+            else if (clean.includes('assigned')) h1Map.assigned = cIdx;
+            else if (clean.includes('model')) h1Map.model = cIdx;
+            else if (clean.includes('serial')) h1Map.serial = cIdx;
+            else if (clean.includes('wty') || clean.includes('warranty')) h1Map.wty = cIdx;
+            else if (clean === 'voc') h1Map.voc = cIdx;
+            else if (clean === 'redo') h1Map.redo = cIdx;
+            else if (clean.includes('risksensing')) h1Map.riskSensing = cIdx;
+            else if (clean === 'red') h1Map.red = cIdx;
+            else if (clean.includes('highpriority')) h1Map.highPriority = cIdx;
+          });
+        }
+
+        // Check if row matches Header 2
+        if ((rowStr.includes('customer') || rowStr.includes('city') || rowStr.includes('app date') || rowStr.includes('service type')) &&
+            (rowStr.includes('status') || rowStr.includes('reason') || rowStr.includes('service type'))) {
+          header2Idx = r;
+          h2Map = {};
+          row.forEach((colName, cIdx) => {
+            const clean = colName.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (clean.includes('customer') || clean.includes('custname')) h2Map.custName = cIdx;
+            else if (clean === 'city' || clean === 'location') h2Map.city = cIdx;
+            else if (clean.includes('apptime')) h2Map.appTime = cIdx;
+            else if (clean.includes('appdate') || clean.includes('appointment')) h2Map.appDate = cIdx;
+            else if (clean.includes('servicetype') || clean.includes('svctype')) h2Map.serviceType = cIdx;
+            else if (clean === 'status') h2Map.status = cIdx;
+            else if (clean.includes('reason') || clean.includes('remark')) h2Map.reason = cIdx;
+            else if (clean === 'b2b') h2Map.b2b = cIdx;
+            else if (clean.includes('riskreason')) h2Map.riskReason = cIdx;
+          });
         }
       }
 
-      // If plain text or fallback
-      if (records.length === 0) {
-        const lines = trimmed.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        for (let i = 0; i < lines.length; i++) {
-          const f1 = splitLineFields(lines[i]);
-          // Check if this line looks like row 1 (starts with sequence number or contains 10-digit SO)
-          const soIdx = f1.findIndex(val => /^\d{10}$/.test(val) || /^\d{10}\s*(Edit|View)?$/i.test(val));
-          if (soIdx !== -1) {
-            const cleanSo = cleanTrackingNumber(f1[soIdx]);
-            const ascJobNo = f1[soIdx + 1] && /^\d{10}/.test(f1[soIdx + 1]) ? cleanTrackingNumber(f1[soIdx + 1]) : cleanSo;
-            const created = f1[soIdx + 2] || '';
-            const assigned = f1[soIdx + 3] || f1[soIdx + 2] || '';
-            const assignedTime = f1[soIdx + 4] || '';
-            const model = f1[soIdx + 5] || f1[soIdx + 4] || '';
-            const serial = (f1.length > soIdx + 6 && !f1[soIdx + 6].toLowerCase().includes('warranty')) ? f1[soIdx + 6] : '';
-            const wty = f1[soIdx + 7] || f1[soIdx + 6] || 'In Warranty';
+      const startIdx = Math.max(header1Idx, header2Idx) + 1;
+      let i = startIdx >= 0 ? startIdx : 0;
 
-            // Next line has secondary details
-            let custName = '';
-            let city = '';
-            let appDate = '';
-            let appTime = '';
-            let sType = 'IN-HOME';
-            let status = 'Open';
-            let reason = '';
-            if (i + 1 < lines.length) {
-              const f2 = splitLineFields(lines[i + 1]);
-              custName = f2[0] || '';
-              city = f2[1] || '';
-              appDate = f2[2] || '';
-              appTime = f2[3] || '';
-              if (f2.length > 4) sType = f2[4];
-              if (f2.length > 5) status = f2[5];
-              if (f2.length > 6) reason = f2[6];
-            }
+      while (i < rawGrid.length) {
+        const row1 = rawGrid[i];
+        if (!row1 || row1.length === 0) { i++; continue; }
 
-            const age = calcAging(assigned, cutoff);
-            records.push({
-              no: records.length + 1,
-              serviceOrderNo: cleanSo,
-              ascJobNo: ascJobNo,
-              created: created || assigned,
-              assigned: assigned,
-              assignedTime: assignedTime,
-              model: model,
-              serial: serial,
-              wtyStatus: wty,
-              warrantyCode: getWarrantyCode(wty),
-              customerName: custName,
-              city: city,
-              appDate: appDate,
-              appTime: appTime,
-              serviceType: convertServiceType(sType),
-              status: status,
-              reason: reason,
-              branchName: branchName,
-              svcCode: svcCode,
-              aging: age,
-              tatBucket: getTATBucket(age),
-              product: getSamsungCategory(model)
-            });
-            i++; // skip row 2
+        // Find SO Candidate in row1
+        let soVal = '';
+        let soIdxInRow = -1;
+
+        if (h1Map && h1Map.so !== undefined && row1[h1Map.so]) {
+          soVal = row1[h1Map.so];
+          soIdxInRow = h1Map.so;
+        } else {
+          soIdxInRow = row1.findIndex(val => /^\d{10}$/.test(val) || /^\d{10}\s*(Edit|View)?$/i.test(val));
+          if (soIdxInRow !== -1) {
+            soVal = row1[soIdxInRow];
           }
         }
+
+        // If not found in row1, check next line
+        if (!soVal || !/^\d{10}/.test(soVal)) {
+          i++;
+          continue;
+        }
+
+        const cleanSo = cleanTrackingNumber(soVal);
+
+        // Row 2 is the next row
+        let row2 = (i + 1 < rawGrid.length) ? rawGrid[i + 1] : [];
+        const isSingleRow = row2.some(val => /^\d{10}$/.test(val) || /^\d{10}\s*(Edit|View)?$/i.test(val));
+        if (isSingleRow) {
+          row2 = [];
+        }
+
+        let ascJobNo = cleanSo;
+        let created = '';
+        let assigned = '';
+        let assignedTime = '';
+        let model = '';
+        let serial = '';
+        let wty = 'In Warranty';
+        let voc = '';
+        let redo = 'N';
+        let riskSensing = 'Normal';
+        let red = 'N';
+        let highPriority = 'Normal';
+
+        let custName = '';
+        let city = '';
+        let appDate = '';
+        let appTime = '';
+        let sType = 'IN-HOME';
+        let status = 'Open';
+        let reason = '';
+        let b2b = '';
+        let riskReason = '';
+
+        // Extract Row 1 from Header Map if available
+        if (h1Map) {
+          if (h1Map.ascJob !== undefined && row1[h1Map.ascJob]) ascJobNo = cleanTrackingNumber(row1[h1Map.ascJob]);
+          if (h1Map.created !== undefined && row1[h1Map.created]) created = formatStandardDateStr(row1[h1Map.created]);
+          if (h1Map.assigned !== undefined && row1[h1Map.assigned]) assigned = formatStandardDateStr(row1[h1Map.assigned]);
+          if (h1Map.assignedTime !== undefined && row1[h1Map.assignedTime]) assignedTime = String(row1[h1Map.assignedTime] || '').trim();
+          if (h1Map.model !== undefined && row1[h1Map.model]) model = String(row1[h1Map.model] || '').toUpperCase().trim();
+          if (h1Map.serial !== undefined && row1[h1Map.serial]) serial = String(row1[h1Map.serial] || '').trim();
+          if (h1Map.wty !== undefined && row1[h1Map.wty]) wty = String(row1[h1Map.wty] || 'In Warranty').trim();
+          if (h1Map.voc !== undefined && row1[h1Map.voc]) voc = String(row1[h1Map.voc] || '').trim();
+          if (h1Map.redo !== undefined && row1[h1Map.redo]) redo = String(row1[h1Map.redo] || 'N').trim();
+          if (h1Map.riskSensing !== undefined && row1[h1Map.riskSensing]) riskSensing = String(row1[h1Map.riskSensing] || '').trim();
+          if (h1Map.red !== undefined && row1[h1Map.red]) red = String(row1[h1Map.red] || 'N').trim();
+          if (h1Map.highPriority !== undefined && row1[h1Map.highPriority]) highPriority = String(row1[h1Map.highPriority] || 'Normal').trim();
+        }
+
+        // Extract Row 2 from Header Map if available (handling optional leading blank offset)
+        if (h2Map && row2.length > 0) {
+          let offset2 = 0;
+          if (h2Map.custName !== undefined && h2Map.custName > 0) {
+            const atIndex = String(row2[h2Map.custName] || '').trim();
+            const atZero = String(row2[0] || '').trim();
+            if (!atIndex && atZero && !/^\d+$/.test(atZero)) {
+              offset2 = -h2Map.custName;
+            }
+          }
+
+          const getH2Cell = (key) => {
+            if (h2Map[key] === undefined) return '';
+            const idx = h2Map[key] + offset2;
+            return (idx >= 0 && idx < row2.length) ? String(row2[idx] || '').trim() : '';
+          };
+
+          if (getH2Cell('custName')) custName = getH2Cell('custName');
+          if (getH2Cell('city')) city = getH2Cell('city');
+          if (getH2Cell('appDate')) appDate = formatStandardDateStr(getH2Cell('appDate'));
+          if (getH2Cell('appTime')) appTime = getH2Cell('appTime');
+          if (getH2Cell('serviceType')) sType = getH2Cell('serviceType');
+          if (getH2Cell('status')) status = getH2Cell('status');
+          if (getH2Cell('reason')) reason = getH2Cell('reason');
+          if (getH2Cell('b2b')) b2b = getH2Cell('b2b');
+          if (getH2Cell('riskReason')) riskReason = getH2Cell('riskReason');
+        }
+
+        // Fallback / Content-Based Heuristic Extraction
+        if (!created || !model || !status || status === 'Open') {
+          let colAfterSo = soIdxInRow + 1;
+          if (row1[colAfterSo] && /^edit$/i.test(row1[colAfterSo])) colAfterSo++;
+          const candAscJob = (row1[colAfterSo] && !/^\d{1,2}[.\/-]/.test(row1[colAfterSo])) ? cleanTrackingNumber(row1[colAfterSo]) : cleanSo;
+          if (!ascJobNo || ascJobNo === cleanSo) ascJobNo = candAscJob;
+
+          const datesInRow1 = [];
+          const timesInRow1 = [];
+          row1.forEach((c) => {
+            const s = String(c || '').trim();
+            if (/^\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}$/.test(s) && s !== '00.00.0000') datesInRow1.push(s);
+            if (/^\d{1,2}:\d{2}(?::\d{2})?$/.test(s) && s !== '00:00:00') timesInRow1.push(s);
+          });
+
+          if (!created && datesInRow1.length > 0) created = formatStandardDateStr(datesInRow1[0]);
+          if (!assigned && datesInRow1.length > 1) assigned = formatStandardDateStr(datesInRow1[1]);
+          if (!assigned) assigned = created;
+          if (!assignedTime && timesInRow1.length > 0) assignedTime = timesInRow1[0];
+
+          // Model detection
+          if (!model) {
+            const modelCand = row1.find((c, idx) => {
+              if (idx <= soIdxInRow) return false;
+              const s = String(c || '').trim().toUpperCase();
+              if (!s || s === 'EDIT' || s === 'VIEW' || s === cleanSo || s === ascJobNo) return false;
+              if (/^\d{1,2}[.\/-]/.test(s) || /^\d{1,2}:\d{2}/.test(s)) return false;
+              if (s.includes('WARRANTY') || s === 'IN WARRANTY' || s === 'OUT OF WARRANTY' || s === 'IW' || s === 'OW') return false;
+              if (s === 'N' || s === 'NORMAL' || s === 'HIGH') return false;
+              return /[A-Z]/.test(s) && s.length >= 4;
+            });
+            if (modelCand) model = modelCand.toUpperCase().trim();
+          }
+
+          if (!serial && model) {
+            const mIdx = row1.findIndex(c => String(c).toUpperCase().trim() === model);
+            if (mIdx !== -1 && row1[mIdx + 1] && !row1[mIdx + 1].toLowerCase().includes('warranty')) {
+              serial = String(row1[mIdx + 1]).trim();
+            }
+          }
+
+          if (wty === 'In Warranty') {
+            const wtyCand = row1.find(c => /warranty/i.test(String(c)));
+            if (wtyCand) wty = String(wtyCand).trim();
+          }
+
+          if (row2.length > 0) {
+            let row2Date = '';
+            let row2Time = '';
+            row2.forEach(c => {
+              const s = String(c || '').trim();
+              if (/^\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}$/.test(s)) row2Date = s;
+              if (/^\d{1,2}:\d{2}(?::\d{2})?$/.test(s)) row2Time = s;
+            });
+
+            if (!appDate && row2Date) appDate = (row2Date === '00.00.0000' || row2Date === '00/00/0000') ? '' : formatStandardDateStr(row2Date);
+            if (!appTime && row2Time) appTime = row2Time === '00:00:00' ? '' : row2Time;
+
+            const knownSTypes = ['INITIAL INSTALLATION', 'IN-HOME', 'DEMONSTRATION', 'STOCK REPAIR', 'CUSTOMER CARE', 'PICK-UP SERVICE', 'CARRY IN', 'RETURN HANDLING'];
+            const foundSType = row2.find(c => knownSTypes.includes(String(c || '').toUpperCase().trim()));
+            if (foundSType) sType = foundSType.trim();
+
+            if (!custName && row2[0] && !/^\d+$/.test(row2[0])) custName = row2[0].trim();
+            if (!custName && row2[1] && !/^\d+$/.test(row2[1])) custName = row2[1].trim();
+
+            if (!city && row2.length >= 2) {
+              const cCand = row2.find((c, idx) => {
+                if (idx === 0) return false;
+                const s = String(c || '').trim();
+                if (!s || s === '-' || s === '00.00.0000' || /^\d{1,2}[.\/-]/.test(s) || /^\d{1,2}:\d{2}/.test(s)) return false;
+                if (knownSTypes.includes(s.toUpperCase())) return false;
+                if (s === 'Pending' || s === 'Goods Delivered' || s === 'Completed' || s === 'Acknowledged') return false;
+                return /^[A-Za-z\s.-]+$/.test(s) && s !== custName;
+              });
+              if (cCand) city = cCand.trim();
+            }
+
+            const nonDateNonTypes = row2.filter((c) => {
+              const s = String(c || '').trim();
+              if (!s || s === '-' || s === '00.00.0000' || s === '00:00:00') return false;
+              if (/^\d{1,2}[.\/-]/.test(s) || /^\d{1,2}:\d{2}/.test(s)) return false;
+              if (s === custName || s === city) return false;
+              if (knownSTypes.includes(s.toUpperCase())) return false;
+              return true;
+            });
+
+            if (nonDateNonTypes.length >= 1 && (!status || status === 'Open')) status = nonDateNonTypes[0];
+            if (nonDateNonTypes.length >= 2 && !reason) reason = nonDateNonTypes[1];
+            if (nonDateNonTypes.length >= 3 && !b2b) b2b = nonDateNonTypes[2];
+          }
+        }
+
+        // Clean & Normalize
+        const normCreated = created || assigned || formatStandardDateStr(new Date());
+        const normAssigned = assigned || normCreated;
+        const normModel = model || 'UNKNOWN';
+        const normSType = convertServiceType(sType);
+        const normWtyCode = getWarrantyCode(wty);
+        const cleanReason = String(reason || '').trim();
+        const cleanStatus = String(status || '').trim();
+        // [Permanent Rule] IF REASON WAS EMPTY OR NULL, JUST PUT THE "Status" Values
+        const normReason = cleanReason ? cleanReason : (cleanStatus ? cleanStatus : 'Pending');
+        const masterReason = lookupMasterReason(normReason, cleanStatus);
+        const age = calcAging(normCreated, cutoff); // [Permanent Rule] STRICTLY FROM CREATED DATE ONLY!
+        const tat = getTATBucket(age); // [Permanent Rule] STRICTLY FROM CREATED DATE ONLY!
+
+        records.push({
+          no: records.length + 1,
+          srNo: records.length + 1,
+          branchName: branchName,
+          svcCode: svcCode,
+          serviceOrderNo: cleanSo,
+          service_order_no: cleanSo,
+          ascJobNo: ascJobNo || cleanSo,
+          asc_job_no: ascJobNo || cleanSo,
+          created: normCreated,
+          createdDate: normCreated,
+          created_date: normCreated,
+          assigned: normAssigned,
+          assignedDate: normAssigned,
+          assigned_date: normAssigned,
+          assignedTime: assignedTime,
+          model: normModel,
+          serial: serial,
+          serialNo: serial,
+          serial_no: serial,
+          product: getSamsungCategory(normModel),
+          wtyStatus: wty,
+          warranty_status: wty,
+          warrantyCode: normWtyCode,
+          serviceType: normSType,
+          service_type: normSType,
+          aging: age, // FROM CREATED DATE ONLY
+          tatBucket: tat, // FROM CREATED DATE ONLY
+          customerName: custName,
+          city: city ? city.toUpperCase() : '',
+          appDate: appDate,
+          app_date: appDate,
+          appTime: appTime,
+          status: cleanStatus || 'Pending',
+          reason: normReason, // If reason was empty/null, put the Status value!
+          subReason: normReason,
+          masterReason: masterReason,
+          mainReason: masterReason,
+          voc: voc,
+          b2b: b2b,
+          voc_b2b: (voc && b2b) ? `${voc} / ${b2b}` : (voc || b2b || ''),
+          redo: redo,
+          riskSensing: riskSensing,
+          red: red,
+          highPriority: highPriority,
+          riskReason: riskReason
+        });
+
+        i += (isSingleRow ? 1 : 2);
       }
 
       return records;
@@ -1431,12 +1827,12 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       const modalBtnAddSvc = document.getElementById('modalBtnAddSvc');
       const addSvcModal = document.getElementById('addSvcModal');
 
-      if (modalSvcNameSelect) modalSvcNameSelect.value = 'Gurgaon-CE';
+      if (modalSvcNameSelect) modalSvcNameSelect.value = 'Gurgaon';
       if (modalCustomSvcNameInput) {
         modalCustomSvcNameInput.classList.add('hidden');
         modalCustomSvcNameInput.value = '';
       }
-      if (modalSvcCodeInput) modalSvcCodeInput.value = getBranchSvcCode('Gurgaon-CE');
+      if (modalSvcCodeInput) modalSvcCodeInput.value = getBranchSvcCode('Gurgaon');
       if (modalDataInput) modalDataInput.value = '';
       if (modalValidationFeedback) modalValidationFeedback.classList.add('hidden');
       if (modalBtnAddSvc) modalBtnAddSvc.disabled = true;
@@ -1466,6 +1862,8 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
             '30+ Days': 0
           },
           d7Total: 0,
+          d7Iw: 0,
+          d7Ow: 0,
           productsD7: {}
         };
         PRODUCT_CATEGORIES.forEach(p => { row.productsD7[p.code] = 0; });
@@ -1491,7 +1889,8 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
           totalRow.aging[bucket]++;
         }
 
-        if (r.warrantyCode === 'IW') {
+        const isIW = (r.warrantyCode === 'IW' || r.wtyStatus === 'IW');
+        if (isIW) {
           row.iw++;
           totalRow.iw++;
         } else {
@@ -1503,6 +1902,13 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         if (r.aging > 7) {
           row.d7Total++;
           totalRow.d7Total++;
+          if (isIW) {
+            row.d7Iw++;
+            totalRow.d7Iw++;
+          } else {
+            row.d7Ow++;
+            totalRow.d7Ow++;
+          }
           if (row.productsD7[prod] !== undefined) {
             row.productsD7[prod]++;
             totalRow.productsD7[prod]++;
@@ -1702,7 +2108,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
 
     /**
      * Builds concise Branch Total Summary Table for Email & Display (matching exact user image)
-     * Columns: ASC_CODE | Branch_Name | Total D+7 | WAR Status [IW, OW]
+     * Columns: ASC_CODE | Branch_Name | D+7 | WAR Status / D+7 [IW, OW] | Total | WAR Status / Total [IW, OW]
      */
     function generateTotalSummaryHtmlTable(tabKey = 'rcGd') {
       const normKey = normalizeTabKey(tabKey);
@@ -1716,6 +2122,9 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       const title = normKey === 'openPending' ? `Open Pending Total Summary dt ${dotDate}` : `RC-GD Total Summary dt ${dotDate}`;
 
       let sumTotD7 = 0;
+      let sumTotD7IW = 0;
+      let sumTotD7OW = 0;
+      let sumTotCalls = 0;
       let sumTotIW = 0;
       let sumTotOW = 0;
 
@@ -1723,55 +2132,71 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         const sMatrix = buildMatrixForRecords(svc.records || []);
         const sRow = sMatrix.totalRow;
         const d7 = Number(sRow.d7Total) || 0;
+        const d7Iw = Number(sRow.d7Iw) || 0;
+        const d7Ow = Number(sRow.d7Ow) || 0;
+        const tot = Number(sRow.total) || 0;
         const iw = Number(sRow.iw) || 0;
         const ow = Number(sRow.ow) || 0;
 
         sumTotD7 += d7;
+        sumTotD7IW += d7Iw;
+        sumTotD7OW += d7Ow;
+        sumTotCalls += tot;
         sumTotIW += iw;
         sumTotOW += ow;
 
         return `
           <tr style="border-bottom: 1px solid #cbd5e1; font-family: Calibri, Arial, sans-serif; font-size: 13px;">
-            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; color: #000000; font-weight: normal; background-color: #ffffff;">${svc.code}</td>
-            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; color: #000000; font-weight: normal; background-color: #ffffff;">${svc.name}</td>
-            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; color: #1d4ed8; font-weight: normal; background-color: #ffffff;">${d7}</td>
-            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; background-color: #c1f0c8; color: #000000;">${iw}</td>
-            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; background-color: #c1f0c8; color: #000000;">${ow}</td>
+            <td style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: left; color: #000000; background-color: #ffffff;">${svc.code}</td>
+            <td style="padding: 6px 14px; border: 1px solid #cbd5e1; text-align: left; color: #000000; background-color: #ffffff;">${svc.name}</td>
+            <td style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: center; color: #0000ff; background-color: #ffffff;">${d7}</td>
+            <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #e2efda;">${d7Iw}</td>
+            <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #e2efda;">${d7Ow}</td>
+            <td style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: center; color: #0000ff; background-color: #ffffff;">${tot}</td>
+            <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #e2efda;">${iw}</td>
+            <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #e2efda;">${ow}</td>
           </tr>
         `;
       }).join('');
 
       return `
-      <table cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 13px; color: #000000; border: 1px solid #94a3b8; text-align: center; width: 100%; max-width: 650px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <table cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 13px; color: #000000; border: 1px solid #94a3b8; text-align: center; width: 100%; max-width: 820px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <thead>
           <!-- Super Header Banner -->
-          <tr style="background-color: #0f2e59; color: #ffffff;">
-            <th colspan="5" style="padding: 8px 14px; text-align: left; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; border: 1px solid #0f2e59;">
+          <tr style="background-color: #002060; color: #ffffff;">
+            <th colspan="8" style="padding: 7px 12px; text-align: left; font-size: 13px; font-weight: bold; letter-spacing: 0.3px; border: 1px solid #002060;">
               ${title}
             </th>
           </tr>
           <!-- Column Headers Matching Screenshot -->
-          <tr style="background-color: #dce6f1; color: #000000; font-weight: bold;">
-            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle;">ASC_CODE</th>
-            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle;">Branch_Name</th>
-            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle;">Total D+7</th>
-            <th colspan="2" style="padding: 6px 14px; border: 1px solid #cbd5e1; text-align: center;">WAR Status</th>
+          <tr style="color: #000000; font-weight: bold; font-size: 12px;">
+            <th rowspan="2" style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle; background-color: #d9e1f2;">ASC_CODE</th>
+            <th rowspan="2" style="padding: 6px 14px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle; background-color: #d9e1f2;">Branch_Name</th>
+            <th rowspan="2" style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle; background-color: #d9e1f2;">D+7</th>
+            <th colspan="2" style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">WAR Status / D+7</th>
+            <th rowspan="2" style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle; background-color: #d9e1f2;">Total</th>
+            <th colspan="2" style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">WAR Status / Total</th>
           </tr>
-          <!-- Sub-Headers under WAR Status -->
-          <tr style="background-color: #dce6f1; color: #000000; font-weight: bold;">
-            <th style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">IW</th>
-            <th style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">OW</th>
+          <!-- Sub-Headers under WAR Status / D+7 and WAR Status / Total -->
+          <tr style="color: #000000; font-weight: bold; font-size: 12px;">
+            <th style="padding: 5px 10px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">IW</th>
+            <th style="padding: 5px 10px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">OW</th>
+            <th style="padding: 5px 10px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">IW</th>
+            <th style="padding: 5px 10px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">OW</th>
           </tr>
         </thead>
         <tbody>
           ${rowsHtml}
           <!-- Total Summary Row -->
-          <tr style="background-color: #e0f2fe; font-weight: bold; border-top: 2px solid #0284c7; border-bottom: 2px solid #0284c7;">
-            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: left; color: #0c4a6e;">Total</td>
-            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: left; color: #0c4a6e;">${list.length} Service Centers</td>
-            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; color: #0369a1; background-color: #bae6fd;">${sumTotD7}</td>
-            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">${sumTotIW}</td>
-            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">${sumTotOW}</td>
+          <tr style="font-weight: bold; font-size: 13px; border-top: 1px solid #cbd5e1;">
+            <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: left; color: #002060; background-color: #d9e1f2;">Total</td>
+            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; color: #002060; background-color: #d9e1f2;">${list.length} Service Centers</td>
+            <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: center; color: #0000ff; background-color: #d9e1f2;">${sumTotD7}</td>
+            <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #c6efce;">${sumTotD7IW}</td>
+            <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #c6efce;">${sumTotD7OW}</td>
+            <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: center; color: #0000ff; background-color: #d9e1f2;">${sumTotCalls}</td>
+            <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #c6efce;">${sumTotIW}</td>
+            <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #c6efce;">${sumTotOW}</td>
           </tr>
         </tbody>
       </table>
@@ -2019,8 +2444,9 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         right: { style: 'thin', color: { argb: 'FF64748B' } }
       };
 
-      function applyCell(cell, { value, fill, fontColor, bold = false, size = 10, align = 'center', border = borderThin }) {
+      function applyCell(cell, { value, fill, fontColor, bold = false, size = 10, align = 'center', border = borderThin, numFmt }) {
         if (value !== undefined) cell.value = value;
+        if (numFmt) cell.numFmt = numFmt;
         if (fill) {
           cell.fill = {
             type: 'pattern',
@@ -2332,56 +2758,67 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       // ──────────────────────────────────────────────────────────────────────────
       rowCursor += 3; // 2 blank separator rows
 
-      // Section Title Banner
+      // Section Title Banner (Spans Columns A through H)
       const rSumBanner = wsSum.getRow(rowCursor);
       rSumBanner.height = 24;
       applyCell(rSumBanner.getCell(1), {
-        value: `${isOp ? 'OPEN PENDING' : 'RC-GD'} TOTAL SUMMARY`,
-        fill: '#0f2e59',
+        value: `${isOp ? 'Open Pending' : 'RC-GD'} Total Summary dt ${dotDate}`,
+        fill: '#002060',
         fontColor: '#ffffff',
         bold: true,
         size: 11,
         align: 'left'
       });
-      for (let c = 2; c <= 5; c++) {
+      for (let c = 2; c <= 8; c++) {
         applyCell(rSumBanner.getCell(c), {
           value: '',
-          fill: '#0f2e59',
+          fill: '#002060',
           fontColor: '#ffffff',
           bold: true,
           size: 11,
           align: 'left'
         });
       }
-      wsSum.mergeCells(`A${rowCursor}:E${rowCursor}`);
+      wsSum.mergeCells(`A${rowCursor}:H${rowCursor}`);
 
       rowCursor++;
-      // Super Header Row: ASC_CODE | Branch_Name | Total D+7 | WAR Status (merged D:E)
+      // Super Header Row: ASC_CODE | Branch_Name | D+7 | WAR Status / D+7 (merged D:E) | Total | WAR Status / Total (merged G:H)
       const rSumH = wsSum.getRow(rowCursor);
       rSumH.height = 22;
 
-      applyCell(rSumH.getCell(1), { value: 'ASC_CODE', fill: '#dce6f1', fontColor: '#000000', bold: true, size: 10, align: 'left', border: borderThin });
-      applyCell(rSumH.getCell(2), { value: 'Branch_Name', fill: '#dce6f1', fontColor: '#000000', bold: true, size: 10, align: 'left', border: borderThin });
-      applyCell(rSumH.getCell(3), { value: 'Total D+7', fill: '#dce6f1', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
-      applyCell(rSumH.getCell(4), { value: 'WAR Status', fill: '#dce6f1', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
-      applyCell(rSumH.getCell(5), { value: '', fill: '#dce6f1', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rSumH.getCell(1), { value: 'ASC_CODE', fill: '#d9e1f2', fontColor: '#000000', bold: true, size: 10, align: 'left', border: borderThin });
+      applyCell(rSumH.getCell(2), { value: 'Branch_Name', fill: '#d9e1f2', fontColor: '#000000', bold: true, size: 10, align: 'left', border: borderThin });
+      applyCell(rSumH.getCell(3), { value: 'D+7', fill: '#d9e1f2', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rSumH.getCell(4), { value: 'WAR Status / D+7', fill: '#c6efce', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rSumH.getCell(5), { value: '', fill: '#c6efce', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rSumH.getCell(6), { value: 'Total', fill: '#d9e1f2', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rSumH.getCell(7), { value: 'WAR Status / Total', fill: '#c6efce', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rSumH.getCell(8), { value: '', fill: '#c6efce', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
       wsSum.mergeCells(`D${rowCursor}:E${rowCursor}`);
+      wsSum.mergeCells(`G${rowCursor}:H${rowCursor}`);
 
       rowCursor++;
-      // Sub Header Row: (A, B, C merged) | IW | OW
+      // Sub Header Row: (A, B, C, F merged) | IW | OW | IW | OW
       const rSubH = wsSum.getRow(rowCursor);
       rSubH.height = 19;
-      applyCell(rSubH.getCell(1), { value: '', fill: '#dce6f1', border: borderThin });
-      applyCell(rSubH.getCell(2), { value: '', fill: '#dce6f1', border: borderThin });
-      applyCell(rSubH.getCell(3), { value: '', fill: '#dce6f1', border: borderThin });
-      applyCell(rSubH.getCell(4), { value: 'IW', fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 9, align: 'center', border: borderThin });
-      applyCell(rSubH.getCell(5), { value: 'OW', fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 9, align: 'center', border: borderThin });
+      applyCell(rSubH.getCell(1), { value: '', fill: '#d9e1f2', border: borderThin });
+      applyCell(rSubH.getCell(2), { value: '', fill: '#d9e1f2', border: borderThin });
+      applyCell(rSubH.getCell(3), { value: '', fill: '#d9e1f2', border: borderThin });
+      applyCell(rSubH.getCell(4), { value: 'IW', fill: '#c6efce', fontColor: '#000000', bold: true, size: 9, align: 'center', border: borderThin });
+      applyCell(rSubH.getCell(5), { value: 'OW', fill: '#c6efce', fontColor: '#000000', bold: true, size: 9, align: 'center', border: borderThin });
+      applyCell(rSubH.getCell(6), { value: '', fill: '#d9e1f2', border: borderThin });
+      applyCell(rSubH.getCell(7), { value: 'IW', fill: '#c6efce', fontColor: '#000000', bold: true, size: 9, align: 'center', border: borderThin });
+      applyCell(rSubH.getCell(8), { value: 'OW', fill: '#c6efce', fontColor: '#000000', bold: true, size: 9, align: 'center', border: borderThin });
       wsSum.mergeCells(`A${rowCursor-1}:A${rowCursor}`);
       wsSum.mergeCells(`B${rowCursor-1}:B${rowCursor}`);
       wsSum.mergeCells(`C${rowCursor-1}:C${rowCursor}`);
+      wsSum.mergeCells(`F${rowCursor-1}:F${rowCursor}`);
 
       // Branch Data Rows
       let sumTotD7 = 0;
+      let sumTotD7IW = 0;
+      let sumTotD7OW = 0;
+      let sumTotCalls = 0;
       let sumTotIW = 0;
       let sumTotOW = 0;
 
@@ -2390,9 +2827,16 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         const sMatrix = buildMatrixForRecords(svc.records || []);
         const sRow = sMatrix.totalRow;
         const d7 = Number(sRow.d7Total) || 0;
+        const d7Iw = Number(sRow.d7Iw) || 0;
+        const d7Ow = Number(sRow.d7Ow) || 0;
+        const tot = Number(sRow.total) || 0;
         const iw = Number(sRow.iw) || 0;
         const ow = Number(sRow.ow) || 0;
+
         sumTotD7 += d7;
+        sumTotD7IW += d7Iw;
+        sumTotD7OW += d7Ow;
+        sumTotCalls += tot;
         sumTotIW += iw;
         sumTotOW += ow;
 
@@ -2401,9 +2845,12 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
 
         applyCell(rB.getCell(1), { value: svc.code, fill: '#ffffff', fontColor: '#000000', bold: false, size: 10, align: 'left', border: borderThin });
         applyCell(rB.getCell(2), { value: svc.name, fill: '#ffffff', fontColor: '#000000', bold: false, size: 10, align: 'left', border: borderThin });
-        applyCell(rB.getCell(3), { value: d7, fill: '#ffffff', fontColor: '#1d4ed8', bold: false, size: 10, align: 'center', border: borderThin });
-        applyCell(rB.getCell(4), { value: iw, fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
-        applyCell(rB.getCell(5), { value: ow, fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+        applyCell(rB.getCell(3), { value: d7, fill: '#ffffff', fontColor: '#0000ff', bold: false, size: 10, align: 'center', border: borderThin });
+        applyCell(rB.getCell(4), { value: d7Iw, fill: '#e2efda', fontColor: '#000000', bold: false, size: 10, align: 'center', border: borderThin });
+        applyCell(rB.getCell(5), { value: d7Ow, fill: '#e2efda', fontColor: '#000000', bold: false, size: 10, align: 'center', border: borderThin });
+        applyCell(rB.getCell(6), { value: tot, fill: '#ffffff', fontColor: '#0000ff', bold: false, size: 10, align: 'center', border: borderThin });
+        applyCell(rB.getCell(7), { value: iw, fill: '#e2efda', fontColor: '#000000', bold: false, size: 10, align: 'center', border: borderThin });
+        applyCell(rB.getCell(8), { value: ow, fill: '#e2efda', fontColor: '#000000', bold: false, size: 10, align: 'center', border: borderThin });
       });
 
       // Total Row
@@ -2411,11 +2858,14 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       const rTot = wsSum.getRow(rowCursor);
       rTot.height = 23;
 
-      applyCell(rTot.getCell(1), { value: 'Total', fill: '#e0f2fe', fontColor: '#0c4a6e', bold: true, size: 10, align: 'left', border: { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'medium', color: { argb: 'FF0284C7' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } } });
-      applyCell(rTot.getCell(2), { value: `${activeState.svcList.length} Service Centers`, fill: '#e0f2fe', fontColor: '#0c4a6e', bold: true, size: 10, align: 'left', border: { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'medium', color: { argb: 'FF0284C7' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } } });
-      applyCell(rTot.getCell(3), { value: sumTotD7, fill: '#bae6fd', fontColor: '#0369a1', bold: true, size: 10, align: 'center', border: { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'medium', color: { argb: 'FF0284C7' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } } });
-      applyCell(rTot.getCell(4), { value: sumTotIW, fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 10, align: 'center', border: { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'medium', color: { argb: 'FF0284C7' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } } });
-      applyCell(rTot.getCell(5), { value: sumTotOW, fill: '#c1f0c8', fontColor: '#000000', bold: true, size: 10, align: 'center', border: { top: { style: 'thin', color: { argb: 'FF94A3B8' } }, bottom: { style: 'medium', color: { argb: 'FF0284C7' } }, left: { style: 'thin', color: { argb: 'FF94A3B8' } }, right: { style: 'thin', color: { argb: 'FF94A3B8' } } } });
+      applyCell(rTot.getCell(1), { value: 'Total', fill: '#d9e1f2', fontColor: '#002060', bold: true, size: 10, align: 'left', border: borderThin });
+      applyCell(rTot.getCell(2), { value: `${activeState.svcList.length} Service Centers`, fill: '#d9e1f2', fontColor: '#002060', bold: true, size: 10, align: 'left', border: borderThin });
+      applyCell(rTot.getCell(3), { value: sumTotD7, fill: '#d9e1f2', fontColor: '#0000ff', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rTot.getCell(4), { value: sumTotD7IW, fill: '#c6efce', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rTot.getCell(5), { value: sumTotD7OW, fill: '#c6efce', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rTot.getCell(6), { value: sumTotCalls, fill: '#d9e1f2', fontColor: '#0000ff', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rTot.getCell(7), { value: sumTotIW, fill: '#c6efce', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
+      applyCell(rTot.getCell(8), { value: sumTotOW, fill: '#c6efce', fontColor: '#000000', bold: true, size: 10, align: 'center', border: borderThin });
 
       // ──────────────────────────────────────────────────────────────────────────
       // SHEET 2: RAW DATA (With Branch Name & SVC Code included)
@@ -2428,11 +2878,11 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       const rawCols = [
         { header: 'Sr No', key: 'srNo', width: 8, align: 'center' },
         { header: 'Branch Name', key: 'branchName', width: 20, align: 'left' },
-        { header: 'SVC Code', key: 'svcCode', width: 14, align: 'center' },
-        { header: 'Service Order No', key: 'serviceOrderNo', width: 18, align: 'center' },
-        { header: 'ASC Job No', key: 'ascJobNo', width: 18, align: 'center' },
+        { header: 'SVC Code', key: 'svcCode', width: 14, align: 'center', numFmt: '@' },
+        { header: 'Service Order No', key: 'serviceOrderNo', width: 18, align: 'center', numFmt: '@' },
+        { header: 'ASC Job No', key: 'ascJobNo', width: 18, align: 'center', numFmt: '@' },
         { header: 'Model', key: 'model', width: 22, align: 'left' },
-        { header: 'Serial No', key: 'serial', width: 18, align: 'left' },
+        { header: 'Serial No', key: 'serial', width: 18, align: 'left', numFmt: '@' },
         { header: 'Product Category', key: 'product', width: 16, align: 'center' },
         { header: 'Warranty Status', key: 'wtyStatus', width: 16, align: 'center' },
         { header: 'Warranty Code', key: 'warrantyCode', width: 14, align: 'center' },
@@ -2447,7 +2897,11 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         { header: 'App Date', key: 'appDate', width: 14, align: 'center' },
         { header: 'App Time', key: 'appTime', width: 12, align: 'center' },
         { header: 'Status', key: 'status', width: 22, align: 'left' },
-        { header: 'Reason / Remarks', key: 'reason', width: 28, align: 'left' }
+        { header: 'Reason', key: 'reason', width: 28, align: 'left' },
+        { header: 'Main Reason', key: 'masterReason', width: 22, align: 'center' },
+        { header: 'VOC', key: 'voc', width: 18, align: 'left' },
+        { header: 'B2B', key: 'b2b', width: 18, align: 'left' },
+        { header: 'VOC B2B', key: 'voc_b2b', width: 24, align: 'left' }
       ];
 
       wsRaw.columns = rawCols.map(c => ({
@@ -2506,7 +2960,11 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
           r.appDate || '',
           r.appTime || '',
           r.status || '',
-          r.reason || ''
+          r.reason || '',
+          r.masterReason || r.mainReason || '',
+          r.voc || '',
+          r.b2b || '',
+          r.voc_b2b || ''
         ];
 
         rowValues.forEach((val, cIdx) => {
@@ -2546,6 +3004,7 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
             bold: cellBold,
             size: 10,
             align: colDef.align,
+            numFmt: colDef.numFmt,
             border: borderThin
           });
         });
@@ -2590,19 +3049,29 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         const range = XLSX.utils.decode_range(wsSum['!ref'] || 'A1:A1');
         const startRow = range.e.r + 3;
         const sumAoA = [
-          [`${isOp ? 'OPEN PENDING' : 'RC-GD'} TOTAL SUMMARY`],
-          ['ASC_CODE', 'Branch_Name', 'Total D+7', 'WAR Status (IW)', 'WAR Status (OW)']
+          [`${isOp ? 'Open Pending' : 'RC-GD'} Total Summary dt ${formatDateToDot(activeState.cutoffDate)}`],
+          ['ASC_CODE', 'Branch_Name', 'D+7', 'WAR Status / D+7 (IW)', 'WAR Status / D+7 (OW)', 'Total', 'WAR Status / Total (IW)', 'WAR Status / Total (OW)']
         ];
-        let totD7 = 0, totIW = 0, totOW = 0;
+        let totD7 = 0, totD7IW = 0, totD7OW = 0, totCalls = 0, totIW = 0, totOW = 0;
         activeState.svcList.forEach(s => {
           const sm = buildMatrixForRecords(s.records || []);
           const sr = sm.totalRow;
-          totD7 += (sr.d7Total || 0);
-          totIW += (sr.iw || 0);
-          totOW += (sr.ow || 0);
-          sumAoA.push([s.code, s.name, sr.d7Total || 0, sr.iw || 0, sr.ow || 0]);
+          const d7 = Number(sr.d7Total) || 0;
+          const d7Iw = Number(sr.d7Iw) || 0;
+          const d7Ow = Number(sr.d7Ow) || 0;
+          const tot = Number(sr.total) || 0;
+          const iw = Number(sr.iw) || 0;
+          const ow = Number(sr.ow) || 0;
+
+          totD7 += d7;
+          totD7IW += d7Iw;
+          totD7OW += d7Ow;
+          totCalls += tot;
+          totIW += iw;
+          totOW += ow;
+          sumAoA.push([s.code, s.name, d7, d7Iw, d7Ow, tot, iw, ow]);
         });
-        sumAoA.push(['Total', `${activeState.svcList.length} Service Centers`, totD7, totIW, totOW]);
+        sumAoA.push(['Total', `${activeState.svcList.length} Service Centers`, totD7, totD7IW, totD7OW, totCalls, totIW, totOW]);
         XLSX.utils.sheet_add_aoa(wsSum, sumAoA, { origin: { r: startRow, c: 0 } });
       }
       XLSX.utils.book_append_sheet(wb, wsSum, 'Summary');
@@ -2630,7 +3099,11 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         'App Date': r.appDate || '',
         'App Time': r.appTime || '',
         'Status': r.status || '',
-        'Reason / Remarks': r.reason || ''
+        'Reason': r.reason || '',
+        'Main Reason': r.masterReason || r.mainReason || '',
+        'VOC': r.voc || '',
+        'B2B': r.b2b || '',
+        'VOC B2B': r.voc_b2b || ''
       }));
       const wsRaw = XLSX.utils.json_to_sheet(rawRows);
       XLSX.utils.book_append_sheet(wb, wsRaw, 'RAW');
@@ -2642,38 +3115,68 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
 
     // --- 9. RAW DATA PREVIEW MODAL LOGIC ---
     function openRawModal(records, title = 'Raw Records Preview') {
-      pageState.activePreviewRecords = records;
+      pageState.activePreviewRecords = records || [];
       document.getElementById('rawPreviewTitle').textContent = title;
-      document.getElementById('rawPreviewSubtitle').textContent = `${records.length} records parsed and processed`;
-      renderRawTable(records);
+      document.getElementById('rawPreviewSubtitle').textContent = `${pageState.activePreviewRecords.length} records parsed · Aging strictly computed from Created Date`;
+      
+      // Populate Branch Filter dropdown
+      const branchSel = document.getElementById('rawFilterBranch');
+      if (branchSel) {
+        const uniqueBranches = Array.from(new Set(pageState.activePreviewRecords.map(r => r.branchName).filter(Boolean)));
+        branchSel.innerHTML = '<option value="ALL">All Branches</option>' + 
+          uniqueBranches.map(b => `<option value="${b}">${b}</option>`).join('');
+      }
+
+      // Reset filter inputs
+      if (document.getElementById('rawSearchInput')) document.getElementById('rawSearchInput').value = '';
+      if (document.getElementById('rawFilterBranch')) document.getElementById('rawFilterBranch').value = 'ALL';
+      if (document.getElementById('rawFilterMainReason')) document.getElementById('rawFilterMainReason').value = 'ALL';
+      if (document.getElementById('rawFilterTatBucket')) document.getElementById('rawFilterTatBucket').value = 'ALL';
+      if (document.getElementById('rawFilterWarranty')) document.getElementById('rawFilterWarranty').value = 'ALL';
+
+      renderRawTable(pageState.activePreviewRecords, pageState.activePreviewRecords.length);
       document.getElementById('rawPreviewModal').classList.remove('hidden');
     }
 
-    function renderRawTable(records) {
+    function renderRawTable(records, totalCount = null) {
       const tbody = document.getElementById('rawPreviewTableBody');
       const countEl = document.getElementById('rawPreviewRecordCount');
-      countEl.textContent = `Showing ${records.length} records`;
+      const tot = totalCount !== null ? totalCount : (pageState.activePreviewRecords ? pageState.activePreviewRecords.length : records.length);
+      countEl.textContent = `Showing ${records.length} of ${tot} records`;
 
       if (records.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="13" class="text-center py-6 text-slate-400">No records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="26" class="text-center py-8 text-slate-400 font-medium">No matching records found.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = records.map((r, i) => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-2 text-slate-400 font-mono">${i + 1}</td>
+        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+          <td class="p-2 text-slate-400 font-mono text-center">${r.srNo || (i + 1)}</td>
           <td class="p-2 font-bold text-slate-900">${r.branchName || '-'}</td>
-          <td class="p-2 font-mono text-blue-700 font-semibold">${r.svcCode || '-'}</td>
-          <td class="p-2 font-bold text-blue-700 font-mono">${r.serviceOrderNo}</td>
-          <td class="p-2 font-mono text-slate-600">${r.ascJobNo}</td>
+          <td class="p-2 font-mono text-blue-700 font-semibold text-center">${r.svcCode || '-'}</td>
+          <td class="p-2 font-bold text-blue-700 font-mono text-center">${r.serviceOrderNo}</td>
+          <td class="p-2 font-mono text-slate-600 text-center">${r.ascJobNo}</td>
+          <td class="p-2 font-mono font-bold text-blue-800 bg-blue-50/60 text-center">${r.created || '-'}</td>
+          <td class="p-2 font-mono text-slate-700 text-center">${r.assigned || '-'}</td>
+          <td class="p-2 font-mono text-slate-500 text-center">${r.assignedTime || '—'}</td>
           <td class="p-2 font-semibold text-slate-800">${r.model}</td>
-          <td class="p-2"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">${r.product}</span></td>
-          <td class="p-2"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${r.warrantyCode === 'IW' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.warrantyCode}</span></td>
+          <td class="p-2 font-mono text-slate-600">${r.serial || '—'}</td>
+          <td class="p-2 text-center"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">${r.product}</span></td>
+          <td class="p-2 text-center">${r.wtyStatus || 'In Warranty'}</td>
+          <td class="p-2 text-center"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${r.warrantyCode === 'IW' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${r.warrantyCode}</span></td>
           <td class="p-2">${r.serviceType}</td>
-          <td class="p-2 font-bold ${r.aging > 7 ? 'text-red-600' : 'text-slate-700'}">${r.aging} d</td>
-          <td class="p-2"><span class="px-1.5 py-0.5 rounded text-[10px] ${r.aging > 7 ? 'bg-red-100 text-red-800 font-bold' : 'bg-slate-100 text-slate-600'}">${r.tatBucket}</span></td>
-          <td class="p-2 truncate max-w-[120px]" title="${r.customerName}">${r.customerName || '-'}</td>
-          <td class="p-2 truncate max-w-[120px]" title="${r.status}">${r.status || '-'}</td>
+          <td class="p-2 font-extrabold text-center bg-amber-50/50 ${r.aging > 7 ? 'text-red-600' : 'text-slate-800'}">${r.aging} d</td>
+          <td class="p-2 text-center"><span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${r.aging > 7 ? 'bg-red-100 text-red-800 border border-red-200' : 'bg-slate-100 text-slate-700'}">${r.tatBucket}</span></td>
+          <td class="p-2 font-medium text-slate-900">${r.customerName || '—'}</td>
+          <td class="p-2">${r.city || '—'}</td>
+          <td class="p-2 font-mono text-center">${r.appDate || '—'}</td>
+          <td class="p-2 font-mono text-center text-slate-500">${r.appTime || '—'}</td>
+          <td class="p-2"><span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-800">${r.status || '—'}</span></td>
+          <td class="p-2 truncate max-w-[180px]" title="${r.reason || ''}">${r.reason || '—'}</td>
+          <td class="p-2 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">${r.masterReason || r.mainReason || '—'}</span></td>
+          <td class="p-2 text-slate-600">${r.voc || '—'}</td>
+          <td class="p-2 text-slate-600">${r.b2b || '—'}</td>
+          <td class="p-2 text-slate-600">${r.voc_b2b || '—'}</td>
         </tr>
       `).join('');
     }
@@ -2763,6 +3266,76 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       if (btnEmptyAddSvc) btnEmptyAddSvc.addEventListener('click', () => openAddModal('rcGd'));
       if (btnOpenAddSvcModalOp) btnOpenAddSvcModalOp.addEventListener('click', () => openAddModal('openPending'));
       if (btnEmptyAddSvcOp) btnEmptyAddSvcOp.addEventListener('click', () => openAddModal('openPending'));
+
+      // Universal Importer handler for Report Maker
+      const btnUniversalReport = document.getElementById('btnUniversalImportReport');
+      if (btnUniversalReport) {
+        btnUniversalReport.addEventListener('click', () => {
+          if (window.UniversalDataDialog) {
+            const activeTab = normalizeTabKey(pageState.activeTab);
+            const tabState = getTabState(activeTab);
+            window.UniversalDataDialog.open({
+              cutoffDate: tabState.cutoffDate,
+              onApply: (records, meta) => {
+                if (!records || records.length === 0) return;
+
+                const branchGroups = {};
+                records.forEach(r => {
+                  const bName = r.branchName || r['Branch Name'] || r.city || r['City'] || 'Main Branch';
+                  if (!branchGroups[bName]) branchGroups[bName] = [];
+                  branchGroups[bName].push(r);
+                });
+
+                Object.keys(branchGroups).forEach(bName => {
+                  const grpRecords = branchGroups[bName];
+                  const sCode = getBranchSvcCode(bName) || 'SVC-01';
+
+                  grpRecords.forEach((r, idx) => {
+                    r.branchName = bName;
+                    r.svcCode = sCode;
+                    r.no = idx + 1;
+                    r.serviceOrderNo = r.serviceOrderNo || r['Service Order No.'] || r.service_order_no;
+                    r.ascJobNo = r.ascJobNo || r['ASC Job No'] || r.asc_job_no || r.serviceOrderNo;
+                    r.model = r.model || r['Model'] || '';
+                    r.serial = r.serial || r['Serial'] || r.serial_no || '';
+                    r.product = r.product || r['Product'] || getSamsungCategory(r.model);
+                    r.wtyStatus = r.wtyStatus || r['Wty Status'] || r.warranty_status || 'In Warranty';
+                    r.warrantyCode = getWarrantyCode(r.wtyStatus);
+                    r.serviceType = r.serviceType || r['Service Type'] || r.service_type || 'In-Home';
+                    r.created = r.created || r['Created'] || r['Created Date'] || r.created_date || '';
+                    r.assigned = r.assigned || r['Assigned'] || r['Assigned Date'] || r.assigned_date || r.created;
+                    // [Permanent Rule] Strictly calculate aging from Created date only
+                    r.aging = calcAging(r.created || r.assigned, tabState.cutoffDate);
+                    r.tatBucket = getTATBucket(r.aging);
+                    r.customerName = r.customerName || r['Customer Name'] || r.customer_name || '';
+                    r.city = r.city || r['City'] || bName;
+                    r.appDate = r.appDate || r['App Date'] || r.app_date || '';
+                    r.status = r.status || r['Status'] || 'Open';
+                    // [Permanent Rule] If Reason was empty or null, put the Status value
+                    const rsn = String(r.reason || r['Reason'] || r['Reason / Remarks'] || '').trim();
+                    const st = String(r.status || '').trim();
+                    r.reason = rsn ? rsn : (st ? st : 'Pending');
+                    r.subReason = r.reason;
+                    r.masterReason = lookupMasterReason(r.reason, r.status);
+                    r.mainReason = r.masterReason;
+                  });
+
+                  tabState.svcList.push({
+                    id: 'svc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                    name: bName,
+                    code: sCode,
+                    rawInput: `Imported via Universal Data Dialog (${meta.format})`,
+                    records: grpRecords
+                  });
+                });
+
+                renderActiveTabView();
+                showToast(`✅ Added ${Object.keys(branchGroups).length} branch(es) with ${records.length} calls via Universal Importer!`);
+              }
+            });
+          }
+        });
+      }
 
       modalBtnClose.addEventListener('click', () => {
         addSvcModal.classList.add('hidden');
@@ -3007,21 +3580,53 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
         document.getElementById('rawPreviewModal').classList.add('hidden');
       });
 
-      document.getElementById('rawSearchInput').addEventListener('input', (e) => {
-        const q = e.target.value.toLowerCase().trim();
-        if (!q) {
-          renderRawTable(pageState.activePreviewRecords);
-          return;
-        }
-        const filtered = pageState.activePreviewRecords.filter(r => 
-          (r.serviceOrderNo && r.serviceOrderNo.toLowerCase().includes(q)) ||
-          (r.model && r.model.toLowerCase().includes(q)) ||
-          (r.customerName && r.customerName.toLowerCase().includes(q)) ||
-          (r.serviceType && r.serviceType.toLowerCase().includes(q)) ||
-          (r.product && r.product.toLowerCase().includes(q))
-        );
-        renderRawTable(filtered);
-      });
+      function applyRawPreviewFilters() {
+        const q = (document.getElementById('rawSearchInput')?.value || '').toLowerCase().trim();
+        const branch = document.getElementById('rawFilterBranch')?.value || 'ALL';
+        const mainReason = document.getElementById('rawFilterMainReason')?.value || 'ALL';
+        const tat = document.getElementById('rawFilterTatBucket')?.value || 'ALL';
+        const wty = document.getElementById('rawFilterWarranty')?.value || 'ALL';
+
+        const all = pageState.activePreviewRecords || [];
+        const filtered = all.filter(r => {
+          if (branch !== 'ALL' && r.branchName !== branch && r.svcCode !== branch) return false;
+          if (mainReason !== 'ALL' && (r.masterReason || r.mainReason) !== mainReason) return false;
+          if (tat !== 'ALL' && r.tatBucket !== tat) return false;
+          if (wty !== 'ALL' && r.warrantyCode !== wty) return false;
+
+          if (q) {
+            const matchQ = (r.serviceOrderNo && r.serviceOrderNo.toLowerCase().includes(q)) ||
+              (r.ascJobNo && r.ascJobNo.toLowerCase().includes(q)) ||
+              (r.model && r.model.toLowerCase().includes(q)) ||
+              (r.customerName && r.customerName.toLowerCase().includes(q)) ||
+              (r.city && r.city.toLowerCase().includes(q)) ||
+              (r.serviceType && r.serviceType.toLowerCase().includes(q)) ||
+              (r.status && r.status.toLowerCase().includes(q)) ||
+              (r.reason && r.reason.toLowerCase().includes(q)) ||
+              (r.masterReason && r.masterReason.toLowerCase().includes(q)) ||
+              (r.product && r.product.toLowerCase().includes(q));
+            if (!matchQ) return false;
+          }
+          return true;
+        });
+
+        renderRawTable(filtered, all.length);
+      }
+
+      const rawSearchInput = document.getElementById('rawSearchInput');
+      if (rawSearchInput) rawSearchInput.addEventListener('input', applyRawPreviewFilters);
+
+      const rawFilterBranch = document.getElementById('rawFilterBranch');
+      if (rawFilterBranch) rawFilterBranch.addEventListener('change', applyRawPreviewFilters);
+
+      const rawFilterMainReason = document.getElementById('rawFilterMainReason');
+      if (rawFilterMainReason) rawFilterMainReason.addEventListener('change', applyRawPreviewFilters);
+
+      const rawFilterTatBucket = document.getElementById('rawFilterTatBucket');
+      if (rawFilterTatBucket) rawFilterTatBucket.addEventListener('change', applyRawPreviewFilters);
+
+      const rawFilterWarranty = document.getElementById('rawFilterWarranty');
+      if (rawFilterWarranty) rawFilterWarranty.addEventListener('change', applyRawPreviewFilters);
 
       // Confirmation Dialog Event Listeners
       const confirmBtnProceed = document.getElementById('confirmBtnProceed');
@@ -3069,6 +3674,16 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
       const btnReloadApp = document.getElementById('btnReloadApp');
       if (btnReloadApp) {
         btnReloadApp.addEventListener('click', confirmReloadApp);
+      }
+
+      // Initialize branch dropdown dynamically from Universal Context file
+      if (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.populateSelect === 'function') {
+        window.GSPN_CONTEXT.populateSelect('modalSvcNameSelect', {
+          customOption: true,
+          defaultSelected: 'Gurgaon',
+          valueType: 'name',
+          showCodeInLabel: true
+        });
       }
 
       // Initial empty state rendering

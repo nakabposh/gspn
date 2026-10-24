@@ -103,7 +103,7 @@
   // Define route-to-group mappings
   var routeMap = {
     'tools': ['tools.html', 'custom-template.html'],
-    'reports': ['openPending.html', 'reportMaking.html', 'masterCloser.html', 'reports.html'],
+    'reports': ['openPending.html', 'reportMaking.html', 'masterCloser.html', 'cancellationReport.html', 'reports.html', 'closer.html', 'Closer.html'],
     'context': ['Context.html', 'formats.html', 'context/formats.html', 'context/index.html']
   };
 
@@ -163,7 +163,7 @@
 
     if (itemPage === plainPage || (plainPage === 'index.html' && itemPage === 'index.html')) {
       item.classList.add('active');
-    } else if (item.id === 'navMaster' && (plainPage === 'openPending.html' || plainPage === 'reportMaking.html' || plainPage === 'masterCloser.html')) {
+    } else if (item.id === 'navMaster' && (plainPage === 'openPending.html' || plainPage === 'reportMaking.html' || plainPage === 'masterCloser.html' || plainPage === 'cancellationReport.html')) {
       item.classList.add('active');
     } else if (item.id === 'navSvcReports' && plainPage === 'reports.html') {
       item.classList.add('active');

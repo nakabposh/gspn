@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "description": "GSPN Helper Tools — A web-based toolkit for Samsung Service Portal data extraction, formatting, and Excel export.",
   "type": "module",
-  "main": "server.js",
+  "main": "server.ts",
   "scripts": {
-    "dev": "node server.js",
-    "start": "node server.js",
+    "dev": "node server.ts",
+    "start": "node server.ts",
     "build": "node -e \"console.log('Build completed successfully')\"",
     "lint": "node -e \"console.log('Lint check passed successfully')\""
   },
   "dependencies": {
+    "@google/genai": "^2.27.0",
     "express": "^4.21.2"
   }
 }

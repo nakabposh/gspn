@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Closure Tracking Report — SVC Closer</title>
+  <meta name="description" content="Single MSC Closure Tracking Report with IH/PS, IIDM, and Customer Care breakdown. Supports Excel, CSV, and Screenshot Image Pasting.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+    .font-outfit { font-family: 'Outfit', sans-serif; }
+    .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s ease; }
+    .drop-zone.dragover { border-color: #b45309; background-color: #fef3c7; }
+    
+    /* Exact colors from user screenshot */
+    .bg-report-title { background-color: #b45309; } /* Dark gold/bronze header */
+    .bg-col-header { background-color: #eab308; } /* Golden yellow column headers */
+    .bg-green-total { background-color: #a7f3d0; } /* Soft sage/mint green total row */
+    .bg-orange-total { background-color: #fb923c; } /* Vibrant orange Total Closed row */
+    .bg-khaki-header { background-color: #e2e8b8; } /* Khaki IIDM sub-header */
+    .bg-red-alert { background-color: #dc2626; color: #ffffff !important; } /* Red 0% alert */
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-5 right-5 flex flex-col gap-2 pointer-events-none" style="z-index: 999999;"></div>
+
+  <!-- Header Navigation -->
+  <header class="bg-white text-slate-900 shadow-sm border-b border-slate-200 sticky top-0 z-30 no-print">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14">
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-lg bg-[#b45309] flex items-center justify-center shadow text-white font-black text-sm">
+            SC
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-sm font-bold tracking-tight text-[#b45309] font-outfit">SVC Closer</h1>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                Closure Tracking Report
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-tight">Formula: (Morning Open + Flow) - Current Open = Closed Calls</p>
+          </div>
+        </div>
+
+        <!-- Global Navigation Links -->
+        <div class="flex items-center space-x-2">
+          <nav class="hidden xl:flex items-center space-x-1 mr-2 border-r border-slate-200 pr-3">
+            <a href="../index.html" class="nav-link text-xs py-1.5 px-2.5">Home</a>
+            <a href="../tools.html" class="nav-link text-xs py-1.5 px-2.5">Tools</a>
+            <a href="../openPending.html" class="nav-link text-xs py-1.5 px-2.5">Open Pending</a>
+            <a href="../masterCloser.html" class="nav-link text-xs py-1.5 px-2.5">Master Closer</a>
+            <a href="Closer.html" class="nav-link text-xs py-1.5 px-2.5 active font-bold text-amber-900 bg-amber-50 rounded">SVC Closer</a>
+            <a href="../cancellationReport.html" class="nav-link text-xs py-1.5 px-2.5">Cancellation</a>
+            <a href="../reports.html" class="nav-link text-xs py-1.5 px-2.5">SVC Reports</a>
+            <a href="../Context.html" class="nav-link text-xs py-1.5 px-2.5">Context</a>
+          </nav>
+
+          <!-- Top Quick Actions -->
+          <div class="flex items-center gap-2">
+            <button id="btnTopLoadSample" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 shadow-sm transition active:scale-95">
+              Load Attached Sample
+            </button>
+            <button id="btnTopProcessValidate" class="inline-flex items-center px-3.5 py-1.5 rounded-lg text-xs font-black bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-sm transition active:scale-95">
+              Process &amp; Validate
+            </button>
+            <button id="btnTopCopyMail" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition active:scale-95">
+              Copy for Mail
+            </button>
+            <button id="btnTopExportExcel" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95">
+              Export Excel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+    <!-- SHORT FORMS SUMMARY BAR -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+          <h2 class="text-xs font-black uppercase text-slate-800 tracking-wider font-outfit">Standard Samsung Short Forms Reference</h2>
+        </div>
+        <div class="text-[11px] text-slate-500 font-medium">
+          Combined Single Format: <strong class="text-blue-700">IH/PS Products</strong> + <strong class="text-amber-700">IIDM Installation</strong> + <strong class="text-slate-700">CC Customer Care</strong>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2 pt-3 text-center">
+        <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div class="text-xs font-black text-slate-900 font-mono">REF</div>
+          <div class="text-[10px] text-slate-500 truncate">Refrigerator</div>
+        </div>
+        <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div class="text-xs font-black text-slate-900 font-mono">WM</div>
+          <div class="text-[10px] text-slate-500 truncate">Washing Machine</div>
+        </div>
+        <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div class="text-xs font-black text-slate-900 font-mono">AC</div>
+          <div class="text-[10px] text-slate-500 truncate">Air Conditioner</div>
+        </div>
+        <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div class="text-xs font-black text-slate-900 font-mono">MWO</div>
+          <div class="text-[10px] text-slate-500 truncate">Microwave Oven</div>
+        </div>
+        <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div class="text-xs font-black text-slate-900 font-mono">CTV</div>
+          <div class="text-[10px] text-slate-500 truncate">Color TV / LED</div>
+        </div>
+        <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div class="text-xs font-black text-slate-900 font-mono">AUD</div>
+          <div class="text-[10px] text-slate-500 truncate">Audio / Soundbar</div>
+        </div>
+        <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div class="text-xs font-black text-slate-900 font-mono">DW</div>
+          <div class="text-[10px] text-slate-500 truncate">Dishwasher</div>
+        </div>
+        <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div class="text-xs font-black text-slate-900 font-mono">HHP</div>
+          <div class="text-[10px] text-slate-500 truncate">Handheld / Mobile</div>
+        </div>
+        <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div class="text-xs font-black text-slate-900 font-mono">IT</div>
+          <div class="text-[10px] text-slate-500 truncate">Monitor / PC</div>
+        </div>
+        <div class="p-2 bg-blue-50/70 rounded-lg border border-blue-200">
+          <div class="text-xs font-black text-blue-900 font-mono">IH/PS</div>
+          <div class="text-[10px] text-blue-700 truncate">In-Home &amp; Pickup</div>
+        </div>
+        <div class="p-2 bg-amber-50/70 rounded-lg border border-amber-200">
+          <div class="text-xs font-black text-amber-900 font-mono">IIDM</div>
+          <div class="text-[10px] text-amber-700 truncate">Install &amp; Demo</div>
+        </div>
+        <div class="p-2 bg-emerald-50/70 rounded-lg border border-emerald-200">
+          <div class="text-xs font-black text-emerald-900 font-mono">CC</div>
+          <div class="text-[10px] text-emerald-700 truncate">Customer Care</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 DRAG AND DROP FILE & IMAGE UPLOAD SLOTS -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-bold text-slate-800 font-outfit uppercase tracking-wide">Upload GSPN Datasets or Paste Screenshots</h3>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
+              Excel • CSV • Image / Screenshot (Ctrl+V)
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Drop Excel, CSV, or Image files directly onto slots, or press <strong>Ctrl+V</strong> anywhere to paste a clipboard screenshot</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btnLoadSampleFiles" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition shadow-sm">
+            Load Attached Sample
+          </button>
+          <button id="btnClearAll" class="px-3 py-1.5 border border-slate-300 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition">
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- 3 Slots Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- SLOT 1: Morning Open -->
+        <div class="flex flex-col bg-slate-50/80 rounded-xl border border-slate-200 p-3.5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-black text-slate-800 uppercase font-outfit">1. Morning Open</span>
+            <span id="badgeMrng" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">Pending</span>
+          </div>
+          <div id="dropZoneMrng" class="drop-zone flex-1 rounded-xl p-4 text-center flex flex-col items-center justify-center cursor-pointer bg-white min-h-[110px]">
+            <input type="file" id="fileMrng" accept=".xlsx, .xls, .csv, .tsv, .txt, .png, .jpg, .jpeg, .webp, .bmp" class="hidden">
+            <div id="dropPromptMrng" class="space-y-0.5">
+              <p class="text-xs font-bold text-slate-700">Drop Excel or Screenshot Image</p>
+              <p class="text-[10px] text-slate-400">or click to browse</p>
+            </div>
+            <div id="dropSuccessMrng" class="hidden text-left w-full space-y-0.5">
+              <div class="flex items-center justify-between text-xs font-bold text-blue-800">
+                <span class="truncate max-w-[150px]" id="fileNameMrng">file.xlsx</span>
+                <span id="recordCountMrng" class="text-emerald-600 font-extrabold">0 Calls</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2 flex items-center justify-between text-[11px]">
+            <div class="flex gap-2">
+              <button onclick="document.getElementById('fileMrng').click()" class="font-bold text-blue-600 hover:underline">Browse</button>
+              <span class="text-slate-300">•</span>
+              <button onclick="openPasteModal('mrng')" class="font-semibold text-slate-500 hover:underline">Paste Text / Image</button>
+            </div>
+            <button onclick="openCloserRawViewer('mrng')" class="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded hover:bg-slate-200">View Calls</button>
+          </div>
+        </div>
+
+        <!-- SLOT 2: Flow (Today In Flow) -->
+        <div class="flex flex-col bg-slate-50/80 rounded-xl border border-slate-200 p-3.5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-black text-slate-800 uppercase font-outfit">2. Flow (Today In-Flow)</span>
+            <span id="badgeInflow" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">Pending</span>
+          </div>
+          <div id="dropZoneInflow" class="drop-zone flex-1 rounded-xl p-4 text-center flex flex-col items-center justify-center cursor-pointer bg-white min-h-[110px]">
+            <input type="file" id="fileInflow" accept=".xlsx, .xls, .csv, .tsv, .txt, .png, .jpg, .jpeg, .webp, .bmp" class="hidden">
+            <div id="dropPromptInflow" class="space-y-0.5">
+              <p class="text-xs font-bold text-slate-700">Drop Excel or Screenshot Image</p>
+              <p class="text-[10px] text-slate-400">or click to browse</p>
+            </div>
+            <div id="dropSuccessInflow" class="hidden text-left w-full space-y-0.5">
+              <div class="flex items-center justify-between text-xs font-bold text-amber-800">
+                <span class="truncate max-w-[150px]" id="fileNameInflow">file.xlsx</span>
+                <span id="recordCountInflow" class="text-emerald-600 font-extrabold">0 Calls</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2 flex items-center justify-between text-[11px]">
+            <div class="flex gap-2">
+              <button onclick="document.getElementById('fileInflow').click()" class="font-bold text-amber-700 hover:underline">Browse</button>
+              <span class="text-slate-300">•</span>
+              <button onclick="openPasteModal('inflow')" class="font-semibold text-slate-500 hover:underline">Paste Text / Image</button>
+            </div>
+            <button onclick="openCloserRawViewer('inflow')" class="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded hover:bg-slate-200">View Calls</button>
+          </div>
+        </div>
+
+        <!-- SLOT 3: Current Open -->
+        <div class="flex flex-col bg-slate-50/80 rounded-xl border border-slate-200 p-3.5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-black text-slate-800 uppercase font-outfit">3. Current Open</span>
+            <span id="badgeCurrent" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">Pending</span>
+          </div>
+          <div id="dropZoneCurrent" class="drop-zone flex-1 rounded-xl p-4 text-center flex flex-col items-center justify-center cursor-pointer bg-white min-h-[110px]">
+            <input type="file" id="fileCurrent" accept=".xlsx, .xls, .csv, .tsv, .txt, .png, .jpg, .jpeg, .webp, .bmp" class="hidden">
+            <div id="dropPromptCurrent" class="space-y-0.5">
+              <p class="text-xs font-bold text-slate-700">Drop Excel or Screenshot Image</p>
+              <p class="text-[10px] text-slate-400">or click to browse</p>
+            </div>
+            <div id="dropSuccessCurrent" class="hidden text-left w-full space-y-0.5">
+              <div class="flex items-center justify-between text-xs font-bold text-rose-800">
+                <span class="truncate max-w-[150px]" id="fileNameCurrent">file.xlsx</span>
+                <span id="recordCountCurrent" class="text-emerald-600 font-extrabold">0 Calls</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2 flex items-center justify-between text-[11px]">
+            <div class="flex gap-2">
+              <button onclick="document.getElementById('fileCurrent').click()" class="font-bold text-rose-600 hover:underline">Browse</button>
+              <span class="text-slate-300">•</span>
+              <button onclick="openPasteModal('current')" class="font-semibold text-slate-500 hover:underline">Paste Text / Image</button>
+            </div>
+            <button onclick="openCloserRawViewer('current')" class="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded hover:bg-slate-200">View Calls</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REPORT CONTROLS BAR -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <label for="selectMscBranch" class="text-xs font-black uppercase text-slate-700 font-outfit">Scope / Branch:</label>
+        <select id="selectMscBranch" class="text-xs font-bold bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+          <option value="ALL" selected>All Calls / Branches (Auto Included)</option>
+        </select>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnProcessValidate" class="px-3.5 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-lg text-xs font-black shadow transition active:scale-95 flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Process &amp; Validate
+        </button>
+        <button id="btnCopyCloserHtml" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow transition active:scale-95 flex items-center gap-1.5" title="Copy exact Closure Tracking Report HTML table ready to paste into Outlook / Gmail">
+          Copy for Mail
+        </button>
+        <button id="btnExportCloserExcel" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition active:scale-95 flex items-center gap-1.5">
+          Export Excel
+        </button>
+        <button onclick="window.print()" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold shadow-sm transition">
+          Print
+        </button>
+      </div>
+    </section>
+
+    <!-- EXACT CLOSURE TRACKING REPORT RENDER AREA -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-md p-4 sm:p-6 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+        <div>
+          <h3 class="text-base font-black text-slate-800 font-outfit uppercase">Closure Tracking Report</h3>
+          <p class="text-xs text-slate-400">Formula: Closed Calls = (Morning Open + Flow) - Current Open • CLOSURE % = (Closed Calls ÷ Flow) × 100</p>
+        </div>
+        <span class="text-xs font-bold text-amber-900 bg-amber-50 border border-amber-300 px-2.5 py-0.5 rounded-full">
+          Attached Style Format
+        </span>
+      </div>
+
+      <div id="closerReportRenderArea" class="overflow-x-auto flex justify-center py-2">
+        <!-- Exact styled table will be rendered here -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- PROCESS & VALIDATE AUDIT MODAL -->
+  <div id="validationModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="px-5 py-4 bg-[#b45309] text-white flex items-center justify-between">
+        <h3 class="text-sm font-bold font-outfit">Report Process &amp; Validation</h3>
+        <button onclick="closeValidationModal()" class="text-white/70 hover:text-white p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-5 flex-1 overflow-auto bg-slate-50 space-y-4 text-xs">
+        <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 font-semibold" id="validationStatusDesc">
+          Validation completed: 100% of calls counted cleanly. No calls dropped due to spaced models or formatting anomalies.
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-white p-3 rounded-xl border border-slate-200">
+            <div class="text-[10px] text-slate-400 font-bold uppercase">Total Calls</div>
+            <div class="text-lg font-black text-slate-800 mt-0.5" id="valTotalCalls">0</div>
+          </div>
+          <div class="bg-white p-3 rounded-xl border border-slate-200">
+            <div class="text-[10px] text-blue-600 font-bold uppercase">IH/PS Workload</div>
+            <div class="text-lg font-black text-blue-700 mt-0.5" id="valIhPsCalls">0</div>
+          </div>
+          <div class="bg-white p-3 rounded-xl border border-slate-200">
+            <div class="text-[10px] text-amber-600 font-bold uppercase">IIDM Workload</div>
+            <div class="text-lg font-black text-amber-700 mt-0.5" id="valIidmCalls">0</div>
+          </div>
+          <div class="bg-white p-3 rounded-xl border border-slate-200">
+            <div class="text-[10px] text-emerald-600 font-bold uppercase">Closed Calls</div>
+            <div class="text-lg font-black text-emerald-700 mt-0.5" id="valClosedCalls">0</div>
+          </div>
+        </div>
+        <div id="validationFormulaDetails" class="p-3 bg-white rounded-xl border border-slate-200 font-mono text-xs space-y-1.5"></div>
+      </div>
+      <div class="px-5 py-3 bg-white border-t border-slate-200 flex justify-end gap-2">
+        <button onclick="closeValidationModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold">Close</button>
+        <button onclick="closeValidationModal()" class="px-5 py-2 bg-[#b45309] text-white rounded-lg text-xs font-black shadow">Apply Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASTE MODAL (WITH TEXT & IMAGE SCREENSHOT TABS) -->
+  <div id="pasteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="px-5 py-4 bg-[#b45309] text-white flex items-center justify-between">
+        <h3 class="text-sm font-bold font-outfit" id="pasteModalTitle">Paste Data or Screenshot</h3>
+        <button onclick="closePasteModal()" class="text-white/70 hover:text-white p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Tab Buttons -->
+      <div class="flex border-b border-slate-200 bg-slate-50 px-4 pt-2">
+        <button id="tabBtnText" onclick="switchPasteTab('text')" class="px-4 py-2 border-b-2 border-amber-600 font-bold text-amber-900 text-xs transition">
+          📋 Paste GSPN Text / Table
+        </button>
+        <button id="tabBtnImage" onclick="switchPasteTab('image')" class="px-4 py-2 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-700 text-xs transition">
+          🖼️ Paste Image / Screenshot
+        </button>
+      </div>
+
+      <div class="p-4 flex-1 overflow-auto">
+        <!-- Panel 1: Textarea -->
+        <div id="tabPanelText" class="space-y-2">
+          <p class="text-xs text-slate-500">Copy rows directly from GSPN or Excel and paste below (tab or comma separated):</p>
+          <textarea id="pasteTextarea" rows="9" placeholder="Paste GSPN table rows here..." class="w-full text-xs font-mono border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+        </div>
+
+        <!-- Panel 2: Image / Screenshot -->
+        <div id="tabPanelImage" class="space-y-3 hidden">
+          <div class="p-4 border-2 border-dashed border-amber-300 rounded-xl bg-amber-50/50 text-center space-y-2">
+            <div class="w-10 h-10 mx-auto rounded-full bg-amber-100 flex items-center justify-center text-amber-800">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-800">Press Ctrl+V to paste screenshot image</p>
+              <p class="text-[11px] text-slate-500">or click below to choose an image file (.png, .jpg, .jpeg)</p>
+            </div>
+            <input type="file" id="modalImageInput" accept=".png, .jpg, .jpeg, .webp, .bmp" class="hidden">
+            <button type="button" onclick="document.getElementById('modalImageInput').click()" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm">
+              Browse Image File
+            </button>
+          </div>
+
+          <!-- Thumbnail preview container -->
+          <div id="pasteImagePreviewArea" class="hidden p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+              <span>Image Preview</span>
+              <span class="text-[11px] text-emerald-600">Ready for extraction</span>
+            </div>
+            <img id="pasteImagePreview" class="max-h-48 rounded-lg mx-auto border border-slate-300 object-contain shadow-sm" alt="Pasted Screenshot">
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+        <button onclick="closePasteModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold">Cancel</button>
+        <button id="btnApplyPaste" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow">Parse &amp; Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAW VIEWER MODAL -->
+  <div id="closerRawViewerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="px-5 py-4 bg-[#b45309] text-white flex items-center justify-between">
+        <h3 class="text-sm font-bold font-outfit" id="closerRawViewerTitle">Loaded Calls Detail</h3>
+        <button onclick="closeCloserRawViewer()" class="text-white/70 hover:text-white p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-4 flex-1 overflow-auto bg-slate-50">
+        <div id="closerRawViewerTableArea" class="border border-slate-200 rounded-lg overflow-x-auto bg-white"></div>
+      </div>
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
+        <span id="closerRawViewerCount" class="text-slate-600 font-semibold">0 calls</span>
+        <button onclick="closeCloserRawViewer()" class="px-4 py-1.5 bg-[#b45309] text-white rounded-lg font-bold">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/closerReport.js"></script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

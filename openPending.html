@@ -54,6 +54,12 @@
   
   <!-- SheetJS (XLSX) CDN for Excel Upload/Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Universal Context & Master Branch Directory -->
+  <script src="assets/js/context.js"></script>
+  <!-- Authoritative Open Pending Formulations & Column Registry -->
+  <script src="assets/js/openPendingContext.js"></script>
+  <!-- Universal Multi-Source Data Dialog (Page Fragments Architecture) -->
+  <script src="assets/js/universalDataDialog.js"></script>
 
   <style>
     body {
@@ -194,6 +200,16 @@
                       <span class="dropdown-desc">Morning vs Inflow vs Current Closer %</span>
                     </div>
                   </a>
+                  <a href="cancellationReport.html" class="dropdown-item">
+                    <div class="dropdown-icon icon-rose" style="background:#ffe4e6; color:#e11d48;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+                    <div class="dropdown-text">
+                      <div class="dropdown-title-row">
+                        <span class="dropdown-title">Cancellation Report</span>
+                        <span class="badge-mini-live" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;">FDR / GD</span>
+                      </div>
+                      <span class="dropdown-desc">Cancellation %, X09 % &amp; OW repair analysis</span>
+                    </div>
+                  </a>
                 </div>
 
                 <div class="dropdown-divider"></div>
@@ -227,6 +243,10 @@
                   <div class="dropdown-icon icon-green"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
                   <div class="dropdown-text"><span class="dropdown-title">Formats &amp; Templates</span><span class="dropdown-desc">ML &amp; Print Command specs</span></div>
                 </a>
+                <a href="svcInformation.html" class="dropdown-item">
+                  <div class="dropdown-icon icon-blue"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                  <div class="dropdown-text"><span class="dropdown-title">SVC Information</span><span class="dropdown-desc">Center &amp; Manpower management</span></div>
+                </a>
               </div>
             </div>
           </nav>
@@ -238,6 +258,14 @@
             </svg>
             Home
           </a>
+
+          <!-- Universal Data Importer Button (Wireframe Image 1: Add button calling Universal Dialog) -->
+          <button id="btnOpenUniversalDialog" class="inline-flex items-center px-3.5 py-1.5 rounded text-xs font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-sm transition active:scale-95 focus:outline-none gap-1.5" title="Universal Multi-Source Data Dialog (Service Order Management Light / Bulk / Excel / TSV with Page Fragments)">
+            <svg class="w-3.5 h-3.5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Add / Import Data +</span>
+          </button>
 
           <!-- Excel Upload Button -->
           <button id="btnOpenUploadModal" class="inline-flex items-center px-3 py-1.5 border border-[#0f2e59] rounded text-xs font-semibold bg-[#0f2e59] hover:bg-[#163d6e] text-white shadow-sm transition focus:outline-none">
@@ -305,8 +333,8 @@
           <div>
             <div class="flex items-center gap-2 flex-wrap">
               <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400">Target Report Matrix</span>
-              <span id="activeBranchTag" class="text-[11px] font-bold px-2 py-0.5 rounded bg-[#dbeafe] text-[#1d4ed8] border border-[#93c5fd]">Branch: Gurgaon-CE</span>
-              <span id="activeAscTag" class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">ASC: 4903753</span>
+              <span id="activeBranchTag" class="text-[11px] font-bold px-2 py-0.5 rounded bg-[#dbeafe] text-[#1d4ed8] border border-[#93c5fd]">Branch: Gurgaon</span>
+              <span id="activeAscTag" class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">ASC: 9225951</span>
             </div>
             <div class="text-base font-bold text-[#0f2e59] font-outfit" id="reportTitleWithDate">
               RC-GD Pendency dt <span id="reportDateHeaderSpan">11.09.2026</span>
@@ -321,25 +349,32 @@
             <label for="branchSelect" class="text-[10px] font-bold text-slate-500 uppercase mb-1">Branch Name</label>
             <select id="branchSelect" class="bg-white border border-slate-300 text-slate-800 text-xs font-medium rounded focus:ring-blue-500 focus:border-blue-500 block p-1.5 transition">
               <option value="ALL">All Branches</option>
-              <option value="Gurgaon-CE" selected>Gurgaon-CE</option>
-              <option value="Ahmedabad-CE">Ahmedabad-CE</option>
+              <option value="Ghaziabad">Ghaziabad</option>
+              <option value="Ahmedabad">Ahmedabad</option>
+              <option value="Surat">Surat</option>
+              <option value="Gandhinagar">Gandhinagar</option>
+              <option value="Cochin">Cochin</option>
+              <option value="Lucknow">Lucknow</option>
+              <option value="Gurgaon" selected>Gurgaon</option>
               <option value="Lucknow-HHP">Lucknow-HHP</option>
               <option value="Moradabad-HHP">Moradabad-HHP</option>
-              <option value="Surat-CE">Surat-CE</option>
-              <option value="Lucknow-CE">Lucknow-CE</option>
-              <option value="Gandhinagar-CE">Gandhinagar-CE</option>
-              <option value="Ghaziabad-CE">Ghaziabad-CE</option>
-              <option value="Cochin-CE">Cochin-CE</option>
             </select>
           </div>
 
           <!-- ASC Code Selector -->
           <div class="flex flex-col">
-            <label for="ascSelect" class="text-[10px] font-bold text-slate-500 uppercase mb-1">ASC Code</label>
+            <label for="ascSelect" class="text-[10px] font-bold text-slate-500 uppercase mb-1">ASC / MSC Code</label>
             <select id="ascSelect" class="bg-white border border-slate-300 text-slate-800 text-xs font-medium rounded focus:ring-blue-500 focus:border-blue-500 block p-1.5 transition">
-              <option value="4903753" selected>4903753 (Default)</option>
-              <option value="9225951">9225951 (Surat)</option>
-              <option value="ALL">All ASC Codes</option>
+              <option value="ALL" selected>All ASC Codes</option>
+              <option value="4915414">4915414 (Ghaziabad)</option>
+              <option value="4917449">4917449 (Ahmedabad)</option>
+              <option value="4936933">4936933 (Surat)</option>
+              <option value="6451772">6451772 (Gandhinagar)</option>
+              <option value="6458704">6458704 (Cochin)</option>
+              <option value="8200354">8200354 (Lucknow)</option>
+              <option value="9225951">9225951 (Gurgaon)</option>
+              <option value="3871175">3871175 (Lucknow-HHP)</option>
+              <option value="4776004">4776004 (Moradabad-HHP)</option>
             </select>
           </div>
 
@@ -913,6 +948,17 @@
             <option value="HIGH">High Priority Only</option>
           </select>
 
+          <!-- Master Reason Filter -->
+          <select id="rawMasterReasonFilter" class="text-xs border border-indigo-300 rounded-lg py-1.5 px-2 bg-indigo-50/50 font-bold text-indigo-900 focus:ring-indigo-500">
+            <option value="ALL">All Master Reasons</option>
+            <option value="Eng Assigned">Eng Assigned</option>
+            <option value="Svc Working">Svc Working</option>
+            <option value="Part Pending">Part Pending</option>
+            <option value="Confirmation Br/Cx">Confirmation Br/Cx</option>
+            <option value="Samsung">Samsung</option>
+            <option value="Support">Support</option>
+          </select>
+
           <!-- Live Count Badges -->
           <div class="flex items-center gap-1.5 text-xs">
             <span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-bold">Total: <span id="rawFilteredCount">0</span></span>
@@ -975,7 +1021,8 @@
                 <th class="py-2 px-2.5 border-r min-w-[110px]">Status</th>
                 <th class="py-2 px-3 border-r min-w-[200px]">Reason</th>
                 <th class="py-2 px-2 border-r text-center w-12">B2B</th>
-                <th class="py-2 px-3 min-w-[150px]">Risk Reason</th>
+                <th class="py-2 px-3 border-r min-w-[150px]">Risk Reason</th>
+                <th class="py-2 px-3 bg-indigo-50/70 text-indigo-950 font-extrabold min-w-[170px]">Master Reason</th>
               </tr>
             </thead>
             <tbody id="rawRecordsTableBody" class="divide-y divide-slate-200 font-mono text-[11px]">
@@ -1051,32 +1098,35 @@
       '30+ Days'
     ];
 
-    const STANDARD_BRANCHES = [
-      'Gurgaon-CE',
-      'Ahmedabad-CE',
-      'Lucknow-HHP',
-      'Moradabad-HHP',
-      'Surat-CE',
-      'Lucknow-CE',
-      'Gandhinagar-CE',
-      'Ghaziabad-CE',
-      'Cochin-CE'
-    ];
+    const STANDARD_BRANCHES = (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getBranchNames === 'function')
+      ? window.GSPN_CONTEXT.getBranchNames()
+      : [
+          'Ghaziabad',
+          'Ahmedabad',
+          'Surat',
+          'Gandhinagar',
+          'Cochin',
+          'Lucknow',
+          'Gurgaon',
+          'Lucknow-HHP',
+          'Moradabad-HHP'
+        ];
 
-    // --- STANDARD 25 COLUMNS FORMAT ---
+    // --- STANDARD 26 COLUMNS FORMAT (with Master Reason) ---
     const STANDARD_25_COLUMNS = [
       'Date', 'Branch Name', 'No', 'Service Order No.', 'ASC Job No',
       'Created', 'Assigned', 'Assigned Time', 'Model', 'Serial',
       'Wty Status', 'VOC', 'REDO', 'Risk Sensing', 'RED',
       'High Priority', 'Customer Name', 'City', 'App Date', 'App Time',
-      'Service Type', 'Status', 'Reason', 'B2B', 'Risk Reason'
+      'Service Type', 'Status', 'Reason', 'B2B', 'Risk Reason', 'Master Reason'
     ];
+    const STANDARD_26_COLUMNS = STANDARD_25_COLUMNS;
 
     // --- APPLICATION STATE ---
     let appState = {
       reportDate: new Date().toISOString().split('T')[0],
-      selectedBranch: 'Gurgaon-CE',
-      selectedAsc: '4903753',
+      selectedBranch: 'Gurgaon',
+      selectedAsc: '9225951',
       records: [],
       pendingUploadRecords: null,
       closedCallIds: new Set(), // tracks checked/closed calls by Service Order No.
@@ -1303,20 +1353,25 @@
     }
 
     /**
-     * Intelligently infers Branch Name from City name (e.g. ERNAKULAM -> Cochin-CE)
+     * Intelligently infers Branch Name from City name (referencing Master Context)
      */
     function inferBranchFromCity(city, defaultBranch) {
-      if (!city) return defaultBranch || 'Gurgaon-CE';
+      if (!city) return defaultBranch || 'Gurgaon';
+      if (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.detectBranch === 'function') {
+        const b = window.GSPN_CONTEXT.detectBranch(city, defaultBranch || 'Gurgaon');
+        return b ? b.name : (defaultBranch || 'Gurgaon');
+      }
       const c = String(city).toUpperCase().trim();
-      if (c.includes('ERNAKULAM') || c.includes('COCHIN') || c.includes('KOCHI')) return 'Cochin-CE';
-      if (c.includes('SURAT')) return 'Surat-CE';
-      if (c.includes('AHMEDABAD')) return 'Ahmedabad-CE';
-      if (c.includes('GURGAON') || c.includes('GURUGRAM')) return 'Gurgaon-CE';
-      if (c.includes('LUCKNOW')) return 'Lucknow-CE';
-      if (c.includes('GANDHINAGAR')) return 'Gandhinagar-CE';
-      if (c.includes('GHAZIABAD')) return 'Ghaziabad-CE';
+      if (c.includes('ERNAKULAM') || c.includes('COCHIN') || c.includes('KOCHI')) return 'Cochin';
+      if (c.includes('SURAT')) return 'Surat';
+      if (c.includes('AHMEDABAD')) return 'Ahmedabad';
+      if (c.includes('GURGAON') || c.includes('GURUGRAM')) return 'Gurgaon';
+      if (c.includes('LUCKNOW') && c.includes('HHP')) return 'Lucknow-HHP';
+      if (c.includes('LUCKNOW')) return 'Lucknow';
+      if (c.includes('GANDHINAGAR')) return 'Gandhinagar';
+      if (c.includes('GHAZIABAD')) return 'Ghaziabad';
       if (c.includes('MORADABAD')) return 'Moradabad-HHP';
-      return defaultBranch || 'Gurgaon-CE';
+      return defaultBranch || 'Gurgaon';
     }
 
     /**
@@ -1454,7 +1509,8 @@
             'Status': row[21] !== undefined ? row[21] : '',
             'Reason': row[22] !== undefined ? row[22] : '',
             'B2B': row[23] !== undefined ? row[23] : '',
-            'Risk Reason': row[24] !== undefined ? row[24] : ''
+            'Risk Reason': row[24] !== undefined ? row[24] : '',
+            'Master Reason': row[25] !== undefined ? row[25] : ''
           };
         }
       }
@@ -1476,8 +1532,8 @@
 
       const noVal = findFieldValue(r, ['NO', 'NO.', 'S.NO', 'S NO', 'SL NO', 'SR NO', 'SR.NO']) || (idx + 1);
 
-      // Model & Serial: STRICTLY STRING format per user instructions
-      const modelVal = String(findFieldValue(r, ['MODEL', 'MODEL CODE', 'MODEL_CODE', 'MODEL NAME', 'MODEL_NAME', 'MODEL NO', 'MODEL NUMBER']) || '').trim();
+      // Model & Serial: STRICTLY STRING format per user instructions (Model Uppercase, Serial preserves zeros)
+      const modelVal = String(findFieldValue(r, ['MODEL', 'MODEL CODE', 'MODEL_CODE', 'MODEL NAME', 'MODEL_NAME', 'MODEL NO', 'MODEL NUMBER']) || '').trim().toUpperCase();
       const serialVal = String(findFieldValue(r, ['SERIAL', 'SERIAL NO', 'SERIAL NO.', 'SERIAL_NO', 'SERIAL NUMBER', 'SERIAL_NUMBER', 'IMEI', 'IMEI NO', 'IMEI NUMBER']) || '').trim();
 
       // Service Type: MUST BE STRING, never numbers
@@ -1494,7 +1550,7 @@
 
       // Customer Name mapping: includes Customer Care, Care, Customer Name, etc.
       const custName = String(findFieldValue(r, ['CUSTOMER NAME', 'CUSTOMER_NAME', 'CUSTOMER', 'CUST NAME', 'CUST_NAME', 'CUSTOMER CARE', 'CARE', 'CLIENT NAME', 'CLIENT', 'NAME']) || '').trim();
-      const cityVal = String(findFieldValue(r, ['CITY', 'LOCATION', 'DISTRICT', 'TOWN', 'PLACE']) || '').trim();
+      const cityVal = String(findFieldValue(r, ['CITY', 'LOCATION', 'DISTRICT', 'TOWN', 'PLACE']) || '').trim().toUpperCase();
 
       // Branch Name: if missing, infer from City
       let branchVal = String(findFieldValue(r, ['BRANCH NAME', 'BRANCH_NAME', 'BRANCH', 'CP NAME', 'CP_NAME', 'SVC', 'SERVICE CENTER NAME', 'SERVICE CENTER']) || '').trim();
@@ -1535,6 +1591,18 @@
       const rawProd = findFieldValue(r, ['PRODUCT', 'PRODUCT CATEGORY', 'PRODUCT_CATEGORY', 'CATEGORY', 'PRODUCT GROUP', 'DIV', 'DIVISION']);
       const cpCode = String(findFieldValue(r, ['DEALER BP', 'CP CODE', 'CPCODE', 'ASC CODE']) || (ascJobNo ? ascJobNo.split('-')[0] : '') || '').trim();
 
+      // Resolve Master Reason from Context taxonomy using Reason / Sub Reason / Status
+      let explicitMaster = findFieldValue(r, ['MASTER REASON', 'MASTER_REASON', 'MASTERREASON', 'PARENT REASON']);
+      let resolvedMaster = explicitMaster;
+      if (!resolvedMaster && window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getReasonBySubReason === 'function') {
+        resolvedMaster = window.GSPN_CONTEXT.getReasonBySubReason(reasonVal) || window.GSPN_CONTEXT.getReasonBySubReason(statusVal);
+      }
+      if (!resolvedMaster) {
+        resolvedMaster = reasonVal || statusVal || 'Svc Working';
+      }
+
+      const vocB2bCombined = (vocVal && b2bVal && b2bVal !== 'N') ? `${vocVal} / ${b2bVal}` : (vocVal || b2bVal || '');
+
       return {
         'Date': dateVal,
         'Branch Name': branchVal,
@@ -1559,6 +1627,8 @@
         'Service Type': sType,
         'Status': statusVal,
         'Reason': reasonVal,
+        'Sub Reason': reasonVal,
+        'Master Reason': resolvedMaster,
         'B2B': b2bVal,
         'Risk Reason': riskReasonVal,
         'Aging': rawAging,
@@ -1566,7 +1636,24 @@
         'Product': rawProd,
         'Dealer BP': cpCode,
 
-        // Legacy keys for backward compatibility
+        // Standardized snake_case keys per prompt specifications
+        'no': noVal,
+        'service_order_no': soNo,
+        'asc_job_no': ascJobNo,
+        'created_date': createdVal,
+        'assigned_date': assignedVal,
+        'model': modelVal,
+        'serial_no': serialVal,
+        'warranty_status': wtyStatus,
+        'city': cityVal,
+        'app_date': appDateVal,
+        'service_type': sType,
+        'status': statusVal,
+        'reason': reasonVal,
+        'voc_b2b': vocB2bCombined,
+
+        // Legacy & camelCase keys for backward compatibility
+        masterReason: resolvedMaster,
         aging: rawAging,
         product: rawProd,
         trackingNo: soNo,
@@ -1583,6 +1670,8 @@
         assignedTime: assignedTimeVal,
         serviceType: sType,
         modelCode: modelVal,
+        voc: vocVal,
+        b2b: b2bVal,
         model: modelVal,
         serialNo: serialVal,
         serial: serialVal,
@@ -1712,7 +1801,7 @@
 
           for (let i = 0; i < count; i++) {
             trackingCounter++;
-            list.push(buildCallRecord(trackingCounter, 'Gurgaon-CE', '4903753', row.type, days, list.length));
+            list.push(buildCallRecord(trackingCounter, 'Gurgaon', '9225951', row.type, days, list.length));
             createdInBuckets++;
           }
         });
@@ -1721,7 +1810,7 @@
         const rem0to2 = Math.max(0, row.total - createdInBuckets);
         for (let i = 0; i < rem0to2; i++) {
           trackingCounter++;
-          list.push(buildCallRecord(trackingCounter, 'Gurgaon-CE', '4903753', row.type, 1, list.length));
+          list.push(buildCallRecord(trackingCounter, 'Gurgaon', '9225951', row.type, 1, list.length));
         }
       });
 
@@ -1733,13 +1822,15 @@
       for (let i = 0; i < neededFresh; i++) {
         trackingCounter++;
         const sType = matrixDef[i % matrixDef.length].type;
-        list.push(buildCallRecord(trackingCounter, 'Gurgaon-CE', '4903753', sType, Math.floor(Math.random() * 2), list.length));
+        list.push(buildCallRecord(trackingCounter, 'Gurgaon', '9225951', sType, Math.floor(Math.random() * 2), list.length));
       }
 
-      // Generate sample calls for other branches
-      const otherBranches = STANDARD_BRANCHES.filter(b => b !== 'Gurgaon-CE');
-      otherBranches.forEach((bName, bIdx) => {
-        const bAsc = String(4903754 + bIdx);
+      // Generate sample calls for other branches using universal context MSC Codes
+      const otherBranches = STANDARD_BRANCHES.filter(b => b !== 'Gurgaon' && b !== 'Gurgaon-CE');
+      otherBranches.forEach((bName) => {
+        const bAsc = (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getMscCode === 'function')
+          ? window.GSPN_CONTEXT.getMscCode(bName)
+          : '9225951';
         for (let j = 0; j < 18; j++) {
           trackingCounter++;
           const sType = matrixDef[j % matrixDef.length].type;
@@ -1816,10 +1907,15 @@
             }
             if (reasonVal && reasonVal !== statusVal) {
               statusVal = reasonVal;
-              reasonVal = '-';
+              reasonVal = statusVal;
             } else {
               statusVal = 'Open';
             }
+          }
+
+          // [Permanent Rule] If Reason was empty or null, put the "Status" value
+          if (!reasonVal || reasonVal === '-' || reasonVal === 'None') {
+            reasonVal = statusVal;
           }
 
           // Aging calculation matching website tools.js & core.js:
@@ -1833,8 +1929,8 @@
           if (rawAging !== '' && rawAging !== null && rawAging !== undefined && !isNaN(parseFloat(rawAging))) {
             aging = Math.max(0, Math.round(parseFloat(rawAging)));
           } else {
-            // Formula =TODAY() - ASSIGNED_DATE (fallback to Created / Requested Date or Date)
-            const dateForAging = assignedVal || createdVal || dateVal;
+            // Formula =TODAY() - CREATED_DATE (strictly created_date, fallback to Assigned or Date)
+            const dateForAging = createdVal || assignedVal || dateVal;
             aging = calcAging(dateForAging, cutoffDate);
           }
           
@@ -1893,6 +1989,14 @@
             serviceType: sType,
             status: statusVal,
             reason: reasonVal,
+            subReason: reasonVal,
+            masterReason: (function() {
+              let m = r['Master Reason'] || r.masterReason;
+              if (!m && window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getReasonBySubReason === 'function') {
+                m = window.GSPN_CONTEXT.getReasonBySubReason(reasonVal) || window.GSPN_CONTEXT.getReasonBySubReason(statusVal);
+              }
+              return m || reasonVal || statusVal || 'Svc Working';
+            })(),
             b2b: b2bVal,
             riskReason: riskReasonVal,
             aging: aging,
@@ -2303,6 +2407,7 @@
       const search = (document.getElementById('rawSearchInput')?.value || '').toLowerCase().trim();
       const serviceFilter = document.getElementById('rawServiceFilter')?.value || 'ALL';
       const closureFilter = document.getElementById('rawClosureFilter')?.value || 'ALL';
+      const masterReasonFilter = document.getElementById('rawMasterReasonFilter')?.value || 'ALL';
 
       return recordsList.filter(r => {
         // Service type filter
@@ -2314,6 +2419,13 @@
         if (closureFilter === 'RED' && r.red !== 'Y') return false;
         if (closureFilter === 'HIGH' && r.highPriority !== 'High' && r.highPriority !== 'Y') return false;
 
+        // Master Reason filter
+        if (masterReasonFilter !== 'ALL') {
+          const rMaster = (r.masterReason || '').trim().toLowerCase();
+          const targetMaster = masterReasonFilter.trim().toLowerCase();
+          if (rMaster !== targetMaster) return false;
+        }
+
         // Search text
         if (search) {
           const combined = [
@@ -2323,6 +2435,7 @@
             r.customerName,
             r.serial,
             r.reason,
+            r.masterReason,
             r.voc,
             r.branchName,
             r.city,
@@ -2421,7 +2534,17 @@
           <td class="py-1.5 px-2.5 border-r text-slate-800 font-sans"><span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 font-medium">${r.status || '-'}</span></td>
           <td class="py-1.5 px-3 border-r text-slate-700 font-sans max-w-[200px] truncate" title="${r.reason}">${r.reason || '-'}</td>
           <td class="py-1.5 px-2 border-r text-center font-semibold ${r.b2b === 'Y' ? 'text-indigo-600' : 'text-slate-400'}">${r.b2b || 'N'}</td>
-          <td class="py-1.5 px-3 text-slate-600 font-sans max-w-[160px] truncate" title="${r.riskReason}">${r.riskReason || 'None'}</td>
+          <td class="py-1.5 px-3 border-r text-slate-600 font-sans max-w-[160px] truncate" title="${r.riskReason}">${r.riskReason || 'None'}</td>
+          <td class="py-1.5 px-3 font-sans text-center">
+            <span class="px-2 py-0.5 rounded text-[10.5px] font-bold ${
+              r.masterReason === 'Eng Assigned' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+              r.masterReason === 'Svc Working' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+              r.masterReason === 'Part Pending' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+              r.masterReason === 'Confirmation Br/Cx' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
+              r.masterReason === 'Samsung' ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' :
+              'bg-emerald-100 text-emerald-800 border border-emerald-200'
+            }">${r.masterReason || 'Svc Working'}</span>
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -2499,12 +2622,13 @@
         'Status': r.isClosed ? `[CLOSED] ${r.status}` : r.status,
         'Reason': r.isClosed ? `[CHECKED & CLOSED] ${r.reason}` : r.reason,
         'B2B': r.b2b,
-        'Risk Reason': r.riskReason
+        'Risk Reason': r.riskReason,
+        'Master Reason': r.masterReason || (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getReasonBySubReason === 'function' ? window.GSPN_CONTEXT.getReasonBySubReason(r.reason) : '') || r.reason
       }));
 
       const ws = XLSX.utils.json_to_sheet(rows, { header: STANDARD_25_COLUMNS });
       ws['!cols'] = [
-        {wch:12},{wch:16},{wch:8},{wch:18},{wch:16},{wch:12},{wch:12},{wch:14},{wch:16},{wch:16},{wch:14},{wch:24},{wch:8},{wch:14},{wch:8},{wch:14},{wch:20},{wch:14},{wch:12},{wch:16},{wch:18},{wch:22},{wch:24},{wch:8},{wch:24}
+        {wch:12},{wch:16},{wch:8},{wch:18},{wch:16},{wch:12},{wch:12},{wch:14},{wch:16},{wch:16},{wch:14},{wch:24},{wch:8},{wch:14},{wch:8},{wch:14},{wch:20},{wch:14},{wch:12},{wch:16},{wch:18},{wch:22},{wch:24},{wch:8},{wch:24},{wch:22}
       ];
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Open_Pending_Calls');
@@ -2669,7 +2793,7 @@
     // --- TOTAL SUMMARY GENERATOR (Email & Dialog) ---
     function generateTotalSummaryData() {
       const records = computeProcessedRecords();
-      if (!records || records.length === 0) return { branches: [], total: { d7: 0, iw: 0, ow: 0, count: 0 } };
+      if (!records || records.length === 0) return { branches: [], total: { d7: 0, d7Iw: 0, d7Ow: 0, calls: 0, iw: 0, ow: 0, count: 0 } };
 
       const branchMap = {};
       records.forEach(r => {
@@ -2681,26 +2805,43 @@
             code: code,
             name: bName,
             d7: 0,
+            d7Iw: 0,
+            d7Ow: 0,
+            total: 0,
             iw: 0,
             ow: 0
           };
         }
+        branchMap[key].total++;
+        const isIW = isInWarranty(r);
+        if (isIW) {
+          branchMap[key].iw++;
+        } else {
+          branchMap[key].ow++;
+        }
+
         if (r.aging > 7) {
           branchMap[key].d7++;
-          if (isInWarranty(r)) {
-            branchMap[key].iw++;
+          if (isIW) {
+            branchMap[key].d7Iw++;
           } else {
-            branchMap[key].ow++;
+            branchMap[key].d7Ow++;
           }
         }
       });
 
       const branchList = Object.values(branchMap);
       let sumTotD7 = 0;
+      let sumTotD7IW = 0;
+      let sumTotD7OW = 0;
+      let sumTotCalls = 0;
       let sumTotIW = 0;
       let sumTotOW = 0;
       branchList.forEach(b => {
         sumTotD7 += b.d7;
+        sumTotD7IW += b.d7Iw;
+        sumTotD7OW += b.d7Ow;
+        sumTotCalls += b.total;
         sumTotIW += b.iw;
         sumTotOW += b.ow;
       });
@@ -2709,6 +2850,9 @@
         branches: branchList,
         total: {
           d7: sumTotD7,
+          d7Iw: sumTotD7IW,
+          d7Ow: sumTotD7OW,
+          calls: sumTotCalls,
           iw: sumTotIW,
           ow: sumTotOW,
           count: branchList.length
@@ -2727,45 +2871,55 @@
 
       const rowsHtml = data.branches.map(b => `
         <tr style="border-bottom: 1px solid #cbd5e1; font-family: Calibri, Arial, sans-serif; font-size: 13px;">
-          <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; color: #000000; font-weight: normal; background-color: #ffffff;">${b.code}</td>
-          <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; color: #000000; font-weight: normal; background-color: #ffffff;">${b.name}</td>
-          <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; color: #1d4ed8; font-weight: normal; background-color: #ffffff;">${b.d7}</td>
-          <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; background-color: #c1f0c8; color: #000000;">${b.iw}</td>
-          <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; background-color: #c1f0c8; color: #000000;">${b.ow}</td>
+          <td style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: left; color: #000000; background-color: #ffffff;">${b.code}</td>
+          <td style="padding: 6px 14px; border: 1px solid #cbd5e1; text-align: left; color: #000000; background-color: #ffffff;">${b.name}</td>
+          <td style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: center; color: #0000ff; background-color: #ffffff;">${b.d7}</td>
+          <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #e2efda;">${b.d7Iw}</td>
+          <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #e2efda;">${b.d7Ow}</td>
+          <td style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: center; color: #0000ff; background-color: #ffffff;">${b.total}</td>
+          <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #e2efda;">${b.iw}</td>
+          <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #e2efda;">${b.ow}</td>
         </tr>
       `).join('');
 
       return `
-      <table cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 13px; color: #000000; border: 1px solid #94a3b8; text-align: center; width: 100%; max-width: 650px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <table cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 13px; color: #000000; border: 1px solid #94a3b8; text-align: center; width: 100%; max-width: 820px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <thead>
           <!-- Super Header Banner -->
-          <tr style="background-color: #0f2e59; color: #ffffff;">
-            <th colspan="5" style="padding: 8px 14px; text-align: left; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; border: 1px solid #0f2e59;">
+          <tr style="background-color: #002060; color: #ffffff;">
+            <th colspan="8" style="padding: 7px 12px; text-align: left; font-size: 13px; font-weight: bold; letter-spacing: 0.3px; border: 1px solid #002060;">
               ${title}
             </th>
           </tr>
-          <!-- Column Headers -->
-          <tr style="background-color: #dce6f1; color: #000000; font-weight: bold;">
-            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle;">ASC_CODE</th>
-            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle;">Branch_Name</th>
-            <th rowspan="2" style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle;">Total D+7</th>
-            <th colspan="2" style="padding: 6px 14px; border: 1px solid #cbd5e1; text-align: center;">WAR Status</th>
+          <!-- Column Headers Matching Screenshot -->
+          <tr style="color: #000000; font-weight: bold; font-size: 12px;">
+            <th rowspan="2" style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle; background-color: #d9e1f2;">ASC_CODE</th>
+            <th rowspan="2" style="padding: 6px 14px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle; background-color: #d9e1f2;">Branch_Name</th>
+            <th rowspan="2" style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle; background-color: #d9e1f2;">D+7</th>
+            <th colspan="2" style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">WAR Status / D+7</th>
+            <th rowspan="2" style="padding: 6px 12px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle; background-color: #d9e1f2;">Total</th>
+            <th colspan="2" style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">WAR Status / Total</th>
           </tr>
-          <!-- Sub-Headers under WAR Status -->
-          <tr style="background-color: #dce6f1; color: #000000; font-weight: bold;">
-            <th style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">IW</th>
-            <th style="padding: 5px 12px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">OW</th>
+          <!-- Sub-Headers under WAR Status / D+7 and WAR Status / Total -->
+          <tr style="color: #000000; font-weight: bold; font-size: 12px;">
+            <th style="padding: 5px 10px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">IW</th>
+            <th style="padding: 5px 10px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">OW</th>
+            <th style="padding: 5px 10px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">IW</th>
+            <th style="padding: 5px 10px; border: 1px solid #cbd5e1; text-align: center; background-color: #c6efce;">OW</th>
           </tr>
         </thead>
         <tbody>
           ${rowsHtml}
           <!-- Total Summary Row -->
-          <tr style="background-color: #e0f2fe; font-weight: bold; border-top: 2px solid #0284c7; border-bottom: 2px solid #0284c7;">
-            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: left; color: #0c4a6e;">Total</td>
-            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: left; color: #0c4a6e;">${data.total.count} Service Centers</td>
-            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; color: #0369a1; background-color: #bae6fd;">${data.total.d7}</td>
-            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">${data.total.iw}</td>
-            <td style="padding: 8px 14px; border: 1px solid #cbd5e1; text-align: center; background-color: #c1f0c8; color: #000000;">${data.total.ow}</td>
+          <tr style="font-weight: bold; font-size: 13px; border-top: 1px solid #cbd5e1;">
+            <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: left; color: #002060; background-color: #d9e1f2;">Total</td>
+            <td style="padding: 7px 14px; border: 1px solid #cbd5e1; text-align: left; color: #002060; background-color: #d9e1f2;">${data.total.count} Service Centers</td>
+            <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: center; color: #0000ff; background-color: #d9e1f2;">${data.total.d7}</td>
+            <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #c6efce;">${data.total.d7Iw}</td>
+            <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #c6efce;">${data.total.d7Ow}</td>
+            <td style="padding: 7px 12px; border: 1px solid #cbd5e1; text-align: center; color: #0000ff; background-color: #d9e1f2;">${data.total.calls}</td>
+            <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #c6efce;">${data.total.iw}</td>
+            <td style="padding: 7px 10px; border: 1px solid #cbd5e1; text-align: center; color: #000000; background-color: #c6efce;">${data.total.ow}</td>
           </tr>
         </tbody>
       </table>
@@ -3098,18 +3252,54 @@
 
     // --- INITIALIZATION & EVENT LISTENERS ---
     document.addEventListener('DOMContentLoaded', () => {
+      // Initialize dynamic dropdowns from Universal Context file
+      if (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.populateSelect === 'function') {
+        window.GSPN_CONTEXT.populateSelect('branchSelect', {
+          includeAll: true,
+          allLabel: 'All Branches',
+          allValue: 'ALL',
+          defaultSelected: 'Gurgaon',
+          valueType: 'name',
+          showCodeInLabel: false
+        });
+        window.GSPN_CONTEXT.populateSelect('ascSelect', {
+          includeAll: true,
+          allLabel: 'All ASC Codes',
+          allValue: 'ALL',
+          defaultSelected: '9225951',
+          valueType: 'code',
+          showCodeInLabel: true
+        });
+      }
+
       // 1. Load initial screenshot default dataset
       appState.records = generateDefaultDataset();
       refreshDashboard();
 
-      // 2. Filter Dropdowns
+      // 2. Filter Dropdowns with bidirectional synchronization
       document.getElementById('branchSelect').addEventListener('change', (e) => {
         appState.selectedBranch = e.target.value;
+        if (e.target.value !== 'ALL' && window.GSPN_CONTEXT) {
+          const correspondingCode = window.GSPN_CONTEXT.getMscCode(e.target.value);
+          const ascSel = document.getElementById('ascSelect');
+          if (ascSel && correspondingCode) {
+            ascSel.value = correspondingCode;
+            appState.selectedAsc = correspondingCode;
+          }
+        }
         refreshDashboard();
       });
 
       document.getElementById('ascSelect').addEventListener('change', (e) => {
         appState.selectedAsc = e.target.value;
+        if (e.target.value !== 'ALL' && window.GSPN_CONTEXT) {
+          const correspondingName = window.GSPN_CONTEXT.getMscName(e.target.value);
+          const branchSel = document.getElementById('branchSelect');
+          if (branchSel && correspondingName) {
+            branchSel.value = correspondingName;
+            appState.selectedBranch = correspondingName;
+          }
+        }
         refreshDashboard();
       });
 
@@ -3123,25 +3313,74 @@
       const mailModal = document.getElementById('mailModal');
       const rawDataModal = document.getElementById('rawDataModal');
 
-      // Upload Modal
+      // Upload Modal / Universal Dialog
       document.getElementById('btnOpenUploadModal').addEventListener('click', () => {
-        // Reset file indicator state every time the modal is opened
-        const indicator = document.getElementById('fileSelectedIndicator');
-        const browseBtn = document.getElementById('dragDropBrowseBtn');
-        const feedbackBox = document.getElementById('parseFeedbackBox');
-        const applyBtn = document.getElementById('btnApplyUpload');
-        if (indicator)   indicator.classList.add('hidden');
-        if (browseBtn)   browseBtn.classList.remove('hidden');
-        if (feedbackBox) feedbackBox.classList.add('hidden');
-        if (applyBtn)    applyBtn.disabled = true;
+        if (window.UniversalDataDialog) {
+          window.UniversalDataDialog.open({
+            cutoffDate: appState.reportDate,
+            onApply: handleUniversalDataImport
+          });
+          return;
+        }
         uploadModal.classList.remove('hidden');
       });
       document.getElementById('btnCloseUploadModal').addEventListener('click', () => {
         uploadModal.classList.add('hidden');
       });
-      document.getElementById('btnCancelUpload').addEventListener('click', () => {
-        uploadModal.classList.add('hidden');
-      });
+      // Universal Data Importer Dialog with Page Fragments (Wireframe Image 1)
+      function handleUniversalDataImport(formulatedRecords, meta) {
+        if (!formulatedRecords || formulatedRecords.length === 0) return;
+
+        const parsed = parseUploadedData(formulatedRecords);
+        if (parsed.length > 0) {
+          appState.records = parsed;
+
+          // Rebuild branch & ASC dropdowns
+          const uploadedBranches = appState.records.map(r => String(r.cpName || '').trim()).filter(Boolean);
+          const uniqueBranches = [...new Set([...uploadedBranches, ...STANDARD_BRANCHES])];
+          const uniqueAscs = [...new Set(appState.records.map(r => String(r.cpCode || '').trim()).filter(Boolean))];
+
+          const branchSel = document.getElementById('branchSelect');
+          const ascSel = document.getElementById('ascSelect');
+
+          if (branchSel) {
+            branchSel.innerHTML = '<option value="ALL">All Branches</option>';
+            uniqueBranches.forEach(b => {
+              const opt = document.createElement('option');
+              opt.value = b;
+              opt.textContent = b;
+              branchSel.appendChild(opt);
+            });
+            branchSel.value = 'ALL';
+          }
+
+          if (ascSel) {
+            ascSel.innerHTML = '<option value="ALL">All ASC Codes</option>';
+            uniqueAscs.forEach(a => {
+              const opt = document.createElement('option');
+              opt.value = a;
+              opt.textContent = a;
+              ascSel.appendChild(opt);
+            });
+            ascSel.value = 'ALL';
+          }
+
+          refreshDashboard();
+          showToast(`✅ Successfully imported ${parsed.length} service orders via Universal Dialog (${meta.format})!`);
+        }
+      }
+
+      const btnUniversal = document.getElementById('btnOpenUniversalDialog');
+      if (btnUniversal) {
+        btnUniversal.addEventListener('click', () => {
+          if (window.UniversalDataDialog) {
+            window.UniversalDataDialog.open({
+              cutoffDate: appState.reportDate,
+              onApply: handleUniversalDataImport
+            });
+          }
+        });
+      }
 
       // Mail Modal
       function openMailModal() {
@@ -3186,6 +3425,12 @@
       const rawClosureFilter = document.getElementById('rawClosureFilter');
       if (rawClosureFilter) {
         rawClosureFilter.addEventListener('change', () => {
+          renderRawRecordsTable(computeProcessedRecords());
+        });
+      }
+      const rawMasterReasonFilter = document.getElementById('rawMasterReasonFilter');
+      if (rawMasterReasonFilter) {
+        rawMasterReasonFilter.addEventListener('change', () => {
           renderRawRecordsTable(computeProcessedRecords());
         });
       }
@@ -3406,7 +3651,7 @@
         });
       }
 
-      // 6. Paste Data Handler
+      // 6. Paste Data Handler (Full Management Lite 2-Row & Single-Line TSV Support matching reportMaking.html)
       document.getElementById('btnProcessPastedData').addEventListener('click', () => {
         const text = document.getElementById('pasteDataTextarea').value.trim();
         if (!text) {
@@ -3415,67 +3660,382 @@
         }
 
         try {
-          // Parse TSV (tab separated values)
-          const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-          if (lines.length < 1) {
-            showToast('Please paste valid table data.', 'error');
-            return;
+          // Helper to split line fields by tabs or multi-spaces
+          function splitLineFields(line) {
+            if (line.includes('\t')) return line.split('\t').map(s => s.trim());
+            return line.split(/\s{2,}/).map(s => s.trim());
           }
 
-          const standard25 = [
-            'Date', 'Branch Name', 'No', 'Service Order No.', 'ASC Job No',
-            'Created', 'Assigned', 'Assigned Time', 'Model', 'Serial',
-            'Wty Status', 'VOC', 'REDO', 'Risk Sensing', 'RED', 'High Priority',
-            'Customer Name', 'City', 'App Date', 'App Time', 'Service Type',
-            'Status', 'Reason', 'B2B', 'Risk Reason'
-          ];
+          // Check if pasted input is Management Lite format (HTML table or 2-row per record text)
+          function isManagementLiteInput(raw) {
+            const trimmed = raw.trim();
+            if (/<table[\s>]/i.test(trimmed) || /<tr[\s>]/i.test(trimmed)) return true;
+            const lines = trimmed.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            if (lines.length === 0) return false;
+            const l0Parts = lines[0].split('\t');
+            if (l0Parts.length >= 18) return false;
+            if (lines.length >= 2 && lines[1].split('\t').length >= 18) return false;
 
-          const trim18Headers = [
-            'No', 'ASC Job No', 'Date', 'Model', 'Serial', 'Wty Status',
-            'Customer Name', 'City', 'App Date', 'App Time', 'Service Type',
-            'Status', 'Reason', 'Age', 'TAT', 'Product', 'Eng Name', 'TL Name'
-          ];
-
-          let headers = lines[0].split('\t').map(h => h.trim());
-          let dataStartIndex = 1;
-
-          // Check if first line contains multiple headers separated by spaces
-          if (headers.length < 18 && headers[0].includes('Date') && (headers[0].includes('Branch Name') || headers[0].includes('ASC Job No'))) {
-            const sub = headers[0].split(/\s{2,}/).map(s => s.trim()).filter(Boolean);
-            if (sub.length >= 2) {
-              headers.splice(0, 1, ...sub);
+            const upper = trimmed.toUpperCase();
+            if (upper.includes('SERVICE ORDER NO') && (upper.includes('CUSTOMER NAME') || upper.includes('SERVICE TYPE') || upper.includes('WTY STATUS'))) {
+              return true;
             }
+            return lines.some(l => /\b\d{10}\b/.test(l));
           }
 
-          // Check if line 0 is actually a header row or a data row
-          const isHeader = headers.some(h => ['SERVICE ORDER NO.', 'SO NO', 'ASC JOB NO', 'MODEL', 'BRANCH NAME', 'CUSTOMER NAME', 'AGE', 'TAT'].includes(h.toUpperCase()));
-          if (!isHeader) {
-            const firstLineCols = lines[0].split('\t').length;
-            headers = (firstLineCols === 18) ? trim18Headers : standard25;
-            dataStartIndex = 0;
+          let parsed = [];
+
+          if (isManagementLiteInput(text)) {
+            // ── A. MANAGEMENT LITE PARSER (HTML & 2-ROW PLAIN TEXT) ──
+            const records = [];
+            const trimmed = text.trim();
+
+            function extractRowDates(cells, fallbackIdxCreated, fallbackIdxAssigned) {
+              const foundDates = [];
+              const foundTimes = [];
+              
+              cells.forEach((c, idx) => {
+                if (c === null || c === undefined) return;
+                const s = String(c).trim();
+                if (!s || s === '-' || s === '00.00.0000' || s === '00/00/0000') return;
+
+                if (typeof c === 'number' && c > 30000 && c < 65000) {
+                  const d = parseDate(c);
+                  if (d) {
+                    const pad = n => String(n).padStart(2, '0');
+                    foundDates.push({ val: `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`, idx });
+                    return;
+                  }
+                }
+
+                const dateMatch = s.match(/(\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}|\d{4}[.\/-]\d{1,2}[.\/-]\d{1,2})/);
+                if (dateMatch) foundDates.push({ val: dateMatch[1], idx });
+
+                const timeMatch = s.match(/(\d{1,2}:\d{2}(?::\d{2})?)/);
+                if (timeMatch) foundTimes.push({ val: timeMatch[1], idx });
+              });
+
+              let createdVal = '';
+              let assignedVal = '';
+              let timeVal = foundTimes.length > 0 ? foundTimes[0].val : '';
+
+              if (foundDates.length >= 2) {
+                createdVal = foundDates[0].val;
+                assignedVal = foundDates[1].val;
+              } else if (foundDates.length === 1) {
+                createdVal = foundDates[0].val;
+                assignedVal = foundDates[0].val;
+              } else {
+                const cRaw = cells[fallbackIdxCreated] || '';
+                const aRaw = cells[fallbackIdxAssigned] || cRaw;
+                const cM = String(cRaw).match(/(\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}|\d{4}[.\/-]\d{1,2}[.\/-]\d{1,2})/);
+                const aM = String(aRaw).match(/(\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}|\d{4}[.\/-]\d{1,2}[.\/-]\d{1,2})/);
+                createdVal = cM ? cM[1] : String(cRaw).trim();
+                assignedVal = aM ? aM[1] : (createdVal || String(aRaw).trim());
+              }
+
+              return {
+                created: createdVal ? formatDateString(createdVal) : '',
+                assigned: assignedVal ? formatDateString(assignedVal) : '',
+                assignedTime: timeVal
+              };
+            }
+
+            function parseSecondaryRowCells(cells2, header2Cols = []) {
+              let custName = '', city = '', appDate = '', appTime = '', sType = 'IN-HOME', status = 'Open', reason = '', b2b = '', riskReason = '';
+
+              if (header2Cols && header2Cols.length > 0) {
+                header2Cols.forEach((colName, idx) => {
+                  const val = (cells2[idx] !== undefined) ? String(cells2[idx]).trim() : '';
+                  const upper = colName.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                  if (upper === 'CUSTOMERNAME' || upper === 'CUSTOMER' || upper === 'CUSTNAME') custName = val;
+                  else if (upper === 'CITY' || upper === 'LOCATION') city = val;
+                  else if (upper === 'APPDATE' || upper === 'APPOINTMENTDATE') appDate = val;
+                  else if (upper === 'APPTIME' || upper === 'APPOINTMENTTIME') appTime = val;
+                  else if (upper === 'SERVICETYPE' || upper === 'SVCTYPE') sType = val || sType;
+                  else if (upper === 'STATUS') status = val;
+                  else if (upper === 'REASON') reason = val;
+                  else if (upper === 'B2B') b2b = val;
+                  else if (upper === 'RISKREASON' || upper === 'RISK') riskReason = val;
+                });
+                if (city || appDate || (status && status !== 'Open') || reason) {
+                  return {
+                    custName,
+                    city: city.toUpperCase(),
+                    appDate: appDate ? formatDateString(appDate) : '',
+                    appTime,
+                    sType: convertServiceType(sType),
+                    status,
+                    reason,
+                    b2b,
+                    riskReason
+                  };
+                }
+              }
+
+              // Content-based heuristic extraction if no header alignment or sparse cells
+              const nonEmpty = cells2.map((c, i) => ({ val: String(c || '').trim(), origIdx: i })).filter(item => item.val.length > 0);
+
+              const dateItem = nonEmpty.find(item => /^\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}$/.test(item.val));
+              if (dateItem) appDate = dateItem.val;
+
+              const timeItem = nonEmpty.find(item => /^\d{1,2}:\d{2}(?::\d{2})?$/.test(item.val));
+              if (timeItem) appTime = timeItem.val;
+
+              const knownSTypes = ['INITIAL INSTALLATION', 'IN-HOME', 'DEMONSTRATION', 'STOCK REPAIR', 'CUSTOMER CARE', 'PICK-UP SERVICE', 'CARRY IN', 'RETURN HANDLING'];
+              const sTypeItem = nonEmpty.find(item => knownSTypes.includes(item.val.toUpperCase()));
+              if (sTypeItem) sType = sTypeItem.val;
+
+              const dateIdx = dateItem ? nonEmpty.indexOf(dateItem) : -1;
+              const sTypeIdx = sTypeItem ? nonEmpty.indexOf(sTypeItem) : -1;
+
+              if (dateIdx > 0) {
+                if (dateIdx === 1) {
+                  city = nonEmpty[0].val;
+                } else if (dateIdx >= 2) {
+                  custName = nonEmpty[0].val;
+                  city = nonEmpty[1].val;
+                }
+              } else if (sTypeIdx > 0) {
+                if (sTypeIdx === 1 && !city) city = nonEmpty[0].val;
+                else if (sTypeIdx >= 2) {
+                  if (!custName) custName = nonEmpty[0].val;
+                  if (!city) city = nonEmpty[1].val;
+                }
+              }
+
+              const afterIdx = Math.max(dateIdx, sTypeIdx);
+              if (afterIdx !== -1 && afterIdx < nonEmpty.length - 1) {
+                const remaining = nonEmpty.slice(afterIdx + 1);
+                if (remaining.length >= 1) status = remaining[0].val;
+                if (remaining.length >= 2) reason = remaining[1].val;
+                if (remaining.length >= 3) b2b = remaining[2].val;
+                if (remaining.length >= 4) riskReason = remaining[3].val;
+              }
+
+              return {
+                custName,
+                city: city.toUpperCase(),
+                appDate: appDate ? formatDateString(appDate) : '',
+                appTime,
+                sType: convertServiceType(sType),
+                status,
+                reason,
+                b2b,
+                riskReason
+              };
+            }
+
+            // HTML Table parsing
+            if (/<table[\s>]/i.test(trimmed) || /<tr[\s>]/i.test(trimmed)) {
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(trimmed, 'text/html');
+              const rows = Array.from(doc.querySelectorAll('tr'));
+
+              let header2Cols = [];
+              for (let r = 0; r < Math.min(rows.length, 5); r++) {
+                const texts = Array.from(rows[r].querySelectorAll('td, th')).map(c => c.textContent.trim());
+                if (texts.some(t => /^(City|Service Type|App Date|Customer Name)$/i.test(t))) {
+                  header2Cols = texts;
+                  break;
+                }
+              }
+
+              let i = 0;
+              while (i < rows.length) {
+                const cells1 = Array.from(rows[i].querySelectorAll('td, th')).map(c => c.textContent.trim());
+                const soCandidate = cells1.find(txt => /^\d{10}$/.test(txt) || /^\d{10}\s*(Edit|View)?$/i.test(txt));
+                if (soCandidate) {
+                  const cleanSo = cleanTrackingNumber(soCandidate);
+                  const ascJobNo = cells1[2] && !/^\d{1,2}[.\/-]/.test(cells1[2]) ? cleanTrackingNumber(cells1[2]) : cleanSo;
+                  const dates = extractRowDates(cells1, 3, 4);
+                  const created = dates.created || '';
+                  const assigned = dates.assigned || created;
+                  const assignedTime = dates.assignedTime || cells1[5] || '';
+                  const model = (cells1[6] || cells1[5] || '').toUpperCase().trim();
+                  const serial = String(cells1[7] || '').trim();
+                  const wty = String(cells1[8] || cells1[7] || 'In Warranty').trim();
+                  const voc = String(cells1[9] || '').trim();
+                  const redo = String(cells1[10] || 'N').trim();
+                  const riskSensing = String(cells1[11] || 'Normal').trim();
+                  const red = String(cells1[12] || 'N').trim();
+                  const highPriority = String(cells1[13] || 'Normal').trim();
+
+                  let sec = { custName: '', city: '', appDate: '', appTime: '', sType: 'IN-HOME', status: 'Open', reason: '', b2b: '', riskReason: '' };
+                  if (i + 1 < rows.length) {
+                    const cells2 = Array.from(rows[i + 1].querySelectorAll('td, th')).map(c => c.textContent.trim());
+                    sec = parseSecondaryRowCells(cells2, header2Cols);
+                  }
+
+                  const rowObj = {
+                    'Date': assigned || created,
+                    'Branch Name': inferBranchFromCity(sec.city, appState.selectedBranch),
+                    'No': records.length + 1,
+                    'Service Order No.': cleanSo,
+                    'ASC Job No': ascJobNo,
+                    'Created': created || assigned,
+                    'Assigned': assigned,
+                    'Assigned Time': assignedTime,
+                    'Model': model,
+                    'Serial': serial,
+                    'Wty Status': wty,
+                    'VOC': voc,
+                    'REDO': redo,
+                    'Risk Sensing': riskSensing,
+                    'RED': red,
+                    'High Priority': highPriority,
+                    'Customer Name': sec.custName,
+                    'City': sec.city,
+                    'App Date': sec.appDate,
+                    'App Time': sec.appTime,
+                    'Service Type': sec.sType,
+                    'Status': sec.status,
+                    'Reason': sec.reason,
+                    'B2B': sec.b2b,
+                    'Risk Reason': sec.riskReason
+                  };
+                  records.push(mapRowToStandard25(rowObj, records.length));
+                  i += 2;
+                  continue;
+                }
+                i++;
+              }
+            }
+
+            // Plain text parsing
+            if (records.length === 0) {
+              const lines = trimmed.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+              let header2Cols = [];
+              for (let r = 0; r < Math.min(lines.length, 5); r++) {
+                const fields = splitLineFields(lines[r]);
+                if (fields.some(t => /^(City|Service Type|App Date|Customer Name)$/i.test(t))) {
+                  header2Cols = fields;
+                  break;
+                }
+              }
+
+              for (let i = 0; i < lines.length; i++) {
+                const f1 = splitLineFields(lines[i]);
+                const soIdx = f1.findIndex(val => /^\d{10}$/.test(val) || /^\d{10}\s*(Edit|View)?$/i.test(val));
+                if (soIdx !== -1) {
+                  const cleanSo = cleanTrackingNumber(f1[soIdx]);
+                  let jobCandidateIdx = soIdx + 1;
+                  if (f1[jobCandidateIdx] && /^edit$/i.test(f1[jobCandidateIdx])) jobCandidateIdx++;
+                  const ascJobNo = (f1[jobCandidateIdx] && !/^\d{1,2}[.\/-]/.test(f1[jobCandidateIdx])) ? cleanTrackingNumber(f1[jobCandidateIdx]) : cleanSo;
+                  const dates = extractRowDates(f1, soIdx + 2, soIdx + 3);
+                  const created = dates.created || '';
+                  const assigned = dates.assigned || created;
+                  const assignedTime = dates.assignedTime || '';
+
+                  let modelIdx = jobCandidateIdx + 1;
+                  while (modelIdx < f1.length && (/^\d{1,2}[.\/-]/.test(f1[modelIdx]) || /^\d{1,2}:\d{2}/.test(f1[modelIdx]))) modelIdx++;
+                  const model = String(f1[modelIdx] || f1[soIdx + 5] || f1[soIdx + 4] || '').toUpperCase().trim();
+                  const serial = (f1.length > modelIdx + 1 && !f1[modelIdx + 1].toLowerCase().includes('warranty')) ? String(f1[modelIdx + 1]).trim() : '';
+                  const wty = String(f1[modelIdx + 2] || f1[soIdx + 7] || 'In Warranty').trim();
+                  const voc = String(f1[modelIdx + 3] || f1[soIdx + 8] || '').trim();
+
+                  let sec = { custName: '', city: '', appDate: '', appTime: '', sType: 'IN-HOME', status: 'Open', reason: '', b2b: '', riskReason: '' };
+                  if (i + 1 < lines.length) {
+                    const f2 = splitLineFields(lines[i + 1]);
+                    sec = parseSecondaryRowCells(f2, header2Cols);
+                  }
+
+                  const rowObj = {
+                    'Date': assigned || created,
+                    'Branch Name': inferBranchFromCity(sec.city, appState.selectedBranch),
+                    'No': records.length + 1,
+                    'Service Order No.': cleanSo,
+                    'ASC Job No': ascJobNo,
+                    'Created': created || assigned,
+                    'Assigned': assigned,
+                    'Assigned Time': assignedTime,
+                    'Model': model,
+                    'Serial': serial,
+                    'Wty Status': wty,
+                    'VOC': voc,
+                    'REDO': 'N',
+                    'Risk Sensing': 'Normal',
+                    'RED': 'N',
+                    'High Priority': 'Normal',
+                    'Customer Name': sec.custName,
+                    'City': sec.city,
+                    'App Date': sec.appDate,
+                    'App Time': sec.appTime,
+                    'Service Type': sec.sType,
+                    'Status': sec.status,
+                    'Reason': sec.reason,
+                    'B2B': sec.b2b,
+                    'Risk Reason': sec.riskReason
+                  };
+                  records.push(mapRowToStandard25(rowObj, records.length));
+                  i++; // skip row 2
+                }
+              }
+            }
+
+            parsed = records;
+          } else {
+            // ── B. SINGLE-LINE TSV PARSER (25 Standard Columns or 18 TRIM Columns) ──
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            if (lines.length < 1) {
+              showToast('Please paste valid table data.', 'error');
+              return;
+            }
+
+            const standard25 = [
+              'Date', 'Branch Name', 'No', 'Service Order No.', 'ASC Job No',
+              'Created', 'Assigned', 'Assigned Time', 'Model', 'Serial',
+              'Wty Status', 'VOC', 'REDO', 'Risk Sensing', 'RED', 'High Priority',
+              'Customer Name', 'City', 'App Date', 'App Time', 'Service Type',
+              'Status', 'Reason', 'B2B', 'Risk Reason'
+            ];
+
+            const trim18Headers = [
+              'No', 'ASC Job No', 'Date', 'Model', 'Serial', 'Wty Status',
+              'Customer Name', 'City', 'App Date', 'App Time', 'Service Type',
+              'Status', 'Reason', 'Age', 'TAT', 'Product', 'Eng Name', 'TL Name'
+            ];
+
+            let headers = lines[0].split('\t').map(h => h.trim());
+            let dataStartIndex = 1;
+
+            if (headers.length < 18 && headers[0].includes('Date') && (headers[0].includes('Branch Name') || headers[0].includes('ASC Job No'))) {
+              const sub = headers[0].split(/\s{2,}/).map(s => s.trim()).filter(Boolean);
+              if (sub.length >= 2) {
+                headers.splice(0, 1, ...sub);
+              }
+            }
+
+            const isHeader = headers.some(h => ['SERVICE ORDER NO.', 'SO NO', 'ASC JOB NO', 'MODEL', 'BRANCH NAME', 'CUSTOMER NAME', 'AGE', 'TAT'].includes(h.toUpperCase()));
+            if (!isHeader) {
+              const firstLineCols = lines[0].split('\t').length;
+              headers = (firstLineCols === 18) ? trim18Headers : standard25;
+              dataStartIndex = 0;
+            }
+
+            const rows = [];
+            for (let i = dataStartIndex; i < lines.length; i++) {
+              const parts = lines[i].split('\t');
+              const rowObj = {};
+              const targetCols = (!isHeader && parts.length === 18) ? trim18Headers : (parts.length === 25 && headers.length !== 25 ? standard25 : headers);
+              targetCols.forEach((h, idx) => {
+                rowObj[h] = parts[idx] ? parts[idx].trim() : '';
+              });
+              rows.push(rowObj);
+            }
+
+            parsed = parseUploadedData(rows);
           }
 
-          const rows = [];
-          for (let i = dataStartIndex; i < lines.length; i++) {
-            const parts = lines[i].split('\t');
-            const rowObj = {};
-            const targetCols = (!isHeader && parts.length === 18) ? trim18Headers : (parts.length === 25 && headers.length !== 25 ? standard25 : headers);
-            targetCols.forEach((h, idx) => {
-              rowObj[h] = parts[idx] ? parts[idx].trim() : '';
-            });
-            rows.push(rowObj);
-          }
-
-          const parsed = parseUploadedData(rows);
           if (parsed.length > 0) {
             appState.pendingUploadRecords = parsed;
-            document.getElementById('parseStatusText').textContent = `Parsed ${parsed.length} pasted records successfully.`;
-            document.getElementById('parseDetailText').textContent = `${headers.length} columns detected · Ready to apply.`;
+            document.getElementById('parseStatusText').textContent = `Parsed ${parsed.length} service orders successfully.`;
+            document.getElementById('parseDetailText').textContent = `Combined records formatted (DD.MM.YYYY dates, uppercase model & city) · Ready to apply.`;
             document.getElementById('parseFeedbackBox').classList.remove('hidden');
             document.getElementById('btnApplyUpload').disabled = false;
             showToast(`Parsed ${parsed.length} records from paste!`);
           } else {
-            showToast('Unable to parse columns. Ensure headers match standard or TRIM DATA format.', 'error');
+            showToast('Unable to parse columns. Ensure headers match Management Lite, standard 25, or TRIM format.', 'error');
           }
         } catch (err) {
           console.error(err);
@@ -3632,10 +4192,10 @@
         const summaryRows = [
           [], // separator
           [], // separator
-          [`OPEN PENDING TOTAL SUMMARY dt ${dateStr}`],
-          ['ASC_CODE', 'Branch_Name', 'Total D+7', 'WAR Status - IW', 'WAR Status - OW'],
-          ...sumData.branches.map(b => [b.code, b.name, b.d7, b.iw, b.ow]),
-          ['Total', `${sumData.total.count} Service Centers`, sumData.total.d7, sumData.total.iw, sumData.total.ow]
+          [`Open Pending Total Summary dt ${dateStr}`],
+          ['ASC_CODE', 'Branch_Name', 'D+7', 'WAR Status / D+7 (IW)', 'WAR Status / D+7 (OW)', 'Total', 'WAR Status / Total (IW)', 'WAR Status / Total (OW)'],
+          ...sumData.branches.map(b => [b.code, b.name, b.d7, b.d7Iw, b.d7Ow, b.total, b.iw, b.ow]),
+          ['Total', `${sumData.total.count} Service Centers`, sumData.total.d7, sumData.total.d7Iw, sumData.total.d7Ow, sumData.total.calls, sumData.total.iw, sumData.total.ow]
         ];
         
         XLSX.utils.sheet_add_aoa(wb.Sheets["Summary"], summaryRows, { origin: -1 });
@@ -3667,7 +4227,8 @@
           'Status': r.isClosed ? `[CLOSED] ${r.status}` : r.status,
           'Reason': r.isClosed ? `[CHECKED & CLOSED] ${r.reason}` : r.reason,
           'B2B': r.b2b,
-          'Risk Reason': r.riskReason
+          'Risk Reason': r.riskReason,
+          'Master Reason': r.masterReason || (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getReasonBySubReason === 'function' ? window.GSPN_CONTEXT.getReasonBySubReason(r.reason) : '') || r.reason
         }));
         const wsRaw = XLSX.utils.json_to_sheet(rawRows, { header: STANDARD_25_COLUMNS });
         XLSX.utils.book_append_sheet(wb, wsRaw, "RAW_DATA");

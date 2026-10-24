@@ -238,7 +238,7 @@ function parseManagementLiteHTML(html) {
  * Print Command data is structured as repeated key-value blocks per customer.
  * Each block looks like tab-separated label/value pairs:
  *
- * Customer Name\tPankaj Ahlawat\tService Order No\t4441813170\tCustomer No\t6874593500
+ * Customer Name\tRahul Sharma\tService Order No\t4498765432\tCustomer No\t6898765432
  * Address\t...\tModel Name\tWA80F08S2CTL
  * ...
  * Symptom 1\t...\tSymptom 2\t...\tSymptom 3\t...

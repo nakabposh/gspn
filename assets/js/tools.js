@@ -7,12 +7,39 @@
 
 var combinedState = {
   rawRecords: [],
+  rawOriginalRecords: [], // Preserves pure raw records without calculated/augmented fields
   columns: [],
   data: [],
   template: 'GGN_STANDARD',
   sortCol: null,
-  sortDir: 1
+  sortDir: 1,
+  activeFilter: 'ALL' // 'ALL' | 'INSTALL_ALL' | 'INSTALL_AC' | 'INSTALL_NON_AC' | 'IH_PS' | 'OTHERS'
 };
+
+// Helper: Check whether a record represents an Installation or Demo call
+function isInstallationCall(r) {
+  if (!r) return false;
+  var st = (r['Service Type'] || r['Service Type (Status)'] || r['svcType'] || '').toString().toUpperCase().trim();
+  return st.indexOf('INSTALLATION') !== -1 || st.indexOf('II') !== -1 || st.indexOf('DEMO') !== -1 || st === 'IIDM' || st.indexOf('DM') !== -1;
+}
+
+// Helper: Check whether a record represents an AC product
+function isAcProduct(r) {
+  if (!r) return false;
+  var prod = (r['Product'] || '').toString().toUpperCase().trim();
+  if (prod === 'AC') return true;
+  var m = (r['Model Name'] || r['Model'] || '').toString().toUpperCase().trim();
+  return m.startsWith('A') || m.includes('AR1') || m.includes('AR2') || m.includes('AC');
+}
+
+// Helper: Check whether a record represents In-Home or Pick-up Service
+function isIhPsCall(r) {
+  if (!r) return false;
+  var st = (r['Service Type'] || r['Service Type (Status)'] || r['svcType'] || '').toString().toUpperCase().trim();
+  return st === 'IH' || st === 'PS' || st === 'PU' ||
+         st.indexOf('IN-HOME') !== -1 || st.indexOf('IN HOME') !== -1 ||
+         st.indexOf('PICK-UP') !== -1 || st.indexOf('PICKUP') !== -1;
+}
 
 // ── Standard 28-Column Template for GGN Standerd ─────────────────────────────
 var MASTER_COLUMNS_GGN = [
@@ -128,10 +155,15 @@ function applySelectedTemplate() {
   var raw = combinedState.rawRecords;
 
   if (combinedState.template === 'RAW_DATA') {
-    // Preserve all raw keys in the order they appear across records
+    // PURE RAW DATA: Show exact original extracted rows without calculated or augmented fields
+    var sourceRecords = (combinedState.rawOriginalRecords && combinedState.rawOriginalRecords.length > 0)
+      ? combinedState.rawOriginalRecords
+      : raw;
+
     var seen = {}, cols = [];
-    for (var i = 0; i < raw.length; i++) {
-      for (var k in raw[i]) {
+    for (var i = 0; i < sourceRecords.length; i++) {
+      for (var k in sourceRecords[i]) {
+        // Exclude internal merge flags and non-raw augmented fields if rawOriginalRecords was used
         if (k !== '_isMerged' && !seen[k]) {
           seen[k] = true;
           cols.push(k);
@@ -139,7 +171,7 @@ function applySelectedTemplate() {
       }
     }
     combinedState.columns = cols;
-    combinedState.data = raw.map(function(r) { return Object.assign({}, r); });
+    combinedState.data = sourceRecords.map(function(r) { return Object.assign({}, r); });
 
   } else if (combinedState.template === 'GGN_STANDARD' || combinedState.template === 'GGN_OPEN_PENDING' || combinedState.template === 'GGN Standerd') {
     // Standard Samsung GGN Standerd 28-column template
@@ -464,6 +496,9 @@ function extractAllCombined() {
       return;
     }
 
+    // Capture pure original extracted records before augmenting, for the Raw Data template
+    combinedState.rawOriginalRecords = combined.map(function(r) { return Object.assign({}, r); });
+
     // Apply New Internal Logic: Aging/TAT, Product Category, Date/Time separation
     for (var i = 0; i < combined.length; i++) {
       var item = combined[i];
@@ -558,6 +593,7 @@ function saveState() {
         step3: (document.getElementById('inputStep3') || {}).value || ''
       },
       rawRecords: combinedState.rawRecords,
+      rawOriginalRecords: combinedState.rawOriginalRecords,
       columns: combinedState.columns,
       data: combinedState.data,
       template: combinedState.template
@@ -567,6 +603,7 @@ function saveState() {
       columns: combinedState.columns,
       data: combinedState.data,
       rawRecords: combinedState.rawRecords,
+      rawOriginalRecords: combinedState.rawOriginalRecords,
       source: 'Combined',
       timestamp: new Date().toISOString()
     }));
@@ -598,6 +635,9 @@ function restoreState() {
       }
     }
 
+    if (saved.rawOriginalRecords && saved.rawOriginalRecords.length > 0) {
+      combinedState.rawOriginalRecords = saved.rawOriginalRecords;
+    }
     if (saved.rawRecords && saved.rawRecords.length > 0) {
       combinedState.rawRecords = saved.rawRecords;
     } else if (saved.data && saved.data.length > 0) {
@@ -657,28 +697,114 @@ async function copyCombinedExcel() {
 function showCombinedStats(statsId, data, mergedCount) {
   var statsEl = document.getElementById(statsId);
   if (!statsEl) return;
+
   var inW = 0, outW = 0, prodCounts = {};
+  var installAcCount = 0;
+  var installNonAcCount = 0;
+  var installTotalCount = 0;
+  var ihPsCount = 0;
+  var othersCount = 0;
+
   for (var i = 0; i < data.length; i++) {
-    var wty = (data[i]['Wty Status'] || data[i]['Warranty Status'] || '').toLowerCase();
+    var r = data[i];
+    var wty = (r['Wty Status'] || r['Warranty Status'] || '').toLowerCase();
     if (wty.indexOf('in warranty') !== -1 || wty.indexOf('in_warranty') !== -1) inW++;
     else outW++;
-    var prod = data[i]['Product'] || 'Other';
+
+    var prod = r['Product'] || (typeof getProductCategory === 'function' ? getProductCategory(r['Model Name'] || r['Model']) : 'Other');
     prodCounts[prod] = (prodCounts[prod] || 0) + 1;
+
+    // Tally Demo + Installation calls
+    var isInstall = isInstallationCall(r);
+    if (isInstall) {
+      installTotalCount++;
+      if (isAcProduct(r)) {
+        installAcCount++;
+      } else {
+        installNonAcCount++;
+      }
+    } else if (isIhPsCall(r)) {
+      ihPsCount++;
+    } else {
+      othersCount++;
+    }
   }
+
   var topProduct = 'N/A', topCount = 0;
-  for (var p in prodCounts) { if (prodCounts[p] > topCount) { topCount = prodCounts[p]; topProduct = p; } }
-  var mb = mergedCount > 0 ? '<div class="stat-item"><div class="stat-value" style="color:#7c3aed;">' + mergedCount + '</div><div class="stat-label">Merged</div></div>' : '';
+  for (var p in prodCounts) {
+    if (prodCounts[p] > topCount) { topCount = prodCounts[p]; topProduct = p; }
+  }
+
+  var mb = mergedCount > 0 ? '<div class="stat-item"><div class="stat-value" style="color:#7c3aed;">' + mergedCount + '</div><div class="stat-label">Merged Calls</div></div>' : '';
+
   statsEl.innerHTML =
-    '<div class="stat-item"><div class="stat-value">' + data.length + '</div><div class="stat-label">Total</div></div>' +
+    '<div class="stat-item"><div class="stat-value">' + data.length + '</div><div class="stat-label">Total Calls</div></div>' +
+    // PROMINENT DEMO + INSTALLATION AC & NON-AC CARDS
+    '<div class="stat-item" style="background:#eff6ff; border-color:#bfdbfe;"><div class="stat-value" style="color:#0284c7;">' + installTotalCount + '</div><div class="stat-label" style="color:#0369a1; font-weight:700;">Demo+Install Total</div></div>' +
+    '<div class="stat-item" style="background:#f0fdf4; border-color:#bbf7d0;"><div class="stat-value" style="color:#16a34a;">' + installAcCount + '</div><div class="stat-label" style="color:#15803d; font-weight:700;">Demo+Install AC</div></div>' +
+    '<div class="stat-item" style="background:#fffbeb; border-color:#fde68a;"><div class="stat-value" style="color:#d97706;">' + installNonAcCount + '</div><div class="stat-label" style="color:#b45309; font-weight:700;">Demo+Install Non-AC</div></div>' +
     '<div class="stat-item"><div class="stat-value" style="color:var(--accent-green);">' + inW + '</div><div class="stat-label">In Warranty</div></div>' +
     '<div class="stat-item"><div class="stat-value" style="color:var(--accent-red);">' + outW + '</div><div class="stat-label">Out Warranty</div></div>' +
-    '<div class="stat-item"><div class="stat-value" style="color:#d97706;">' + topProduct + ' (' + topCount + ')</div><div class="stat-label">Top Product</div></div>' + mb;
+    '<div class="stat-item"><div class="stat-value" style="color:#475569;">' + topProduct + ' (' + topCount + ')</div><div class="stat-label">Top Product</div></div>' + mb;
 }
 
-// ── Sort ─────────────────────────────────────────────────────────────────────
-function sortBy(colName) {
-  combinedState.sortDir = (combinedState.sortCol === colName) ? combinedState.sortDir * -1 : 1;
+// ── Filter Controller ────────────────────────────────────────────────────────
+window.setToolsTableFilter = function(filter) {
+  combinedState.activeFilter = filter;
+  var tags = [
+    { id: 'filterTagAll', f: 'ALL' },
+    { id: 'filterTagInstallAll', f: 'INSTALL_ALL' },
+    { id: 'filterTagInstallAc', f: 'INSTALL_AC' },
+    { id: 'filterTagInstallNonAc', f: 'INSTALL_NON_AC' },
+    { id: 'filterTagIhPs', f: 'IH_PS' },
+    { id: 'filterTagOthers', f: 'OTHERS' }
+  ];
+
+  tags.forEach(function(item) {
+    var el = document.getElementById(item.id);
+    if (!el) return;
+    if (item.f === filter) {
+      el.style.background = '#2563eb';
+      el.style.color = '#ffffff';
+      el.style.borderColor = '#2563eb';
+    } else {
+      el.style.background = '#ffffff';
+      el.style.color = item.f.indexOf('INSTALL') !== -1 ? (item.f === 'INSTALL_NON_AC' ? '#b45309' : '#0284c7') : '#475569';
+      el.style.borderColor = '#cbd5e1';
+    }
+  });
+
+  renderCombinedPreview(combinedState.columns, combinedState.data);
+  var filterLabels = {
+    'ALL': 'All Calls',
+    'INSTALL_ALL': 'Installation Only',
+    'INSTALL_AC': 'Demo+Install AC Only',
+    'INSTALL_NON_AC': 'Demo+Install Non-AC Only',
+    'IH_PS': 'In-Home & Pick-Up Only',
+    'OTHERS': 'Others / Customer Care Only'
+  };
+  showToast('Table filtered: ' + (filterLabels[filter] || filter));
+};
+
+// ── Sort Controllers ─────────────────────────────────────────────────────────
+window.onToolsSortSelectChange = function(colName) {
+  if (!colName) return;
   combinedState.sortCol = colName;
+  applySorting();
+};
+
+window.toggleToolsSortDirection = function() {
+  combinedState.sortDir = combinedState.sortDir * -1;
+  var btn = document.getElementById('btnToggleSortDir');
+  if (btn) {
+    btn.textContent = combinedState.sortDir === 1 ? '▲ ASC' : '▼ DESC';
+  }
+  applySorting();
+};
+
+function applySorting() {
+  var colName = combinedState.sortCol;
+  if (!colName) return;
   var dir = combinedState.sortDir;
   combinedState.data.sort(function(a, b) {
     var av = (a[colName] || '').toString().toLowerCase();
@@ -690,6 +816,16 @@ function sortBy(colName) {
   renderCombinedPreview(combinedState.columns, combinedState.data);
 }
 
+function sortBy(colName) {
+  combinedState.sortDir = (combinedState.sortCol === colName) ? combinedState.sortDir * -1 : 1;
+  combinedState.sortCol = colName;
+  var sortSelect = document.getElementById('toolsTableSortSelect');
+  if (sortSelect) sortSelect.value = colName;
+  var btn = document.getElementById('btnToggleSortDir');
+  if (btn) btn.textContent = combinedState.sortDir === 1 ? '▲ ASC' : '▼ DESC';
+  applySorting();
+}
+
 // ── Render Table ─────────────────────────────────────────────────────────────
 function renderCombinedPreview(columns, data) {
   var thead = document.getElementById('combinedPreviewHead');
@@ -698,10 +834,35 @@ function renderCombinedPreview(columns, data) {
   var searchBox = document.getElementById('tableSearchBox');
   if (!thead || !tbody) return;
 
-  var searchVal = searchBox ? searchBox.value.toLowerCase().trim() : '';
+  var filter = combinedState.activeFilter || 'ALL';
   var displayData = data;
+
+  // Apply Quick Installation / Service Type filter
+  if (filter !== 'ALL') {
+    displayData = displayData.filter(function(row) {
+      if (filter === 'INSTALL_ALL') {
+        return isInstallationCall(row);
+      }
+      if (filter === 'INSTALL_AC') {
+        return isInstallationCall(row) && isAcProduct(row);
+      }
+      if (filter === 'INSTALL_NON_AC') {
+        return isInstallationCall(row) && !isAcProduct(row);
+      }
+      if (filter === 'IH_PS') {
+        return isIhPsCall(row);
+      }
+      if (filter === 'OTHERS') {
+        return !isInstallationCall(row) && !isIhPsCall(row);
+      }
+      return true;
+    });
+  }
+
+  // Apply Search Box
+  var searchVal = searchBox ? searchBox.value.toLowerCase().trim() : '';
   if (searchVal) {
-    displayData = data.filter(function(row) {
+    displayData = displayData.filter(function(row) {
       return columns.some(function(col) {
         return (row[col] || '').toString().toLowerCase().indexOf(searchVal) !== -1;
       });
@@ -735,6 +896,10 @@ function renderCombinedPreview(columns, data) {
         var agingVal = displayData[r]['Aging'];
         var style = typeof getTATStyle === 'function' ? getTATStyle(agingVal) : { class: '', bg: '', color: '' };
         bHTML += '<td style="text-align:center;"><span class="' + (style.class || '') + '" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;' + (style.bg ? 'background:' + style.bg + ';color:' + style.color + ';' : '') + '">' + escapeHtml(valStr) + '</span></td>';
+      } else if (col === 'Service Type' || col === 'Service Type (Status)') {
+        var isInst = isInstallationCall(displayData[r]);
+        var tagStyle = isInst ? 'color:#0284c7;font-weight:700;' : '';
+        bHTML += '<td style="' + tagStyle + '">' + escapeHtml(valStr) + '</td>';
       } else {
         bHTML += '<td>' + escapeHtml(valStr) + '</td>';
       }
@@ -745,8 +910,9 @@ function renderCombinedPreview(columns, data) {
 
   if (info) {
     var shown = displayData.length, total = data.length;
+    var filterNotice = filter !== 'ALL' ? ' [Filter: ' + filter + ']' : '';
     info.textContent = (shown < total ? shown + '/' + total + ' shown · ' : total + ' record(s) · ') +
-      columns.length + ' cols · ' + combinedState.template;
+      columns.length + ' cols · ' + combinedState.template + filterNotice;
   }
 }
 

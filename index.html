@@ -3,12 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GSPN Helper Tools — Home</title>
-  <meta name="description" content="GSPN Helper Tools — A web-based toolkit for Samsung Service Portal data extraction, formatting, and Excel export.">
+  <title>GSPN Helper Tools</title>
+  <meta name="description" content="A web-based toolkit for Samsung Service Portal data extraction, formatting, and Excel export.">
+  <meta property="og:title" content="GSPN Helper Tools">
+  <meta property="og:description" content="A web-based toolkit for Samsung Service Portal data extraction, formatting, and Excel export.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/main.css">
+  <!-- Universal Context & Master Branch Directory -->
+  <script src="assets/js/context.js"></script>
 </head>
 <body class="page-home">
 
@@ -121,6 +125,32 @@
                   <span class="dropdown-desc">Morning vs Inflow vs Current Closer %</span>
                 </div>
               </a>
+              <a href="multipleBranchesCloser.html" class="dropdown-item">
+                <div class="dropdown-icon" style="background:#eff6ff; color:#1d4ed8;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Multiple Branches Closer</span>
+                    <span class="badge-mini-live" style="background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;">Multi-SVC</span>
+                  </div>
+                  <span class="dropdown-desc">Consolidated branch rows &amp; quick-filter</span>
+                </div>
+              </a>
+              <a href="cancellationReport.html" class="dropdown-item">
+                <div class="dropdown-icon icon-rose" style="background:#ffe4e6; color:#e11d48;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Cancellation Report</span>
+                    <span class="badge-mini-live" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;">FDR / GD</span>
+                  </div>
+                  <span class="dropdown-desc">Cancellation %, X09 % &amp; OW repair analysis</span>
+                </div>
+              </a>
             </div>
 
             <div class="dropdown-divider"></div>
@@ -131,6 +161,20 @@
                 <span class="section-tag svc-tag">SVC (Service Center)</span>
                 <span class="section-sub">Center Analytics &amp; TAT</span>
               </div>
+              <a href="saltReport.html" class="dropdown-item">
+                <div class="dropdown-icon" style="background:#dbeafe; color:#1d4ed8;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">SALT Report</span>
+                    <span class="badge-mini-live" style="background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;">SALT / TAT</span>
+                  </div>
+                  <span class="dropdown-desc">Lead time, Happy Code YES &amp; Time Trimmer</span>
+                </div>
+              </a>
               <a href="reports.html" class="dropdown-item">
                 <div class="dropdown-icon icon-orange">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -140,6 +184,20 @@
                 <div class="dropdown-text">
                   <span class="dropdown-title">SVC Reports &amp; Analytics</span>
                   <span class="dropdown-desc">TAT performance, aging distribution &amp; summaries</span>
+                </div>
+              </a>
+              <a href="SVC/Closer.html" class="dropdown-item">
+                <div class="dropdown-icon" style="background:#fef3c7; color:#b45309;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">SVC Closer</span>
+                    <span class="badge-mini-live" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a;">Single MSC</span>
+                  </div>
+                  <span class="dropdown-desc">Closure tracking: IH/PS, IIDM &amp; CC</span>
                 </div>
               </a>
             </div>
@@ -175,6 +233,17 @@
               <div class="dropdown-text">
                 <span class="dropdown-title">Formats &amp; Templates</span>
                 <span class="dropdown-desc">Management Lite &amp; Print Command specs</span>
+              </div>
+            </a>
+            <a href="svcInformation.html" class="dropdown-item">
+              <div class="dropdown-icon icon-blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">SVC Information</span>
+                <span class="dropdown-desc">Service center &amp; manpower management</span>
               </div>
             </a>
           </div>
@@ -317,6 +386,23 @@
             <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(22,101,52,0.1); color: #166534; border: 1px solid rgba(22,101,52,0.25); padding: 2px 7px; border-radius: 9999px;">Closer %</span>
           </div>
           <p class="feature-desc">Morning Open Pending vs In Flow Calls vs Current Open Pending: Closer % by Product and Branches.</p>
+        </div>
+
+        <!-- Master Reports: Cancellation Report -->
+        <div class="feature-card glass-card" onclick="location.href='cancellationReport.html'">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div class="feature-icon icon-rose" style="background: #ffe4e6; color: #e11d48;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #b91c1c; background: #fee2e2; border: 1px solid #fca5a5; padding: 2px 7px; border-radius: 4px;">Master Reports</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+            <h3 class="feature-title" style="margin-bottom: 0;">Cancellation Report</h3>
+            <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(185,28,28,0.1); color: #b91c1c; border: 1px solid rgba(185,28,28,0.25); padding: 2px 7px; border-radius: 9999px;">FDR / GD</span>
+          </div>
+          <p class="feature-desc">Multi-branch Cancellation % &amp; X09 % vs Total OW Volume, Reason Classification &amp; Excel RAW download.</p>
         </div>
 
         <!-- SVC Reports: Analytics & TAT -->

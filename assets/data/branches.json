@@ -1,0 +1,14 @@
+{
+  "system": "GSPN Helper Tools",
+  "branches": [
+    { "zone": "India-1", "name": "Ghaziabad", "mscName": "Ghaziabad", "code": "4915414", "mscCode": "4915414", "region": "North 1" },
+    { "zone": "India-1", "name": "Ahmedabad", "mscName": "Ahmedabad", "code": "4917449", "mscCode": "4917449", "region": "West 2" },
+    { "zone": "India-2", "name": "Surat", "mscName": "Surat", "code": "4936933", "mscCode": "4936933", "region": "West 2" },
+    { "zone": "India-2", "name": "Gandhinagar", "mscName": "Gandhinagar", "code": "6451772", "mscCode": "6451772", "region": "West 2" },
+    { "zone": "India-2", "name": "Cochin", "mscName": "Cochin", "code": "6458704", "mscCode": "6458704", "region": "South 2" },
+    { "zone": "India-1", "name": "Lucknow", "mscName": "Lucknow", "code": "8200354", "mscCode": "8200354", "region": "North 1" },
+    { "zone": "India-1", "name": "Gurgaon", "mscName": "Gurgaon", "code": "9225951", "mscCode": "9225951", "region": "North 1" },
+    { "zone": "India-1", "name": "Lucknow-HHP", "mscName": "Lucknow-HHP", "code": "3871175", "mscCode": "3871175", "region": "North 1" },
+    { "zone": "India-1", "name": "Moradabad-HHP", "mscName": "Moradabad-HHP", "code": "4776004", "mscCode": "4776004", "region": "North 1" }
+  ]
+}

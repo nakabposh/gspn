@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiple Branches Closer | GSPN Tools</title>
+  <meta name="description" content="Executive Multi-Branch Closure Tracking Report for Samsung CE Service Centers with consolidated matrix, service type filters, and Excel export.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230f2e59'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+
+  <!-- Tailwind CSS v3 via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f5fa',
+              100: '#e1ecf5',
+              600: '#184685',
+              700: '#123769',
+              800: '#0f2e59',
+              900: '#0a203f'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            outfit: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- ExcelJS for 5-Sheet Styled Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <!-- SheetJS for Fallback & Import -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Chart.js for Line Graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Universal Context & Master Branch Directory -->
+  <script src="assets/js/context.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .font-outfit { font-family: 'Outfit', sans-serif; }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+
+    /* Custom dropzone styling */
+    .drop-zone {
+      border: 2px dashed #cbd5e1;
+      transition: all 0.2s ease-in-out;
+    }
+    .drop-zone:hover {
+      border-color: #0f2e59;
+      background-color: #f8fafc;
+    }
+    .drop-zone.dragover {
+      border-color: #0f2e59;
+      background-color: #eff6ff;
+      transform: scale(1.005);
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    @media print {
+      body { background: white !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+      @page { size: landscape; margin: 8mm; }
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-5 right-5 flex flex-col gap-2 pointer-events-none" style="z-index: 999999;"></div>
+
+  <!-- Header Navigation -->
+  <header class="bg-white text-slate-900 shadow-sm border-b border-slate-200 sticky top-0 z-30 no-print">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14">
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-lg bg-[#0f2e59] flex items-center justify-center shadow text-white font-black text-xs font-outfit">
+            MB
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-sm font-bold tracking-tight text-[#0f2e59] font-outfit">Multiple Branches Closer</h1>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-300">
+                Multi-Branch Matrix
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 leading-tight">Consolidated CE Service Center Closer Tracking • (Closed = Total - Current) • Closer % = (Closed ÷ Flow) × 100</p>
+          </div>
+        </div>
+
+        <!-- Global Navigation Links -->
+        <div class="flex items-center space-x-2">
+          <nav class="hidden xl:flex items-center space-x-1 mr-2 border-r border-slate-200 pr-3 text-xs">
+            <a href="index.html" class="px-2.5 py-1.5 rounded hover:bg-slate-100 text-slate-700">Home</a>
+            <a href="tools.html" class="px-2.5 py-1.5 rounded hover:bg-slate-100 text-slate-700">Tools</a>
+            <a href="openPending.html" class="px-2.5 py-1.5 rounded hover:bg-slate-100 text-slate-700">Open Pending</a>
+            <a href="reportMaking.html" class="px-2.5 py-1.5 rounded hover:bg-slate-100 text-slate-700">Report Maker</a>
+            <a href="masterCloser.html" class="px-2.5 py-1.5 rounded hover:bg-slate-100 text-slate-700">Single CE Closer</a>
+            <a href="multiBranchCloser.html" class="px-2.5 py-1.5 rounded font-bold text-[#0f2e59] bg-blue-50 border border-blue-200">Multi Branches Closer</a>
+            <a href="cancellationReport.html" class="px-2.5 py-1.5 rounded hover:bg-slate-100 text-slate-700">Cancellation</a>
+            <a href="reports.html" class="px-2.5 py-1.5 rounded hover:bg-slate-100 text-slate-700">SVC Reports</a>
+            <a href="Context.html" class="px-2.5 py-1.5 rounded hover:bg-slate-100 text-slate-700">Context</a>
+          </nav>
+
+          <!-- Top Quick Actions -->
+          <div class="flex items-center gap-2">
+            <button id="btnTopTrendGraphs" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 shadow-sm transition active:scale-95">
+              <svg class="w-3.5 h-3.5 mr-1 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+              Branch Trend
+            </button>
+            <button id="btnTopLoadSample" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-300 shadow-sm transition active:scale-95">
+              <svg class="w-3.5 h-3.5 mr-1 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Load Demo Branches
+            </button>
+            <button id="btnTopCopyMail" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition active:scale-95">
+              <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              Copy for Mail
+            </button>
+            <button id="btnTopExportExcel" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95">
+              <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Export Excel (5 Sheets)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 space-y-5">
+
+    <!-- ACTIVE BRANCHES / SERVICE CENTERS BAR (LIKE REPORT_MAKER.HTML) -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-bold text-slate-800 font-outfit uppercase tracking-wide">Active Service Centers / Branches</h2>
+            <span id="badgeActiveBranchCount" class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+              0 Branches Added
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Add each branch, select Morning Open, Today Inflow &amp; Current Open backlog via spreadsheet or pasted text</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- Report Date Picker -->
+          <div class="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
+            <span class="font-semibold text-slate-500">Report Date:</span>
+            <input type="text" id="customReportDate" class="w-24 text-center font-bold text-slate-800 bg-transparent focus:outline-none" placeholder="DD.MM.YYYY">
+          </div>
+          <button id="btnClearAllBranches" class="px-3 py-1.5 border border-slate-300 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition">
+            Clear All Branches
+          </button>
+          <button id="btnOpenAddBranchModal" class="px-4 py-1.5 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-lg text-xs font-bold shadow transition active:scale-95 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            ADD BRANCH / SVC
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Branches Pill / Card Strip -->
+      <div id="branchChipsContainer" class="pt-3 flex flex-wrap gap-2.5 items-center">
+        <!-- Populated dynamically -->
+        <span class="text-xs text-slate-400 italic">No branches added yet. Click "+ ADD BRANCH / SVC" or "Load Demo Branches" to begin.</span>
+      </div>
+    </section>
+
+    <!-- KPI SUMMARY BAR -->
+    <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <!-- Total Morning -->
+      <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">1st Morning Open</span>
+        <div class="flex items-baseline justify-between mt-1">
+          <span class="text-2xl font-black text-blue-900 font-outfit tabular-nums" id="kpiMrngTotal">0</span>
+          <span class="text-[11px] font-semibold text-blue-600">Calls</span>
+        </div>
+      </div>
+      <!-- Today Inflow -->
+      <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">2nd Today Inflow</span>
+        <div class="flex items-baseline justify-between mt-1">
+          <span class="text-2xl font-black text-amber-900 font-outfit tabular-nums" id="kpiInflowTotal">0</span>
+          <span class="text-[11px] font-semibold text-amber-600">Calls</span>
+        </div>
+      </div>
+      <!-- Total Workload -->
+      <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Workload</span>
+        <div class="flex items-baseline justify-between mt-1">
+          <span class="text-2xl font-black text-indigo-900 font-outfit tabular-nums" id="kpiWorkloadTotal">0</span>
+          <span class="text-[11px] font-semibold text-indigo-600">Calls</span>
+        </div>
+      </div>
+      <!-- Closed Calls -->
+      <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Closed Calls</span>
+        <div class="flex items-baseline justify-between mt-1">
+          <span class="text-2xl font-black text-emerald-900 font-outfit tabular-nums" id="kpiClosedTotal">0</span>
+          <span class="text-[11px] font-semibold text-emerald-600">Resolved</span>
+        </div>
+      </div>
+      <!-- Current Open -->
+      <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">3rd Current Open</span>
+        <div class="flex items-baseline justify-between mt-1">
+          <span class="text-2xl font-black text-rose-900 font-outfit tabular-nums" id="kpiCurrentTotal">0</span>
+          <span class="text-[11px] font-semibold text-rose-600">Pending</span>
+        </div>
+      </div>
+      <!-- Overall Closer % -->
+      <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Consolidated Closer %</span>
+        <div class="flex items-baseline justify-between mt-1">
+          <span class="text-2xl font-black text-[#0f2e59] font-outfit tabular-nums" id="kpiCloserRate">0.0%</span>
+          <span class="text-[11px] font-semibold text-slate-500">Rate</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONSOLIDATED CLOSER REPORT TABLE & SERVICE TYPE FILTER SECTION -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4">
+      
+      <!-- Table Header & Service Type Filter Toolbar -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-slate-200">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h2 class="text-base font-black tracking-wide text-[#0f2e59] font-outfit uppercase">
+              Consolidated Multiple Branches Closer Report
+            </h2>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Real-time performance across all active service branches with interactive Service Type filters</p>
+        </div>
+
+        <!-- SERVICE TYPE QUICK-TOGGLE BUTTON GROUP (USER REQUESTED OPTION) -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Service Type Filter:</span>
+          <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs" id="serviceTypeToggleGroup">
+            <button type="button" data-filter="all" class="st-filter-btn px-3 py-1.5 rounded-lg font-bold bg-[#0f2e59] text-white shadow-sm transition">
+              All Service Types
+            </button>
+            <button type="button" data-filter="ih_ps" class="st-filter-btn px-3 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition">
+              IH + PS
+            </button>
+            <button type="button" data-filter="iidm_dm" class="st-filter-btn px-3 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition">
+              IIDM + DM
+            </button>
+            <button type="button" data-filter="others" class="st-filter-btn px-3 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition">
+              Others (CC)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Action Controls -->
+      <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="text-slate-500 flex items-center gap-2">
+          <span class="font-semibold text-slate-700" id="filterStatusIndicator">Showing: All Service Types</span>
+          <span class="text-slate-300">•</span>
+          <span>Click any branch row to expand/collapse product-wise breakdown</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btnCopyCloserHtml" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow transition active:scale-95 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+            Copy Table for Mail
+          </button>
+          <button id="btnExportCloserExcel" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition active:scale-95 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Export Excel (5 Sheets)
+          </button>
+          <button onclick="window.print()" class="px-3 py-1.5 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-semibold shadow-sm transition">
+            Print
+          </button>
+        </div>
+      </div>
+
+      <!-- Render Area for Consolidated Table -->
+      <div id="closerReportRenderArea" class="overflow-x-auto border border-slate-300 rounded-xl shadow-inner bg-white">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ADD / EDIT BRANCH WITH DATASETS (SAME CONTEXT AS REPORT_MAKER & MASTER CLOSER) -->
+  <!-- ========================================================================= -->
+  <div id="addBranchModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header (Branch Selector from context.js) -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="text-xs font-black uppercase px-2.5 py-1 rounded bg-[#0f2e59] text-white">Branch Setup</span>
+          
+          <!-- Branch Select (from GSPN_BRANCHES) -->
+          <div class="flex items-center gap-1.5">
+            <label for="modalBranchSelect" class="text-xs font-bold text-slate-700 uppercase">Branch:</label>
+            <select id="modalBranchSelect" class="bg-white border border-slate-300 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 shadow-sm">
+              <!-- Populated dynamically from GSPN_BRANCHES -->
+            </select>
+          </div>
+
+          <!-- Custom Branch Name input (hidden by default) -->
+          <input type="text" id="modalCustomBranchNameInput" placeholder="Enter branch name..." class="hidden bg-white border border-slate-300 text-slate-900 text-xs font-semibold rounded-lg px-2 py-1.5 w-36">
+
+          <!-- SVC Code Input -->
+          <div class="flex items-center gap-1.5">
+            <label for="modalBranchCodeInput" class="text-xs font-bold text-slate-700 uppercase">Code:</label>
+            <input type="text" id="modalBranchCodeInput" class="bg-white border border-slate-300 text-slate-900 text-xs font-bold rounded-lg px-2 py-1.5 w-24 text-center" placeholder="9225951">
+          </div>
+        </div>
+
+        <button onclick="closeAddBranchModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Dataset Slot Switcher Sub-Header -->
+      <div class="px-6 py-2.5 bg-slate-100 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span class="font-bold text-slate-600 uppercase tracking-wide">Target Dataset Slot:</span>
+        <div class="inline-flex rounded-lg bg-slate-200 p-0.5" id="modalSlotButtonGroup">
+          <button onclick="switchModalSlot('mrng')" id="modalSlotBtnMrng" class="px-3 py-1 rounded-md text-xs font-bold bg-white text-slate-900 shadow-sm transition">
+            1st Morning Open
+          </button>
+          <button onclick="switchModalSlot('inflow')" id="modalSlotBtnInflow" class="px-3 py-1 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+            2nd Today Inflow
+          </button>
+          <button onclick="switchModalSlot('current')" id="modalSlotBtnCurrent" class="px-3 py-1 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+            3rd Current Open
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Tabs: File Upload vs. Paste Text -->
+      <div class="border-b border-slate-200 bg-white px-6">
+        <div class="flex space-x-4">
+          <button id="tabBtnUpload" onclick="switchDatasetTab('upload')" class="px-4 py-2.5 border-b-2 border-[#0f2e59] font-bold text-[#0f2e59] text-xs transition flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            Upload File (.ods / .xls / .xlsx / .csv)
+          </button>
+          <button id="tabBtnPaste" onclick="switchDatasetTab('paste')" class="px-4 py-2.5 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-800 text-xs transition flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            Paste GSPN Text (1-Row / 2-Row)
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div class="p-6 flex-1 overflow-y-auto space-y-4 bg-slate-50/50">
+        
+        <!-- Slot Overview Badges -->
+        <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+          <div class="flex items-center gap-4">
+            <div>
+              <span class="text-slate-400 block text-[10px] font-bold uppercase">Morning Open</span>
+              <span id="badgeSlotMrngCount" class="font-black text-blue-900">0 Calls</span>
+            </div>
+            <div class="border-l border-slate-200 pl-4">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase">Today Inflow</span>
+              <span id="badgeSlotInflowCount" class="font-black text-amber-900">0 Calls</span>
+            </div>
+            <div class="border-l border-slate-200 pl-4">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase">Current Open</span>
+              <span id="badgeSlotCurrentCount" class="font-black text-rose-900">0 Calls</span>
+            </div>
+          </div>
+          <span class="text-slate-400 text-[11px] italic" id="modalActiveSlotLabel">Active Slot: 1st Morning Open</span>
+        </div>
+
+        <!-- TAB 1: FILE UPLOAD -->
+        <div id="tabPanelUpload" class="space-y-3">
+          <div id="modalDropZone" class="drop-zone bg-white rounded-xl p-8 text-center cursor-pointer min-h-[160px] flex flex-col items-center justify-center space-y-2">
+            <input type="file" id="modalFileInput" accept=".ods, .xls, .xlsx, .csv, .tsv, .txt" class="hidden">
+            <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-800 flex items-center justify-center mx-auto border border-blue-200">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-slate-800">Drop spreadsheet file here or <span class="text-[#0f2e59] underline">browse</span></p>
+              <p class="text-xs text-slate-500 mt-0.5">Supports <strong>.ods</strong>, <strong>.xls</strong>, <strong>.xlsx</strong>, and <strong>.csv</strong> spreadsheets</p>
+            </div>
+            <div class="flex items-center gap-1.5 pt-1">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">ODS</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">XLS</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">XLSX</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">CSV</span>
+            </div>
+          </div>
+
+          <!-- File Upload Status -->
+          <div id="modalFileStatus" class="hidden p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="font-bold text-emerald-900" id="modalFileName">file.xlsx</span>
+            </div>
+            <span class="font-extrabold text-emerald-700" id="modalFileCount">0 Calls Parsed</span>
+          </div>
+        </div>
+
+        <!-- TAB 2: PASTE TEXT -->
+        <div id="tabPanelPaste" class="space-y-3 hidden">
+          <div>
+            <label for="modalPasteTextarea" class="block text-xs font-bold text-slate-700 mb-1">
+              Paste GSPN rows (1-row or 2-row layout):
+            </label>
+            <textarea id="modalPasteTextarea" rows="9" placeholder="Paste tab-separated or comma-separated rows here..." class="w-full text-xs font-mono border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"></textarea>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <span>Automatically parses 1-row, 2-row, and multi-column GSPN formats</span>
+            <button id="btnParsePastedText" class="px-3 py-1.5 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-lg font-bold shadow-sm transition">
+              Parse Pasted Text
+            </button>
+          </div>
+          <div id="modalPasteStatus" class="hidden p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs">
+            <span class="font-bold text-emerald-900">Text Parsed Successfully</span>
+            <span class="font-extrabold text-emerald-700" id="modalPasteCount">0 Calls</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex items-center justify-between">
+        <button onclick="clearCurrentModalSlot()" class="text-xs font-bold text-rose-600 hover:underline">
+          Clear Current Slot
+        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="closeAddBranchModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-50">
+            Cancel
+          </button>
+          <button id="btnSaveBranchData" class="px-5 py-2 bg-[#0f2e59] hover:bg-[#184685] text-white rounded-lg text-xs font-black shadow transition active:scale-95">
+            Save &amp; Apply Branch
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: CLOSER TREND & PERFORMANCE LINE CHART -->
+  <!-- ========================================================================= -->
+  <div id="branchTrendModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Trend Header -->
+      <div class="px-6 py-3.5 bg-[#0f2e59] text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded bg-blue-400/20 text-blue-300 flex items-center justify-center text-sm font-bold">
+            📈
+          </div>
+          <div>
+            <h3 class="text-sm font-bold font-outfit">Multi-Branch Closer Performance Trend</h3>
+            <p class="text-[11px] text-slate-300">Visual comparison of branch closure percentages &amp; resolved workloads</p>
+          </div>
+        </div>
+        <button onclick="closeTrendModal()" class="text-white/80 hover:text-white p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Trend Canvas Area -->
+      <div class="p-6 bg-slate-50/50 flex-1 overflow-y-auto">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm" style="height: 380px;">
+          <canvas id="branchTrendCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Trend Footer -->
+      <div class="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between text-xs">
+        <span class="text-slate-400">Plotted across all active service branches</span>
+        <button onclick="closeTrendModal()" class="px-4 py-1.5 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-900">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    (function () {
+      'use strict';
+
+      // --- APPLICATION STATE ---
+      const appState = {
+        branches: [], // Array of branch objects: { id, name, code, region, mrngRecords: [], inflowRecords: [], currentRecords: [] }
+        activeFilter: 'all', // 'all' | 'ih_ps' | 'iidm_dm' | 'others'
+        customDate: '',
+        trendChart: null,
+
+        // Modal temporary state
+        modalBranchId: 'gurgaon',
+        modalActiveSlot: 'mrng',
+        modalActiveTab: 'upload',
+        tempSlotRecords: {
+          mrng: [],
+          inflow: [],
+          current: []
+        }
+      };
+
+      // --- TOAST NOTIFICATIONS ---
+      function showToast(msg, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `px-4 py-3 rounded-xl shadow-lg text-xs font-semibold text-white flex items-center gap-2 transition-all duration-300 pointer-events-auto ${
+          type === 'success' ? 'bg-emerald-600' : (type === 'error' ? 'bg-rose-600' : 'bg-amber-600')
+        }`;
+        toast.innerHTML = `
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ${type === 'success' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'}
+          </svg>
+          <span>${msg}</span>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-[-8px]');
+          setTimeout(() => toast.remove(), 300);
+        }, 3500);
+      }
+
+      // --- STRING & GSPN CLEANING HELPERS ---
+      function cleanSO(val) {
+        if (!val && val !== 0) return '';
+        return String(val)
+          .replace(/[\u00A0\s]*Edit[\u00A0\s]*$/i, '')
+          .replace(/[\u00A0\s]*View[\u00A0\s]*$/i, '')
+          .replace(/[\u00A0\s]+/g, ' ')
+          .trim();
+      }
+
+      function formatGspnDate(val) {
+        if (!val && val !== 0) return '';
+        const s = String(val).trim();
+        if (!s || s === '00.00.0000' || s === '00/00/0000' || s === '-') return '-';
+        if (typeof val === 'number' && val > 1000) {
+          const d = new Date(Math.floor(val - 25569) * 86400 * 1000);
+          return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+        }
+        const m = s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})/);
+        if (m) {
+          let p1 = parseInt(m[1], 10), p2 = parseInt(m[2], 10), y = parseInt(m[3], 10);
+          if (y < 100) y = 2000 + y;
+          let d = p1, mo = p2;
+          if (p1 <= 12 && p2 > 12) { mo = p1; d = p2; }
+          return `${String(d).padStart(2, '0')}.${String(mo).padStart(2, '0')}.${y}`;
+        }
+        return s;
+      }
+
+      function formatGspnTime(val) {
+        if (!val && val !== 0) return '';
+        const s = String(val).trim();
+        if (s === '00:00:00' || s === '00:00') return '-';
+        return s;
+      }
+
+      function inferProductFromModel(model) {
+        if (!model) return 'Others';
+        const m = String(model).toUpperCase().trim();
+        if (m.startsWith('A') || m.includes('AR1') || m.includes('AR2') || m.includes('AC')) return 'AC';
+        if (m.startsWith('R') || m.includes('RT') || m.includes('RF') || m.includes('RS')) return 'REF';
+        if (m.startsWith('W') || m.includes('WA') || m.includes('WW') || m.includes('WD') || m.startsWith('WT')) return 'WM';
+        if (m.startsWith('U') || m.startsWith('Q') || m.startsWith('L') || m.includes('UA') || m.includes('QA') || m.includes('TV') || m.includes('MONITOR') || m.includes('DISPLAY')) return 'AV';
+        if (m.startsWith('M') || m.includes('MC') || m.includes('MS') || m.includes('MW')) return 'Others';
+        return 'Others';
+      }
+
+      function normalizeProduct(str) {
+        if (!str) return 'Others';
+        const s = String(str).toUpperCase().trim();
+        if (s.includes('AIR') || s === 'AC' || s.includes('RAC') || s.includes('PAC') || s.includes('CAC')) return 'AC';
+        if (s.includes('REF') || s.includes('REFRIGERATOR') || s.includes('FRIDGE')) return 'REF';
+        if (s.includes('WM') || s.includes('WASH') || s.includes('DRYER')) return 'WM';
+        if (s.includes('AV') || s.includes('TV') || s.includes('CTV') || s.includes('AUDIO') || s.includes('SOUND') || s.includes('PANEL') || s.startsWith('L')) return 'AV';
+        return 'Others';
+      }
+
+      // --- SERVICE TYPE CLASSIFICATION HELPERS ---
+      function isIH_PS(svcType) {
+        if (!svcType) return true;
+        const s = String(svcType).toUpperCase().trim();
+        if (s.includes('INSTALL') || s.includes('DEMO') || s.includes('IIDM')) return false;
+        if (s.includes('CUSTOMER CARE') || s.includes('CARE') || s.includes('CC') || s.includes('VOC') || s.includes('COMPLAINT')) return false;
+        return s.includes('IN-HOME') || s.includes('IN HOME') || s.includes('IH') || s.includes('PICK-UP') || s.includes('PICKUP') || s.includes('PS') || s.includes('CARRY') || s.includes('CI');
+      }
+
+      function isIIDM_DM(svcType) {
+        if (!svcType) return false;
+        const s = String(svcType).toUpperCase().trim();
+        return s.includes('INSTALL') || s.includes('DEMO') || s.includes('IIDM') || s.includes('INITIAL INSTALLATION') || s.includes('DEMONSTRATION');
+      }
+
+      function isOthers(svcType, prod) {
+        if (!svcType) return false;
+        const s = String(svcType).toUpperCase().trim();
+        if (isIH_PS(svcType) || isIIDM_DM(svcType)) return false;
+        return true;
+      }
+
+      function matchesActiveFilter(record, filter) {
+        if (!filter || filter === 'all') return true;
+        const sType = record.svcType || record.serviceType || 'IH';
+        if (filter === 'ih_ps') return isIH_PS(sType);
+        if (filter === 'iidm_dm') return isIIDM_DM(sType);
+        if (filter === 'others') return isOthers(sType, record.product);
+        return true;
+      }
+
+      // --- ROBUST GSPN PARSER (1-ROW, 2-ROW, MULTI-COLUMN) ---
+      function parseGspnLines(rawText) {
+        if (!rawText || !rawText.trim()) return [];
+        const lines = rawText.split(/\r?\n/).filter(l => l.trim().length > 0);
+        const calls = [];
+        const soRegex = /^\d{9,12}$/;
+
+        let i = 0;
+        while (i < lines.length) {
+          const line1 = lines[i];
+          const cells1 = line1.includes('\t') ? line1.split('\t').map(c => cleanSO(c)) : line1.split(/\s{2,}/).map(c => cleanSO(c));
+
+          const line1Text = cells1.join(' ').toLowerCase();
+          if (line1Text.includes('service order') || line1Text.includes('asc job') || (line1Text.includes('city') && line1Text.includes('service type'))) {
+            i++;
+            continue;
+          }
+
+          let soIdx = cells1.findIndex(c => soRegex.test(c));
+          if (soIdx !== -1) {
+            const soVal = cells1[soIdx];
+            const ascJobNo = (cells1[soIdx + 1] && !/^\d{1,2}[.\/-]/.test(cells1[soIdx + 1])) ? cells1[soIdx + 1] : soVal;
+
+            let created = '', assigned = '', assignedTime = '', model = '', serial = '', wty = 'In Warranty';
+            for (let col = soIdx + 1; col < cells1.length; col++) {
+              const val = cells1[col];
+              if (!val) continue;
+              if (!created && /^\d{1,2}[.\/-]\d{1,2}/.test(val)) created = formatGspnDate(val);
+              else if (!assigned && /^\d{1,2}[.\/-]\d{1,2}/.test(val)) assigned = formatGspnDate(val);
+              else if (!assignedTime && /^\d{1,2}:\d{2}/.test(val)) assignedTime = formatGspnTime(val);
+              else if (val.toLowerCase().includes('warranty')) wty = val;
+              else if (!model && /[A-Za-z]/.test(val) && val.length >= 4) model = val;
+              else if (model && !serial && val.length >= 4) serial = val;
+            }
+
+            let custName = 'Demo Customer', city = 'Gurgaon', appDate = '', appTime = '', sType = 'IN-HOME', status = 'Pending', reason = '';
+
+            // Check if next line is row 2 of a 2-row layout
+            if (i + 1 < lines.length) {
+              const line2 = lines[i + 1];
+              const cells2 = line2.includes('\t') ? line2.split('\t').map(c => cleanSO(c)) : line2.split(/\s{2,}/).map(c => cleanSO(c));
+              const nextHasSO = cells2.some(c => soRegex.test(c));
+              const line2Text = cells2.join(' ').toLowerCase();
+              const isHeader2 = line2Text.includes('service order') || (line2Text.includes('city') && line2Text.includes('service type'));
+
+              if (!nextHasSO && !isHeader2) {
+                if (cells2.length >= 7) {
+                  if (cells2[3] && !/^\d{1,2}[.\/-]/.test(cells2[3])) city = cells2[3];
+                  if (cells2[4] && /^\d{1,2}[.\/-]/.test(cells2[4])) appDate = formatGspnDate(cells2[4]);
+                  if (cells2[5]) sType = cells2[5];
+                  if (cells2[6]) status = cells2[6];
+                  if (cells2[7]) reason = cells2[7];
+                } else {
+                  const nonEmpty = cells2.filter(Boolean);
+                  nonEmpty.forEach(tok => {
+                    const up = tok.toUpperCase();
+                    if (/^\d{1,2}[.\/-]\d{1,2}/.test(tok) && !appDate) appDate = formatGspnDate(tok);
+                    else if (/^\d{1,2}:\d{2}/.test(tok) && !appTime) appTime = formatGspnTime(tok);
+                    else if (up.includes('INSTALL') || up.includes('IIDM') || up.includes('DEMO') || up.includes('IN-HOME') || up.includes('PICK-UP') || up.includes('CUSTOMER CARE') || up.includes('CC')) sType = tok;
+                    else if (!status && (up.includes('ASSIGN') || up.includes('PENDING') || up.includes('COMPLETED') || up.includes('DELIVER') || up.includes('CANCEL') || up.includes('PROGRESS'))) status = tok;
+                    else if (status && !reason) reason = tok;
+                    else if (!city && tok.length >= 3 && !/^\d+$/.test(tok)) city = tok;
+                    else if (status && reason) reason += ' ' + tok;
+                  });
+                }
+                i++; // Consume row 2
+              }
+            }
+
+            const prod = inferProductFromModel(model);
+            calls.push({
+              no: calls.length + 1,
+              callNo: soVal,
+              serviceOrderNo: soVal,
+              ascJobNo: ascJobNo,
+              product: normalizeProduct(prod),
+              model: model,
+              serialNo: serial,
+              warrantyStatus: wty,
+              warrantyCode: wty.toLowerCase().includes('in') ? 'IW' : 'OW',
+              svcType: sType,
+              serviceType: sType,
+              createdDate: created || assigned,
+              assignedDate: assigned,
+              assignedTime: assignedTime,
+              aging: '0',
+              tatBucket: '0–2 Days',
+              customerName: custName,
+              city: city,
+              appDate: appDate,
+              appTime: appTime,
+              status: status || 'Pending',
+              reason: reason || '',
+              subReason: reason || '',
+              b2b: 'N',
+              riskReason: 'None',
+              engineer: '',
+              mobile: '9876543210',
+              address: 'Demo Service Address, Sector 18'
+            });
+          }
+          i++;
+        }
+
+        // Check 1-row table with headers fallback
+        if (calls.length === 0 && lines.length > 1) {
+          const firstRow = (lines[0].includes('\t') ? lines[0].split('\t') : lines[0].split(/\s{2,}/)).map(c => cleanSO(c));
+          const headerIdx = {};
+          firstRow.forEach((col, idx) => {
+            const c = col.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (c.includes('serviceorder') || c.includes('orderno') || c.includes('sono')) headerIdx.so = idx;
+            else if (c.includes('ascjob') || c.includes('jobno')) headerIdx.ascJobNo = idx;
+            else if (c.includes('product') || c === 'prod') headerIdx.product = idx;
+            else if (c.includes('model')) headerIdx.model = idx;
+            else if (c.includes('serial')) headerIdx.serial = idx;
+            else if (c.includes('warrantystatus') || c.includes('wtystatus') || c === 'warranty') headerIdx.wtyStatus = idx;
+            else if (c.includes('servicetype') || c.includes('svctype')) headerIdx.svcType = idx;
+            else if (c.includes('created') || c.includes('reqdate')) headerIdx.created = idx;
+            else if (c.includes('assigneddate') || (c.includes('assigned') && !c.includes('time'))) headerIdx.assigned = idx;
+            else if (c.includes('assignedtime') || c.includes('time')) headerIdx.assignedTime = idx;
+            else if (c.includes('aging') || c === 'age') headerIdx.aging = idx;
+            else if (c.includes('tat')) headerIdx.tatBucket = idx;
+            else if (c.includes('customer') || c.includes('cust')) headerIdx.customerName = idx;
+            else if (c.includes('city') || c.includes('location')) headerIdx.city = idx;
+            else if (c.includes('appdate') || c.includes('appointmentdate')) headerIdx.appDate = idx;
+            else if (c.includes('apptime') || c.includes('appointmenttime')) headerIdx.appTime = idx;
+            else if (c === 'status' || c.includes('callstatus')) headerIdx.status = idx;
+            else if (c.includes('reason') && !c.includes('sub')) headerIdx.reason = idx;
+          });
+
+          if (headerIdx.so !== undefined || headerIdx.model !== undefined) {
+            for (let rIdx = 1; rIdx < lines.length; rIdx++) {
+              const r = (lines[rIdx].includes('\t') ? lines[rIdx].split('\t') : lines[rIdx].split(/\s{2,}/)).map(c => cleanSO(c));
+              const soVal = headerIdx.so !== undefined ? cleanSO(r[headerIdx.so]) : cleanSO(r[0]);
+              if (!soVal || soVal.toLowerCase().includes('order')) continue;
+              const modelVal = headerIdx.model !== undefined ? (r[headerIdx.model] || '') : '';
+              let rawProd = headerIdx.product !== undefined ? r[headerIdx.product] : inferProductFromModel(modelVal);
+              const sTypeVal = headerIdx.svcType !== undefined ? r[headerIdx.svcType] : 'IH';
+              const wtyVal = headerIdx.wtyStatus !== undefined ? r[headerIdx.wtyStatus] : 'In Warranty';
+
+              calls.push({
+                no: calls.length + 1,
+                callNo: soVal,
+                serviceOrderNo: soVal,
+                ascJobNo: headerIdx.ascJobNo !== undefined ? r[headerIdx.ascJobNo] : soVal,
+                product: normalizeProduct(rawProd),
+                model: modelVal,
+                serialNo: headerIdx.serial !== undefined ? r[headerIdx.serial] : '',
+                warrantyStatus: wtyVal,
+                warrantyCode: wtyVal.toLowerCase().includes('in') ? 'IW' : 'OW',
+                svcType: sTypeVal,
+                serviceType: sTypeVal,
+                createdDate: formatGspnDate(headerIdx.created !== undefined ? r[headerIdx.created] : ''),
+                assignedDate: formatGspnDate(headerIdx.assigned !== undefined ? r[headerIdx.assigned] : ''),
+                assignedTime: formatGspnTime(headerIdx.assignedTime !== undefined ? r[headerIdx.assignedTime] : ''),
+                aging: headerIdx.aging !== undefined ? r[headerIdx.aging] : '0',
+                tatBucket: headerIdx.tatBucket !== undefined ? r[headerIdx.tatBucket] : '0–2 Days',
+                customerName: headerIdx.customerName !== undefined ? r[headerIdx.customerName] : 'Demo Customer',
+                city: headerIdx.city !== undefined ? r[headerIdx.city] : 'Gurgaon',
+                appDate: formatGspnDate(headerIdx.appDate !== undefined ? r[headerIdx.appDate] : ''),
+                appTime: formatGspnTime(headerIdx.appTime !== undefined ? r[headerIdx.appTime] : ''),
+                status: headerIdx.status !== undefined ? r[headerIdx.status] : 'Pending',
+                reason: headerIdx.reason !== undefined ? r[headerIdx.reason] : '',
+                subReason: headerIdx.reason !== undefined ? r[headerIdx.reason] : '',
+                b2b: 'N',
+                riskReason: 'None',
+                engineer: '',
+                mobile: '9876543210',
+                address: 'Demo Service Address, Sector 18'
+              });
+            }
+          }
+        }
+
+        return calls;
+      }
+
+      // --- BRANCH COMPUTATION LOGIC ---
+      function computeBranchCloser(branch, filter) {
+        const mrng = branch.mrngRecords.filter(r => matchesActiveFilter(r, filter));
+        const inflow = branch.inflowRecords.filter(r => matchesActiveFilter(r, filter));
+        const current = branch.currentRecords.filter(r => matchesActiveFilter(r, filter));
+
+        const opening = mrng.length;
+        const inFlowCount = inflow.length;
+        const total = opening + inFlowCount;
+        const currentCount = current.length;
+        const closed = Math.max(0, total - currentCount);
+        const closerPct = inFlowCount > 0 ? (closed / inFlowCount * 100) : (closed > 0 ? 100 : 0);
+
+        // Product Breakdown per branch (for expandable drilldown)
+        const prodKeys = ['AC', 'REF', 'WM', 'AV', 'Others'];
+        const prodBreakdown = {};
+        prodKeys.forEach(k => {
+          const mCount = mrng.filter(r => isIH_PS(r.svcType) && r.product === k).length;
+          const iCount = inflow.filter(r => isIH_PS(r.svcType) && r.product === k).length;
+          const cCount = current.filter(r => isIH_PS(r.svcType) && r.product === k).length;
+          const t = mCount + iCount;
+          const cl = Math.max(0, t - cCount);
+          const pct = iCount > 0 ? (cl / iCount * 100) : (cl > 0 ? 100 : 0);
+          prodBreakdown[k] = { opening: mCount, inflow: iCount, total: t, closed: cl, current: cCount, closerPct: pct };
+        });
+
+        // IIDM - AC
+        const iidmAcM = mrng.filter(r => isIIDM_DM(r.svcType) && r.product === 'AC').length;
+        const iidmAcI = inflow.filter(r => isIIDM_DM(r.svcType) && r.product === 'AC').length;
+        const iidmAcC = current.filter(r => isIIDM_DM(r.svcType) && r.product === 'AC').length;
+        const iidmAcT = iidmAcM + iidmAcI;
+        const iidmAcCl = Math.max(0, iidmAcT - iidmAcC);
+        const iidmAcPct = iidmAcI > 0 ? (iidmAcCl / iidmAcI * 100) : (iidmAcCl > 0 ? 100 : 0);
+        prodBreakdown['IIDM - AC'] = { opening: iidmAcM, inflow: iidmAcI, total: iidmAcT, closed: iidmAcCl, current: iidmAcC, closerPct: iidmAcPct };
+
+        // IIDM NON AC
+        const iidmNonM = mrng.filter(r => isIIDM_DM(r.svcType) && r.product !== 'AC').length;
+        const iidmNonI = inflow.filter(r => isIIDM_DM(r.svcType) && r.product !== 'AC').length;
+        const iidmNonC = current.filter(r => isIIDM_DM(r.svcType) && r.product !== 'AC').length;
+        const iidmNonT = iidmNonM + iidmNonI;
+        const iidmNonCl = Math.max(0, iidmNonT - iidmNonC);
+        const iidmNonPct = iidmNonI > 0 ? (iidmNonCl / iidmNonI * 100) : (iidmNonCl > 0 ? 100 : 0);
+        prodBreakdown['IIDM NON AC'] = { opening: iidmNonM, inflow: iidmNonI, total: iidmNonT, closed: iidmNonCl, current: iidmNonC, closerPct: iidmNonPct };
+
+        // AC-CC (Customer Care)
+        const ccM = mrng.filter(r => isOthers(r.svcType, r.product)).length;
+        const ccI = inflow.filter(r => isOthers(r.svcType, r.product)).length;
+        const ccC = current.filter(r => isOthers(r.svcType, r.product)).length;
+        const ccT = ccM + ccI;
+        const ccCl = Math.max(0, ccT - ccC);
+        const ccPct = ccI > 0 ? (ccCl / ccI * 100) : (ccCl > 0 ? 100 : 0);
+        prodBreakdown['AC-CC'] = { opening: ccM, inflow: ccI, total: ccT, closed: ccCl, current: ccC, closerPct: ccPct };
+
+        return {
+          branch,
+          opening,
+          inflow: inFlowCount,
+          total,
+          closed,
+          current: currentCount,
+          closerPct,
+          prodBreakdown
+        };
+      }
+
+      function computeOverallCloser(filter) {
+        let totalOpening = 0, totalInflow = 0, totalWorkload = 0, totalClosed = 0, totalCurrent = 0;
+        const branchResults = appState.branches.map(b => {
+          const res = computeBranchCloser(b, filter);
+          totalOpening += res.opening;
+          totalInflow += res.inflow;
+          totalWorkload += res.total;
+          totalClosed += res.closed;
+          totalCurrent += res.current;
+          return res;
+        });
+
+        const overallCloserPct = totalInflow > 0 ? (totalClosed / totalInflow * 100) : (totalClosed > 0 ? 100 : 0);
+
+        return {
+          branchResults,
+          overall: {
+            opening: totalOpening,
+            inflow: totalInflow,
+            total: totalWorkload,
+            closed: totalClosed,
+            current: totalCurrent,
+            closerPct: overallCloserPct
+          }
+        };
+      }
+
+      function getEffectiveReportDate() {
+        const input = document.getElementById('customReportDate');
+        if (input && input.value && input.value.trim()) {
+          return input.value.trim();
+        }
+        return new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+      }
+
+      function renderCloserPctBadge(pct) {
+        if (pct === 0) {
+          return `<span style="display:inline-block; padding:2px 8px; font-weight:800; font-size:12px; background-color:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:4px;">0%</span>`;
+        }
+        let bg = '#dcfce7', text = '#166534', border = '#86efac';
+        if (pct < 75) { bg = '#fee2e2'; text = '#991b1b'; border = '#fca5a5'; }
+        else if (pct < 100) { bg = '#fef3c7'; text = '#92400e'; border = '#fde047'; }
+        return `<span style="display:inline-block; padding:2px 8px; font-weight:800; font-size:12px; background-color:${bg}; color:${text}; border:1px solid ${border}; border-radius:4px;">${pct.toFixed(1)}%</span>`;
+      }
+
+      // --- RENDERING VIEWS ---
+      function renderActiveBranchChips() {
+        const container = document.getElementById('branchChipsContainer');
+        const badgeCount = document.getElementById('badgeActiveBranchCount');
+        if (!container) return;
+
+        if (badgeCount) {
+          badgeCount.textContent = `${appState.branches.length} Branches Added`;
+        }
+
+        if (appState.branches.length === 0) {
+          container.innerHTML = `<span class="text-xs text-slate-400 italic">No branches added yet. Click "+ ADD BRANCH / SVC" or "Load Demo Branches" to begin.</span>`;
+          return;
+        }
+
+        container.innerHTML = appState.branches.map(b => {
+          const totCalls = b.mrngRecords.length + b.inflowRecords.length + b.currentRecords.length;
+          return `
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white shadow-sm text-xs">
+              <span class="w-2 h-2 rounded-full ${totCalls > 0 ? 'bg-emerald-500' : 'bg-slate-300'}"></span>
+              <span class="font-bold text-slate-800">${b.name}</span>
+              <span class="text-[11px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">${b.code}</span>
+              <span class="text-[11px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">${totCalls} Calls</span>
+              <div class="flex items-center gap-1 border-l border-slate-200 pl-1.5 ml-0.5">
+                <button onclick="editBranch('${b.id}')" class="p-1 hover:text-blue-600 text-slate-400 transition" title="Edit branch data">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                </button>
+                <button onclick="deleteBranch('${b.id}')" class="p-1 hover:text-rose-600 text-slate-400 transition" title="Remove branch">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderReport() {
+        const renderArea = document.getElementById('closerReportRenderArea');
+        if (!renderArea) return;
+
+        const dateStr = getEffectiveReportDate();
+        const data = computeOverallCloser(appState.activeFilter);
+
+        // Update KPIs
+        document.getElementById('kpiMrngTotal').textContent = data.overall.opening;
+        document.getElementById('kpiInflowTotal').textContent = data.overall.inflow;
+        document.getElementById('kpiWorkloadTotal').textContent = data.overall.total;
+        document.getElementById('kpiClosedTotal').textContent = data.overall.closed;
+        document.getElementById('kpiCurrentTotal').textContent = data.overall.current;
+        document.getElementById('kpiCloserRate').textContent = `${data.overall.closerPct.toFixed(1)}%`;
+
+        // Update active filter label
+        const filterNames = {
+          all: 'All Service Types',
+          ih_ps: 'IH + PS (In-Home & Pick-Up Service)',
+          iidm_dm: 'IIDM + DM (Initial Installation & Demo)',
+          others: 'Others (Customer Care / CC)'
+        };
+        const filterEl = document.getElementById('filterStatusIndicator');
+        if (filterEl) filterEl.textContent = `Showing: ${filterNames[appState.activeFilter] || 'All'}`;
+
+        if (appState.branches.length === 0) {
+          renderArea.innerHTML = `
+            <div class="py-16 text-center text-slate-400 text-xs italic">
+              No service centers loaded yet. Click <button onclick="openAddBranchModal()" class="text-[#0f2e59] font-bold underline hover:text-blue-900">+ ADD BRANCH / SVC</button> or click <button onclick="loadSampleMultiBranchData()" class="text-blue-600 font-bold underline hover:text-blue-800">Load Demo Branches</button> to test.
+            </div>
+          `;
+          return;
+        }
+
+        const branchRowsHtml = data.branchResults.map((r, idx) => {
+          const b = r.branch;
+          return `
+            <tr class="border-b border-slate-200 hover:bg-slate-50/80 transition text-xs cursor-pointer group" onclick="toggleBranchRowDetails('details_${b.id}')">
+              <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
+              <td class="p-3 font-extrabold text-slate-900 flex items-center gap-2">
+                <span class="w-4 h-4 rounded text-slate-400 group-hover:text-blue-600 transition flex items-center justify-center font-mono font-bold text-[11px]" id="icon_details_${b.id}">+</span>
+                <span>${b.name}</span>
+                <span class="text-[10px] font-semibold text-slate-400 font-normal">(${b.region || 'India'})</span>
+              </td>
+              <td class="p-3 font-mono font-bold text-slate-600 text-center">${b.code}</td>
+              <td class="p-3 text-center font-bold text-slate-800 tabular-nums">${r.opening}</td>
+              <td class="p-3 text-center font-bold text-slate-800 tabular-nums">${r.inflow}</td>
+              <td class="p-3 text-center font-bold text-slate-900 bg-slate-50/50 tabular-nums">${r.total}</td>
+              <td class="p-3 text-center font-bold text-emerald-700 bg-emerald-50/30 tabular-nums">${r.closed}</td>
+              <td class="p-3 text-center font-bold text-rose-700 bg-rose-50/30 tabular-nums">${r.current}</td>
+              <td class="p-3 text-center">${renderCloserPctBadge(r.closerPct)}</td>
+              <td class="p-3 text-center no-print" onclick="event.stopPropagation()">
+                <div class="flex items-center justify-center gap-1.5">
+                  <button onclick="editBranch('${b.id}')" class="px-2 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-800 rounded transition shadow-sm">
+                    Upload
+                  </button>
+                  <button onclick="deleteBranch('${b.id}')" class="px-2 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 rounded transition shadow-sm">
+                    Remove
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Expandable Product Drilldown for Branch -->
+            <tr id="details_${b.id}" class="hidden bg-slate-50/60 border-b border-slate-300">
+              <td colspan="10" class="p-4">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-inner p-3 space-y-2">
+                  <div class="flex items-center justify-between text-xs pb-1.5 border-b border-slate-100">
+                    <span class="font-extrabold text-[#0f2e59]">Product Breakdown for ${b.name} (${b.code})</span>
+                    <span class="text-[11px] text-slate-400">Filter applied: ${filterNames[appState.activeFilter]}</span>
+                  </div>
+                  <table class="w-full text-xs text-center border-collapse">
+                    <thead>
+                      <tr class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 text-[11px]">
+                        <th class="p-1.5 text-left pl-3">Product Category</th>
+                        <th class="p-1.5">Opening</th>
+                        <th class="p-1.5">Inflow</th>
+                        <th class="p-1.5">Total</th>
+                        <th class="p-1.5">Closed</th>
+                        <th class="p-1.5">Current</th>
+                        <th class="p-1.5">Closer %</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${Object.keys(r.prodBreakdown).map(prodKey => {
+                        const pData = r.prodBreakdown[prodKey];
+                        const isIidm = prodKey.includes('IIDM');
+                        const isCc = prodKey.includes('CC');
+                        const rowStyle = isIidm ? 'bg-amber-50/50' : (isCc ? 'bg-indigo-50/50' : '');
+                        return `
+                          <tr class="border-b border-slate-100 hover:bg-slate-50 ${rowStyle}">
+                            <td class="p-1.5 text-left pl-3 font-semibold text-slate-800">${prodKey}</td>
+                            <td class="p-1.5 tabular-nums text-slate-700">${pData.opening}</td>
+                            <td class="p-1.5 tabular-nums text-slate-700">${pData.inflow}</td>
+                            <td class="p-1.5 tabular-nums font-bold text-slate-900">${pData.total}</td>
+                            <td class="p-1.5 tabular-nums font-bold text-emerald-700">${pData.closed}</td>
+                            <td class="p-1.5 tabular-nums font-bold text-rose-700">${pData.current}</td>
+                            <td class="p-1.5">${renderCloserPctBadge(pData.closerPct)}</td>
+                          </tr>
+                        `;
+                      }).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        renderArea.innerHTML = `
+          <div class="p-4 bg-white">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-300 gap-2">
+              <div>
+                <h3 class="text-sm font-black text-[#0f2e59] uppercase font-outfit">
+                  Daily Multiple Branches Closer Tracking Report
+                </h3>
+                <p class="text-[11px] text-slate-500">Service Center Multi-Branch Operations • Date: <span class="font-bold text-slate-800">${dateStr}</span></p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold text-slate-700">Formula: Closer % = (Closed ÷ Inflow) × 100</span>
+              </div>
+            </div>
+
+            <table class="w-full text-left border-collapse border border-slate-300 mt-3" id="consolidatedCloserHtmlTable">
+              <thead>
+                <tr class="bg-[#123769] text-white text-[12px] uppercase font-black tracking-wider">
+                  <th class="p-3 text-center border-r border-blue-900 w-12">#</th>
+                  <th class="p-3 border-r border-blue-900">Branch Name</th>
+                  <th class="p-3 text-center border-r border-blue-900 w-24">SVC Code</th>
+                  <th class="p-3 text-center border-r border-blue-900 w-24">Opening</th>
+                  <th class="p-3 text-center border-r border-blue-900 w-24">Inflow</th>
+                  <th class="p-3 text-center border-r border-blue-900 w-24">Total</th>
+                  <th class="p-3 text-center border-r border-blue-900 w-24">Closed</th>
+                  <th class="p-3 text-center border-r border-blue-900 w-24">Current</th>
+                  <th class="p-3 text-center border-r border-blue-900 w-28">Closer %</th>
+                  <th class="p-3 text-center w-28 no-print">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${branchRowsHtml}
+
+                <!-- OVERALL CONSOLIDATED TOTAL ROW -->
+                <tr class="bg-slate-200/90 font-black text-xs text-slate-900 border-t-2 border-b-2 border-slate-400">
+                  <td class="p-3 text-center" colspan="3">CONSOLIDATED OVERALL TOTAL (${data.branchResults.length} BRANCHES)</td>
+                  <td class="p-3 text-center tabular-nums text-slate-900 font-black">${data.overall.opening}</td>
+                  <td class="p-3 text-center tabular-nums text-slate-900 font-black">${data.overall.inflow}</td>
+                  <td class="p-3 text-center tabular-nums text-[#0f2e59] font-black">${data.overall.total}</td>
+                  <td class="p-3 text-center tabular-nums text-emerald-800 font-black">${data.overall.closed}</td>
+                  <td class="p-3 text-center tabular-nums text-rose-800 font-black">${data.overall.current}</td>
+                  <td class="p-3 text-center font-black">${renderCloserPctBadge(data.overall.closerPct)}</td>
+                  <td class="p-3 text-center no-print"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      window.toggleBranchRowDetails = function (detailsRowId) {
+        const row = document.getElementById(detailsRowId);
+        const icon = document.getElementById('icon_' + detailsRowId);
+        if (!row) return;
+        const isHidden = row.classList.contains('hidden');
+        if (isHidden) {
+          row.classList.remove('hidden');
+          if (icon) icon.textContent = '−';
+        } else {
+          row.classList.add('hidden');
+          if (icon) icon.textContent = '+';
+        }
+      };
+
+      // --- MODAL & BRANCH SETUP CONTROLS ---
+      function initBranchSelectorOptions() {
+        const select = document.getElementById('modalBranchSelect');
+        if (!select) return;
+
+        select.innerHTML = '';
+        const branches = window.GSPN_BRANCHES || (window.GSPN_CONTEXT && window.GSPN_CONTEXT.BRANCHES) || [
+          { name: 'Gurgaon', code: '9225951', region: 'North 1' },
+          { name: 'Ghaziabad', code: '4915414', region: 'North 1' },
+          { name: 'Ahmedabad', code: '4917449', region: 'West 2' },
+          { name: 'Surat', code: '4936933', region: 'West 2' },
+          { name: 'Gandhinagar', code: '6451772', region: 'West 2' },
+          { name: 'Cochin', code: '6458704', region: 'South 2' },
+          { name: 'Lucknow', code: '8200354', region: 'North 1' },
+          { name: 'Lucknow-HHP', code: '3871175', region: 'North 1' },
+          { name: 'Moradabad-HHP', code: '4776004', region: 'North 1' }
+        ];
+
+        branches.forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = b.name;
+          opt.dataset.code = b.code || b.mscCode;
+          opt.dataset.region = b.region || 'India';
+          opt.textContent = `${b.name} (${b.code || b.mscCode})`;
+          select.appendChild(opt);
+        });
+
+        const customOpt = document.createElement('option');
+        customOpt.value = 'Custom';
+        customOpt.textContent = 'Custom Branch...';
+        select.appendChild(customOpt);
+
+        select.addEventListener('change', () => {
+          const customInput = document.getElementById('modalCustomBranchNameInput');
+          const codeInput = document.getElementById('modalBranchCodeInput');
+          if (select.value === 'Custom') {
+            if (customInput) customInput.classList.remove('hidden');
+            if (codeInput) codeInput.value = '';
+          } else {
+            if (customInput) customInput.classList.add('hidden');
+            const selectedOpt = select.options[select.selectedIndex];
+            if (codeInput && selectedOpt) {
+              codeInput.value = selectedOpt.dataset.code || '';
+            }
+          }
+        });
+
+        // Set initial
+        if (select.options.length > 0) {
+          const codeInput = document.getElementById('modalBranchCodeInput');
+          if (codeInput) codeInput.value = select.options[0].dataset.code || '';
+        }
+      }
+
+      function openAddBranchModal(existingBranchId = null) {
+        const modal = document.getElementById('addBranchModal');
+        if (!modal) return;
+
+        const select = document.getElementById('modalBranchSelect');
+        const customInput = document.getElementById('modalCustomBranchNameInput');
+        const codeInput = document.getElementById('modalBranchCodeInput');
+
+        if (existingBranchId) {
+          const branch = appState.branches.find(b => b.id === existingBranchId);
+          if (branch) {
+            appState.modalBranchId = branch.id;
+            appState.tempSlotRecords = {
+              mrng: [...branch.mrngRecords],
+              inflow: [...branch.inflowRecords],
+              current: [...branch.currentRecords]
+            };
+
+            // Select in dropdown or set custom
+            let found = false;
+            if (select) {
+              for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value.toLowerCase() === branch.name.toLowerCase()) {
+                  select.selectedIndex = i;
+                  found = true;
+                  break;
+                }
+              }
+            }
+            if (!found && select) {
+              select.value = 'Custom';
+              if (customInput) {
+                customInput.classList.remove('hidden');
+                customInput.value = branch.name;
+              }
+            } else if (customInput) {
+              customInput.classList.add('hidden');
+            }
+            if (codeInput) codeInput.value = branch.code;
+          }
+        } else {
+          appState.modalBranchId = null;
+          appState.tempSlotRecords = { mrng: [], inflow: [], current: [] };
+          if (select && select.options.length > 0) {
+            select.selectedIndex = 0;
+            if (customInput) customInput.classList.add('hidden');
+            if (codeInput) codeInput.value = select.options[0].dataset.code || '';
+          }
+        }
+
+        switchModalSlot('mrng');
+        switchDatasetTab('upload');
+        updateModalSlotOverviewBadges();
+
+        modal.classList.remove('hidden');
+      }
+      window.openAddBranchModal = openAddBranchModal;
+
+      function closeAddBranchModal() {
+        const modal = document.getElementById('addBranchModal');
+        if (modal) modal.classList.add('hidden');
+      }
+      window.closeAddBranchModal = closeAddBranchModal;
+
+      function switchModalSlot(slot) {
+        appState.modalActiveSlot = slot;
+        const btnM = document.getElementById('modalSlotBtnMrng');
+        const btnI = document.getElementById('modalSlotBtnInflow');
+        const btnC = document.getElementById('modalSlotBtnCurrent');
+        const activeLabel = document.getElementById('modalActiveSlotLabel');
+
+        const activeClass = 'px-3 py-1 rounded-md text-xs font-bold bg-white text-slate-900 shadow-sm transition';
+        const inactiveClass = 'px-3 py-1 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition';
+
+        if (btnM) btnM.className = slot === 'mrng' ? activeClass : inactiveClass;
+        if (btnI) btnI.className = slot === 'inflow' ? activeClass : inactiveClass;
+        if (btnC) btnC.className = slot === 'current' ? activeClass : inactiveClass;
+
+        const slotTitles = {
+          mrng: 'Active Slot: 1st Morning Open Backlog',
+          inflow: 'Active Slot: 2nd Today Inflow (Flow Calls)',
+          current: 'Active Slot: 3rd Current Open Backlog'
+        };
+        if (activeLabel) activeLabel.textContent = slotTitles[slot] || 'Active Slot';
+
+        // Clear modal paste/file input state for this slot
+        const fStatus = document.getElementById('modalFileStatus');
+        if (fStatus) fStatus.classList.add('hidden');
+        const pStatus = document.getElementById('modalPasteStatus');
+        if (pStatus) pStatus.classList.add('hidden');
+        const tx = document.getElementById('modalPasteTextarea');
+        if (tx) tx.value = '';
+
+        updateModalSlotOverviewBadges();
+      }
+      window.switchModalSlot = switchModalSlot;
+
+      function switchDatasetTab(tab) {
+        appState.modalActiveTab = tab;
+        const btnUpload = document.getElementById('tabBtnUpload');
+        const btnPaste = document.getElementById('tabBtnPaste');
+        const panelUpload = document.getElementById('tabPanelUpload');
+        const panelPaste = document.getElementById('tabPanelPaste');
+
+        if (tab === 'upload') {
+          if (btnUpload) btnUpload.className = 'px-4 py-2.5 border-b-2 border-[#0f2e59] font-bold text-[#0f2e59] text-xs transition flex items-center gap-1.5';
+          if (btnPaste) btnPaste.className = 'px-4 py-2.5 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-800 text-xs transition flex items-center gap-1.5';
+          if (panelUpload) panelUpload.classList.remove('hidden');
+          if (panelPaste) panelPaste.classList.add('hidden');
+        } else {
+          if (btnUpload) btnUpload.className = 'px-4 py-2.5 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-800 text-xs transition flex items-center gap-1.5';
+          if (btnPaste) btnPaste.className = 'px-4 py-2.5 border-b-2 border-b-2 border-[#0f2e59] font-bold text-[#0f2e59] text-xs transition flex items-center gap-1.5';
+          if (panelUpload) panelUpload.classList.add('hidden');
+          if (panelPaste) panelPaste.classList.remove('hidden');
+        }
+      }
+      window.switchDatasetTab = switchDatasetTab;
+
+      function updateModalSlotOverviewBadges() {
+        const bM = document.getElementById('badgeSlotMrngCount');
+        const bI = document.getElementById('badgeSlotInflowCount');
+        const bC = document.getElementById('badgeSlotCurrentCount');
+        if (bM) bM.textContent = `${appState.tempSlotRecords.mrng.length} Calls`;
+        if (bI) bI.textContent = `${appState.tempSlotRecords.inflow.length} Calls`;
+        if (bC) bC.textContent = `${appState.tempSlotRecords.current.length} Calls`;
+      }
+
+      function clearCurrentModalSlot() {
+        const slot = appState.modalActiveSlot;
+        appState.tempSlotRecords[slot] = [];
+        updateModalSlotOverviewBadges();
+        showToast(`Cleared ${slot.toUpperCase()} slot for this branch.`);
+      }
+      window.clearCurrentModalSlot = clearCurrentModalSlot;
+
+      // --- SPREADSHEET FILE HANDLING ---
+      function handleModalFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            const tsvText = XLSX.utils.sheet_to_txt(worksheet);
+            let parsed = parseGspnLines(tsvText);
+
+            if (parsed.length === 0) {
+              const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+              if (rawRows && rawRows.length > 0) {
+                const textJoined = rawRows.map(r => Array.isArray(r) ? r.join('\t') : String(r)).join('\n');
+                parsed = parseGspnLines(textJoined);
+              }
+            }
+
+            if (parsed.length > 0) {
+              appState.tempSlotRecords[appState.modalActiveSlot] = parsed;
+              updateModalSlotOverviewBadges();
+
+              const fStatus = document.getElementById('modalFileStatus');
+              const fName = document.getElementById('modalFileName');
+              const fCount = document.getElementById('modalFileCount');
+              if (fStatus && fName && fCount) {
+                fName.textContent = file.name;
+                fCount.textContent = `${parsed.length} Calls Parsed`;
+                fStatus.classList.remove('hidden');
+              }
+              showToast(`Parsed ${parsed.length} calls from ${file.name} into ${appState.modalActiveSlot.toUpperCase()} slot!`);
+            } else {
+              showToast('No recognizable service orders found in spreadsheet.', 'warning');
+            }
+          } catch (err) {
+            console.error(err);
+            showToast('Error reading spreadsheet file: ' + err.message, 'error');
+          }
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      // --- TEXT PASTE HANDLING ---
+      function handleModalPasteText() {
+        const textarea = document.getElementById('modalPasteTextarea');
+        if (!textarea) return;
+        const text = textarea.value.trim();
+        if (!text) {
+          showToast('Please paste table rows first.', 'warning');
+          return;
+        }
+
+        const parsed = parseGspnLines(text);
+        if (parsed.length > 0) {
+          appState.tempSlotRecords[appState.modalActiveSlot] = parsed;
+          updateModalSlotOverviewBadges();
+
+          const pStatus = document.getElementById('modalPasteStatus');
+          const pCount = document.getElementById('modalPasteCount');
+          if (pStatus && pCount) {
+            pCount.textContent = `${parsed.length} Calls Parsed`;
+            pStatus.classList.remove('hidden');
+          }
+          showToast(`Successfully parsed ${parsed.length} calls into ${appState.modalActiveSlot.toUpperCase()} slot!`);
+        } else {
+          showToast('Could not find recognizable service calls in pasted text.', 'warning');
+        }
+      }
+
+      // --- SAVE BRANCH TO APP STATE ---
+      function saveBranchData() {
+        const select = document.getElementById('modalBranchSelect');
+        const customInput = document.getElementById('modalCustomBranchNameInput');
+        const codeInput = document.getElementById('modalBranchCodeInput');
+
+        let bName = select ? select.value : 'Branch';
+        if (bName === 'Custom' && customInput && customInput.value.trim()) {
+          bName = customInput.value.trim();
+        }
+        let bCode = codeInput ? codeInput.value.trim() : '0000000';
+        if (!bCode) bCode = '0000000';
+
+        // Check if paste textarea has unparsed text
+        const tx = document.getElementById('modalPasteTextarea');
+        if (tx && tx.value.trim() && appState.tempSlotRecords[appState.modalActiveSlot].length === 0) {
+          handleModalPasteText();
+        }
+
+        const bId = appState.modalBranchId || bName.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
+        const existingIdx = appState.branches.findIndex(b => b.id === bId);
+
+        const newBranchObj = {
+          id: bId,
+          name: bName,
+          code: bCode,
+          region: select && select.options[select.selectedIndex] ? (select.options[select.selectedIndex].dataset.region || 'India') : 'India',
+          mrngRecords: [...appState.tempSlotRecords.mrng],
+          inflowRecords: [...appState.tempSlotRecords.inflow],
+          currentRecords: [...appState.tempSlotRecords.current]
+        };
+
+        if (existingIdx !== -1) {
+          appState.branches[existingIdx] = newBranchObj;
+          showToast(`Updated branch ${bName} (${bCode})!`);
+        } else {
+          appState.branches.push(newBranchObj);
+          showToast(`Added branch ${bName} (${bCode})!`);
+        }
+
+        renderActiveBranchChips();
+        renderReport();
+        closeAddBranchModal();
+      }
+
+      window.editBranch = function (bId) {
+        openAddBranchModal(bId);
+      };
+
+      window.deleteBranch = function (bId) {
+        const idx = appState.branches.findIndex(b => b.id === bId);
+        if (idx !== -1) {
+          const name = appState.branches[idx].name;
+          appState.branches.splice(idx, 1);
+          renderActiveBranchChips();
+          renderReport();
+          showToast(`Removed branch ${name}.`);
+        }
+      };
+
+      // --- DEMO SAMPLE GENERATOR FOR MULTIPLE BRANCHES ---
+      function loadSampleMultiBranchData() {
+        const demoTel = '9876543210';
+        const demoAddr = 'Demo Service Address, Sector 18';
+
+        function makeCall(bName, bCode, num, so, prod, model, sType, wty, date, status, reason) {
+          return {
+            no: num,
+            callNo: String(so),
+            serviceOrderNo: String(so),
+            ascJobNo: String(so),
+            product: prod,
+            model: model,
+            serialNo: 'SN' + so,
+            warrantyStatus: wty,
+            warrantyCode: wty.toLowerCase().includes('in') ? 'IW' : 'OW',
+            svcType: sType,
+            serviceType: sType,
+            createdDate: date,
+            assignedDate: date,
+            assignedTime: '10:00:00',
+            aging: '1',
+            tatBucket: '0–2 Days',
+            customerName: 'Demo Customer ' + num,
+            city: bName,
+            appDate: date,
+            appTime: '12:00:00',
+            status: status,
+            reason: reason,
+            subReason: reason,
+            b2b: 'N',
+            riskReason: 'None',
+            engineer: 'Demo Engineer',
+            mobile: demoTel,
+            address: demoAddr,
+            branchName: bName,
+            svcCode: bCode
+          };
+        }
+
+        // Branch 1: Gurgaon (9225951)
+        const bGurgaon = {
+          id: 'gurgaon',
+          name: 'Gurgaon',
+          code: '9225951',
+          region: 'North 1',
+          mrngRecords: [
+            makeCall('Gurgaon', '9225951', 1, '444101001', 'AC', 'AR18CY3APWK', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Part Pending'),
+            makeCall('Gurgaon', '9225951', 2, '444101002', 'REF', 'RT28T3453S9', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Appointment Date is set'),
+            makeCall('Gurgaon', '9225951', 3, '444101003', 'WM', 'WW60R20GLMA', 'IN-HOME', 'Out of Warranty', '09.10.2026', 'Pending', 'Repair in progress'),
+            makeCall('Gurgaon', '9225951', 4, '444101004', 'AV', 'UA55AUE60AK', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Panel Pending'),
+            makeCall('Gurgaon', '9225951', 5, '444101005', 'Others', 'MC28M6055CK', 'IN-HOME', 'Out of Warranty', '09.10.2026', 'Pending', 'Repair in progress'),
+            makeCall('Gurgaon', '9225951', 6, '444101006', 'AC', 'AR12TY5APWK', 'Initial Installation', 'In Warranty', '09.10.2026', 'Pending', 'Installation Pending'),
+            makeCall('Gurgaon', '9225951', 7, '444101007', 'WM', 'WW12DB8B54GB', 'Initial Installation', 'In Warranty', '09.10.2026', 'Pending', 'Installation Pending'),
+            makeCall('Gurgaon', '9225951', 8, '444101008', 'AC', 'AR18BY3ATWK', 'Customer Care', 'In Warranty', '09.10.2026', 'Pending', 'VOC Priority')
+          ],
+          inflowRecords: [
+            makeCall('Gurgaon', '9225951', 9, '444101009', 'REF', 'RT39M5538UT', 'IN-HOME', 'In Warranty', '10.10.2026', 'Engineer Assigned', 'Repair in progress'),
+            makeCall('Gurgaon', '9225951', 10, '444101010', 'WM', 'WT85B4200GD', 'IN-HOME', 'In Warranty', '10.10.2026', 'Engineer Assigned', 'Repair in progress'),
+            makeCall('Gurgaon', '9225951', 11, '444101011', 'AC', 'AR18CY3APWK', 'Initial Installation', 'In Warranty', '10.10.2026', 'Engineer Assigned', 'Installation Done'),
+            makeCall('Gurgaon', '9225951', 12, '444101012', 'AC', 'AR18CY3APWK', 'Customer Care', 'In Warranty', '10.10.2026', 'Pending', 'VOC Priority')
+          ],
+          currentRecords: [
+            makeCall('Gurgaon', '9225951', 1, '444101001', 'AC', 'AR18CY3APWK', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Part Pending'),
+            makeCall('Gurgaon', '9225951', 4, '444101004', 'AV', 'UA55AUE60AK', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Panel Pending'),
+            makeCall('Gurgaon', '9225951', 6, '444101006', 'AC', 'AR12TY5APWK', 'Initial Installation', 'In Warranty', '09.10.2026', 'Pending', 'Installation Pending')
+          ]
+        };
+
+        // Branch 2: Ghaziabad (4915414)
+        const bGhaziabad = {
+          id: 'ghaziabad',
+          name: 'Ghaziabad',
+          code: '4915414',
+          region: 'North 1',
+          mrngRecords: [
+            makeCall('Ghaziabad', '4915414', 1, '444201001', 'AC', 'AR18CY3APWK', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Repair in progress'),
+            makeCall('Ghaziabad', '4915414', 2, '444201002', 'REF', 'RT28T3453S9', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Part Pending'),
+            makeCall('Ghaziabad', '4915414', 3, '444201003', 'WM', 'WA65A4002VS', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Repair in progress'),
+            makeCall('Ghaziabad', '4915414', 4, '444201004', 'AV', 'UA43AUE60AK', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Repair in progress'),
+            makeCall('Ghaziabad', '4915414', 5, '444201005', 'REF', 'RT34T4513S8', 'Initial Installation', 'In Warranty', '09.10.2026', 'Pending', 'Installation Pending'),
+            makeCall('Ghaziabad', '4915414', 6, '444201006', 'AC', 'AR18CY3APWK', 'Customer Care', 'In Warranty', '09.10.2026', 'Pending', 'VOC Priority')
+          ],
+          inflowRecords: [
+            makeCall('Ghaziabad', '4915414', 7, '444201007', 'AC', 'AR18TY3APWK', 'IN-HOME', 'In Warranty', '10.10.2026', 'Engineer Assigned', 'Repair in progress'),
+            makeCall('Ghaziabad', '4915414', 8, '444201008', 'WM', 'WW70T4020CX', 'IN-HOME', 'In Warranty', '10.10.2026', 'Engineer Assigned', 'Repair in progress'),
+            makeCall('Ghaziabad', '4915414', 9, '444201009', 'AC', 'AR18CY3APWK', 'Initial Installation', 'In Warranty', '10.10.2026', 'Engineer Assigned', 'Installation Done')
+          ],
+          currentRecords: [
+            makeCall('Ghaziabad', '4915414', 2, '444201002', 'REF', 'RT28T3453S9', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Part Pending')
+          ]
+        };
+
+        // Branch 3: Ahmedabad (4917449)
+        const bAhmedabad = {
+          id: 'ahmedabad',
+          name: 'Ahmedabad',
+          code: '4917449',
+          region: 'West 2',
+          mrngRecords: [
+            makeCall('Ahmedabad', '4917449', 1, '444301001', 'AC', 'AR18CY3APWK', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Part Pending'),
+            makeCall('Ahmedabad', '4917449', 2, '444301002', 'REF', 'RT28T3453S9', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Appointment Date is set'),
+            makeCall('Ahmedabad', '4917449', 3, '444301003', 'WM', 'WW60R20GLMA', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Repair in progress'),
+            makeCall('Ahmedabad', '4917449', 4, '444301004', 'AC', 'AR18CY3APWK', 'Initial Installation', 'In Warranty', '09.10.2026', 'Pending', 'Installation Pending')
+          ],
+          inflowRecords: [
+            makeCall('Ahmedabad', '4917449', 5, '444301005', 'AV', 'UA55AUE60AK', 'IN-HOME', 'In Warranty', '10.10.2026', 'Engineer Assigned', 'Repair in progress'),
+            makeCall('Ahmedabad', '4917449', 6, '444301006', 'WM', 'WT85B4200GD', 'Initial Installation', 'In Warranty', '10.10.2026', 'Engineer Assigned', 'Installation Done')
+          ],
+          currentRecords: [
+            makeCall('Ahmedabad', '4917449', 1, '444301001', 'AC', 'AR18CY3APWK', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Part Pending'),
+            makeCall('Ahmedabad', '4917449', 4, '444301004', 'AC', 'AR18CY3APWK', 'Initial Installation', 'In Warranty', '09.10.2026', 'Pending', 'Installation Pending')
+          ]
+        };
+
+        // Branch 4: Cochin (6458704)
+        const bCochin = {
+          id: 'cochin',
+          name: 'Cochin',
+          code: '6458704',
+          region: 'South 2',
+          mrngRecords: [
+            makeCall('Cochin', '6458704', 1, '444401001', 'REF', 'RT39M5538UT', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Repair in progress'),
+            makeCall('Cochin', '6458704', 2, '444401002', 'WM', 'WW12DB8B54GB', 'IN-HOME', 'In Warranty', '09.10.2026', 'Pending', 'Repair in progress'),
+            makeCall('Cochin', '6458704', 3, '444401003', 'Others', 'MC28A5013AK', 'IN-HOME', 'Out of Warranty', '09.10.2026', 'Pending', 'Repair in progress'),
+            makeCall('Cochin', '6458704', 4, '444401004', 'AC', 'AR18CY3APWK', 'Initial Installation', 'In Warranty', '09.10.2026', 'Pending', 'Installation Pending')
+          ],
+          inflowRecords: [
+            makeCall('Cochin', '6458704', 5, '444401005', 'REF', 'RT28T3453S9', 'IN-HOME', 'In Warranty', '10.10.2026', 'Engineer Assigned', 'Repair in progress'),
+            makeCall('Cochin', '6458704', 6, '444401006', 'AC', 'AR18BY3ATWK', 'Customer Care', 'In Warranty', '10.10.2026', 'Pending', 'VOC Priority')
+          ],
+          currentRecords: [
+            makeCall('Cochin', '6458704', 4, '444401004', 'AC', 'AR18CY3APWK', 'Initial Installation', 'In Warranty', '09.10.2026', 'Pending', 'Installation Pending')
+          ]
+        };
+
+        appState.branches = [bGurgaon, bGhaziabad, bAhmedabad, bCochin];
+        renderActiveBranchChips();
+        renderReport();
+        showToast('Loaded realistic demo data across 4 branches (Gurgaon, Ghaziabad, Ahmedabad, Cochin)!');
+      }
+      window.loadSampleMultiBranchData = loadSampleMultiBranchData;
+
+      // --- EMAIL HTML COPY ENGINE ---
+      function copyCloserReportHtml() {
+        const table = document.getElementById('consolidatedCloserHtmlTable');
+        if (!table || appState.branches.length === 0) {
+          showToast('No branch data to copy.', 'warning');
+          return;
+        }
+
+        const dateStr = getEffectiveReportDate();
+        const data = computeOverallCloser(appState.activeFilter);
+        const filterNames = {
+          all: 'All Service Types',
+          ih_ps: 'IH + PS',
+          iidm_dm: 'IIDM + DM',
+          others: 'Others'
+        };
+
+        let html = `
+          <div style="font-family:'Segoe UI',Arial,sans-serif; font-size:13px; color:#1e293b; line-height:1.4;">
+            <div style="margin-bottom:12px;">
+              <h2 style="font-size:15px; font-weight:800; color:#0f2e59; margin:0 0 4px 0; text-transform:uppercase;">
+                DAILY MULTIPLE BRANCHES CLOSER REPORT (${filterNames[appState.activeFilter]})
+              </h2>
+              <div style="font-size:12px; color:#64748b;">
+                Date: <strong>${dateStr}</strong> • Active Branches: <strong>${appState.branches.length}</strong> • Formula: Closed = Total - Current • Closer % = (Closed ÷ Flow) × 100
+              </div>
+            </div>
+            <table style="width:100%; max-width:850px; border-collapse:collapse; border:1px solid #cbd5e1; font-size:12px; text-align:center;">
+              <thead>
+                <tr style="background-color:#0f2e59; color:#ffffff; font-weight:bold;">
+                  <th style="padding:8px 6px; border:1px solid #cbd5e1; width:35px;">#</th>
+                  <th style="padding:8px 10px; border:1px solid #cbd5e1; text-align:left;">Branch Name</th>
+                  <th style="padding:8px 6px; border:1px solid #cbd5e1;">SVC Code</th>
+                  <th style="padding:8px 6px; border:1px solid #cbd5e1;">Opening</th>
+                  <th style="padding:8px 6px; border:1px solid #cbd5e1;">Inflow</th>
+                  <th style="padding:8px 6px; border:1px solid #cbd5e1; background-color:#1e3a8a;">Total</th>
+                  <th style="padding:8px 6px; border:1px solid #cbd5e1; background-color:#065f46;">Closed</th>
+                  <th style="padding:8px 6px; border:1px solid #cbd5e1; background-color:#991b1b;">Current</th>
+                  <th style="padding:8px 6px; border:1px solid #cbd5e1; background-color:#0f172a;">Closer %</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        data.branchResults.forEach((r, idx) => {
+          const bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+          html += `
+            <tr style="background-color:${bg};">
+              <td style="padding:6px; border:1px solid #cbd5e1; color:#64748b;">${idx + 1}</td>
+              <td style="padding:6px 10px; border:1px solid #cbd5e1; text-align:left; font-weight:bold; color:#0f172a;">${r.branch.name}</td>
+              <td style="padding:6px; border:1px solid #cbd5e1; font-family:monospace; color:#475569;">${r.branch.code}</td>
+              <td style="padding:6px; border:1px solid #cbd5e1; font-weight:bold;">${r.opening}</td>
+              <td style="padding:6px; border:1px solid #cbd5e1; font-weight:bold;">${r.inflow}</td>
+              <td style="padding:6px; border:1px solid #cbd5e1; font-weight:bold; color:#1e3a8a; background-color:#eff6ff;">${r.total}</td>
+              <td style="padding:6px; border:1px solid #cbd5e1; font-weight:bold; color:#065f46; background-color:#ecfdf5;">${r.closed}</td>
+              <td style="padding:6px; border:1px solid #cbd5e1; font-weight:bold; color:#991b1b; background-color:#fef2f2;">${r.current}</td>
+              <td style="padding:6px; border:1px solid #cbd5e1; font-weight:bold;">${r.closerPct.toFixed(1)}%</td>
+            </tr>
+          `;
+        });
+
+        html += `
+                <tr style="background-color:#e2e8f0; font-weight:bold; border-top:2px solid #64748b;">
+                  <td colspan="3" style="padding:8px; border:1px solid #cbd5e1; text-align:center;">OVERALL CONSOLIDATED TOTAL</td>
+                  <td style="padding:8px; border:1px solid #cbd5e1;">${data.overall.opening}</td>
+                  <td style="padding:8px; border:1px solid #cbd5e1;">${data.overall.inflow}</td>
+                  <td style="padding:8px; border:1px solid #cbd5e1; color:#1e3a8a;">${data.overall.total}</td>
+                  <td style="padding:8px; border:1px solid #cbd5e1; color:#065f46;">${data.overall.closed}</td>
+                  <td style="padding:8px; border:1px solid #cbd5e1; color:#991b1b;">${data.overall.current}</td>
+                  <td style="padding:8px; border:1px solid #cbd5e1; color:#0f172a;">${data.overall.closerPct.toFixed(1)}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        if (navigator.clipboard && window.ClipboardItem) {
+          const blobHtml = new Blob([html], { type: 'text/html' });
+          const blobText = new Blob([table.innerText], { type: 'text/plain' });
+          navigator.clipboard.write([
+            new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })
+          ]).then(() => {
+            showToast('Copied formatted table to clipboard! Ready to paste into Outlook or Gmail.');
+          }).catch(() => fallbackCopy(html));
+        } else {
+          fallbackCopy(html);
+        }
+
+        function fallbackCopy(code) {
+          const el = document.createElement('div');
+          el.contentEditable = 'true';
+          el.innerHTML = code;
+          el.style.position = 'fixed';
+          el.style.left = '-9999px';
+          document.body.appendChild(el);
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          document.execCommand('copy');
+          document.body.removeChild(el);
+          showToast('Copied report HTML to clipboard!');
+        }
+      }
+
+      // --- EXCEL EXPORT ENGINE (5 SHEETS) ---
+      function exportMultiBranchExcel() {
+        if (appState.branches.length === 0) {
+          showToast('No branch data to export.', 'warning');
+          return;
+        }
+
+        const dateStr = getEffectiveReportDate();
+        const fileDate = dateStr.replace(/\./g, '');
+        const data = computeOverallCloser(appState.activeFilter);
+
+        // Gather all calls across branches
+        const allMrngCalls = [];
+        const allInflowCalls = [];
+        const allCurrentCalls = [];
+        const allClosedCalls = [];
+
+        appState.branches.forEach(b => {
+          const bMrng = b.mrngRecords.filter(r => matchesActiveFilter(r, appState.activeFilter));
+          const bInflow = b.inflowRecords.filter(r => matchesActiveFilter(r, appState.activeFilter));
+          const bCurrent = b.currentRecords.filter(r => matchesActiveFilter(r, appState.activeFilter));
+
+          allMrngCalls.push(...bMrng);
+          allInflowCalls.push(...bInflow);
+          allCurrentCalls.push(...bCurrent);
+
+          // Closed calls = (Morning + Inflow) that are NOT in Current
+          const curSet = new Set(bCurrent.map(r => cleanSO(r.serviceOrderNo || r.callNo)));
+          const combined = [...bMrng, ...bInflow];
+          const seen = new Set();
+          combined.forEach(r => {
+            const so = cleanSO(r.serviceOrderNo || r.callNo);
+            if (!curSet.has(so) && !seen.has(so)) {
+              seen.add(so);
+              allClosedCalls.push(r);
+            }
+          });
+        });
+
+        // 24 Standard Column Specifications
+        const rawColDefs = [
+          { header: 'No', key: 'no', width: 6 },
+          { header: 'Branch Name', key: 'branchName', width: 14 },
+          { header: 'Service Order No', key: 'serviceOrderNo', width: 16 },
+          { header: 'ASC Job No', key: 'ascJobNo', width: 16 },
+          { header: 'Model', key: 'model', width: 16 },
+          { header: 'Serial No', key: 'serialNo', width: 18 },
+          { header: 'Product Category', key: 'product', width: 16 },
+          { header: 'Warranty Status', key: 'warrantyStatus', width: 15 },
+          { header: 'Warranty Code', key: 'warrantyCode', width: 14 },
+          { header: 'Service Type', key: 'serviceType', width: 18 },
+          { header: 'Created Date', key: 'createdDate', width: 13 },
+          { header: 'Assigned Date', key: 'assignedDate', width: 13 },
+          { header: 'Assigned Time', key: 'assignedTime', width: 13 },
+          { header: 'Aging (Days)', key: 'aging', width: 12 },
+          { header: 'TAT Bucket', key: 'tatBucket', width: 14 },
+          { header: 'Customer Name', key: 'customerName', width: 18 },
+          { header: 'City', key: 'city', width: 14 },
+          { header: 'App Date', key: 'appDate', width: 13 },
+          { header: 'App Time', key: 'appTime', width: 12 },
+          { header: 'Status', key: 'status', width: 18 },
+          { header: 'Reason / Remarks', key: 'reason', width: 26 },
+          { header: 'Status (Code)', key: 'status2', width: 14 },
+          { header: 'Reason (Code)', key: 'reason2', width: 14 },
+          { header: 'B2B', key: 'b2b', width: 8 },
+          { header: 'Risk Reason', key: 'riskReason', width: 16 }
+        ];
+
+        if (window.ExcelJS) {
+          const wb = new ExcelJS.Workbook();
+          wb.creator = 'Samsung CE Service Operations';
+          wb.created = new Date();
+
+          // SHEET 1: Summary Matrix
+          const wsSummary = wb.addWorksheet('Summary', { views: [{ showGridLines: true }] });
+          wsSummary.columns = [
+            { width: 8 },  // #
+            { width: 22 }, // Branch Name
+            { width: 14 }, // SVC Code
+            { width: 14 }, // Opening
+            { width: 14 }, // Inflow
+            { width: 14 }, // Total
+            { width: 14 }, // Closed
+            { width: 14 }, // Current
+            { width: 16 }  // Closer %
+          ];
+
+          // Title
+          wsSummary.mergeCells('A1:I1');
+          const titleCell = wsSummary.getCell('A1');
+          titleCell.value = 'SAMSUNG CE SERVICE - MULTIPLE BRANCHES CLOSER REPORT';
+          titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+          titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F2E59' } };
+          titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+          wsSummary.getRow(1).height = 30;
+
+          // Subtitle
+          wsSummary.mergeCells('A2:I2');
+          const subCell = wsSummary.getCell('A2');
+          subCell.value = `Date: ${dateStr} • Service Type Filter: ${appState.activeFilter.toUpperCase()} • Formula: Total = Opening + Flow • Closed = Total - Current • Closer % = (Closed ÷ Flow) × 100`;
+          subCell.font = { name: 'Calibri', size: 10, italic: true, color: { argb: 'FF334155' } };
+          subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+          subCell.alignment = { vertical: 'middle', horizontal: 'center' };
+          wsSummary.getRow(2).height = 20;
+
+          // Header Row
+          const headers = ['#', 'Branch Name', 'SVC Code', 'Opening', 'Inflow', 'Total', 'Closed', 'Current', 'Closer %'];
+          const hRow = wsSummary.getRow(4);
+          hRow.values = headers;
+          hRow.height = 24;
+          hRow.eachCell((cell) => {
+            cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF123769' } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+              bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+              left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+              right: { style: 'thin', color: { argb: 'FF94A3B8' } }
+            };
+          });
+
+          let rowIdx = 5;
+          data.branchResults.forEach((r, idx) => {
+            const bRow = wsSummary.getRow(rowIdx);
+            bRow.values = [
+              idx + 1,
+              r.branch.name,
+              r.branch.code,
+              r.opening,
+              r.inflow,
+              r.total,
+              r.closed,
+              r.current,
+              `${r.closerPct.toFixed(1)}%`
+            ];
+            bRow.height = 20;
+            bRow.eachCell((cell, colNumber) => {
+              cell.font = { name: 'Calibri', size: 11 };
+              cell.alignment = { vertical: 'middle', horizontal: colNumber === 2 ? 'left' : 'center' };
+              cell.border = {
+                top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+              };
+              if (colNumber === 6) { // Total
+                cell.font = { name: 'Calibri', size: 11, bold: true };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } };
+              } else if (colNumber === 7) { // Closed
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF065F46' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
+              } else if (colNumber === 8) { // Current
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF991B1B' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF2F2' } };
+              } else if (colNumber === 9) { // Closer %
+                cell.font = { name: 'Calibri', size: 11, bold: true };
+              }
+            });
+            rowIdx++;
+          });
+
+          // Consolidated Total Row
+          const totRow = wsSummary.getRow(rowIdx);
+          totRow.values = [
+            '',
+            `CONSOLIDATED TOTAL (${data.branchResults.length} BRANCHES)`,
+            '',
+            data.overall.opening,
+            data.overall.inflow,
+            data.overall.total,
+            data.overall.closed,
+            data.overall.current,
+            `${data.overall.closerPct.toFixed(1)}%`
+          ];
+          totRow.height = 24;
+          totRow.eachCell((cell) => {
+            cell.font = { name: 'Calibri', size: 11, bold: true };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = {
+              top: { style: 'double', color: { argb: 'FF475569' } },
+              bottom: { style: 'double', color: { argb: 'FF475569' } },
+              left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+              right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+            };
+          });
+
+          // Function to build raw sheets
+          function buildRawSheet(sheetName, calls) {
+            const ws = wb.addWorksheet(sheetName, { views: [{ showGridLines: true }] });
+            ws.columns = rawColDefs;
+            const hr = ws.getRow(1);
+            hr.height = 24;
+            hr.eachCell(c => {
+              c.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+              c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F2E59' } };
+              c.alignment = { vertical: 'middle', horizontal: 'center' };
+            });
+
+            calls.forEach((r, i) => {
+              const row = ws.addRow({
+                no: i + 1,
+                branchName: r.branchName || r.city || '',
+                serviceOrderNo: cleanSO(r.serviceOrderNo || r.callNo),
+                ascJobNo: r.ascJobNo || r.serviceOrderNo || '',
+                model: r.model || '',
+                serialNo: r.serialNo || '',
+                product: r.product || '',
+                warrantyStatus: r.warrantyStatus || 'In Warranty',
+                warrantyCode: r.warrantyCode || (String(r.warrantyStatus).toLowerCase().includes('in') ? 'IW' : 'OW'),
+                serviceType: r.svcType || r.serviceType || 'IH',
+                createdDate: r.createdDate || r.assignedDate || '',
+                assignedDate: r.assignedDate || '',
+                assignedTime: r.assignedTime || '',
+                aging: r.aging || '0',
+                tatBucket: r.tatBucket || '0–2 Days',
+                customerName: r.customerName || 'Demo Customer',
+                city: r.city || '',
+                appDate: r.appDate || '',
+                appTime: r.appTime || '',
+                status: r.status || 'Pending',
+                reason: r.reason || '',
+                status2: r.status || '',
+                reason2: r.reason || '',
+                b2b: r.b2b || 'N',
+                riskReason: r.riskReason || 'None'
+              });
+              row.height = 18;
+              row.eachCell(c => {
+                c.font = { name: 'Calibri', size: 10 };
+                c.alignment = { vertical: 'middle' };
+              });
+            });
+          }
+
+          buildRawSheet('MorningOpen', allMrngCalls);
+          buildRawSheet('InFlow', allInflowCalls);
+          buildRawSheet('Current', allCurrentCalls);
+          buildRawSheet('Closed calls', allClosedCalls);
+
+          wb.xlsx.writeBuffer().then(buffer => {
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Multi_Branch_Closer_Report_${fileDate}.xlsx`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast(`Exported Multi-Branch Excel file with 5 sheets including 'Closed calls' (${allClosedCalls.length})!`);
+          });
+        } else {
+          // SheetJS fallback
+          const wb = XLSX.utils.book_new();
+          const summaryData = [
+            ['#', 'Branch Name', 'SVC Code', 'Opening', 'Inflow', 'Total', 'Closed', 'Current', 'Closer %'],
+            ...data.branchResults.map((r, i) => [i + 1, r.branch.name, r.branch.code, r.opening, r.inflow, r.total, r.closed, r.current, `${r.closerPct.toFixed(1)}%`]),
+            ['', 'CONSOLIDATED OVERALL TOTAL', '', data.overall.opening, data.overall.inflow, data.overall.total, data.overall.closed, data.overall.current, `${data.overall.closerPct.toFixed(1)}%`]
+          ];
+          const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+          XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+          function mapCallsToSheet(calls) {
+            return XLSX.utils.json_to_sheet(calls.map((r, i) => ({
+              'No': i + 1,
+              'Branch Name': r.branchName || r.city || '',
+              'Service Order No': cleanSO(r.serviceOrderNo || r.callNo),
+              'ASC Job No': r.ascJobNo || r.serviceOrderNo || '',
+              'Model': r.model || '',
+              'Serial No': r.serialNo || '',
+              'Product Category': r.product || '',
+              'Warranty Status': r.warrantyStatus || 'In Warranty',
+              'Warranty Code': r.warrantyCode || 'IW',
+              'Service Type': r.svcType || r.serviceType || 'IH',
+              'Created Date': r.createdDate || r.assignedDate || '',
+              'Assigned Date': r.assignedDate || '',
+              'Assigned Time': r.assignedTime || '',
+              'Aging (Days)': r.aging || '0',
+              'TAT Bucket': r.tatBucket || '0–2 Days',
+              'Customer Name': r.customerName || 'Demo Customer',
+              'City': r.city || '',
+              'App Date': r.appDate || '',
+              'App Time': r.appTime || '',
+              'Status': r.status || 'Pending',
+              'Reason / Remarks': r.reason || '',
+              'Status (Code)': r.status || '',
+              'Reason (Code)': r.reason || '',
+              'B2B': r.b2b || 'N',
+              'Risk Reason': r.riskReason || 'None'
+            })));
+          }
+
+          XLSX.utils.book_append_sheet(wb, mapCallsToSheet(allMrngCalls), 'MorningOpen');
+          XLSX.utils.book_append_sheet(wb, mapCallsToSheet(allInflowCalls), 'InFlow');
+          XLSX.utils.book_append_sheet(wb, mapCallsToSheet(allCurrentCalls), 'Current');
+          XLSX.utils.book_append_sheet(wb, mapCallsToSheet(allClosedCalls), 'Closed calls');
+
+          XLSX.writeFile(wb, `Multi_Branch_Closer_Report_${fileDate}.xlsx`);
+          showToast(`Exported Multi-Branch Excel file with 5 sheets!`);
+        }
+      }
+
+      // --- TREND CHART ENGINE ---
+      function openTrendModal() {
+        const modal = document.getElementById('branchTrendModal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          renderTrendChart();
+        }
+      }
+      window.openTrendModal = openTrendModal;
+
+      function closeTrendModal() {
+        const modal = document.getElementById('branchTrendModal');
+        if (modal) modal.classList.add('hidden');
+      }
+      window.closeTrendModal = closeTrendModal;
+
+      function renderTrendChart() {
+        const canvas = document.getElementById('branchTrendCanvas');
+        if (!canvas || !window.Chart) return;
+
+        const data = computeOverallCloser(appState.activeFilter);
+        const ctx = canvas.getContext('2d');
+
+        if (appState.trendChart) {
+          appState.trendChart.destroy();
+          appState.trendChart = null;
+        }
+
+        const labels = data.branchResults.map(r => r.branch.name);
+        const closedValues = data.branchResults.map(r => r.closed);
+        const inflowValues = data.branchResults.map(r => r.inflow);
+        const currentValues = data.branchResults.map(r => r.current);
+        const closerPctValues = data.branchResults.map(r => parseFloat(r.closerPct.toFixed(1)));
+
+        appState.trendChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels.length > 0 ? labels : ['No Branches'],
+            datasets: [
+              {
+                label: 'Closed Calls',
+                data: closedValues.length > 0 ? closedValues : [0],
+                borderColor: '#059669',
+                backgroundColor: 'rgba(5, 150, 105, 0.12)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: '#059669',
+                yAxisID: 'y'
+              },
+              {
+                label: 'Today Inflow',
+                data: inflowValues.length > 0 ? inflowValues : [0],
+                borderColor: '#d97706',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                fill: false,
+                tension: 0.35,
+                pointRadius: 4,
+                pointBackgroundColor: '#d97706',
+                yAxisID: 'y'
+              },
+              {
+                label: 'Current Open',
+                data: currentValues.length > 0 ? currentValues : [0],
+                borderColor: '#e11d48',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.35,
+                pointRadius: 4,
+                pointBackgroundColor: '#e11d48',
+                yAxisID: 'y'
+              },
+              {
+                label: 'Closer %',
+                data: closerPctValues.length > 0 ? closerPctValues : [0],
+                borderColor: '#0f2e59',
+                backgroundColor: 'transparent',
+                borderWidth: 2.5,
+                tension: 0.35,
+                pointRadius: 4,
+                pointBackgroundColor: '#0f2e59',
+                yAxisID: 'y1'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { font: { family: 'Inter', size: 12, weight: '600' }, usePointStyle: true }
+              },
+              title: {
+                display: true,
+                text: 'Multi-Branch Closer Performance Comparison: Volume & Closure Rates',
+                font: { size: 13, weight: 'bold', family: 'Outfit' }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                position: 'left',
+                grid: { color: '#f1f5f9' },
+                ticks: { precision: 0 },
+                title: { display: true, text: 'Number of Calls', font: { size: 11, weight: 'bold' } }
+              },
+              y1: {
+                beginAtZero: true,
+                max: 100,
+                position: 'right',
+                grid: { drawOnChartArea: false },
+                ticks: { callback: v => v + '%' },
+                title: { display: true, text: 'Closer %', font: { size: 11, weight: 'bold' } }
+              },
+              x: {
+                grid: { color: '#f8fafc' },
+                ticks: { font: { family: 'Outfit', weight: 'bold', size: 11 } }
+              }
+            }
+          }
+        });
+      }
+
+      // --- INITIALIZE LISTENERS & SETUP ---
+      document.addEventListener('DOMContentLoaded', () => {
+        // Date input default
+        const dateInput = document.getElementById('customReportDate');
+        if (dateInput) {
+          dateInput.value = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+          dateInput.addEventListener('change', renderReport);
+        }
+
+        // Initialize branch select dropdown options
+        initBranchSelectorOptions();
+
+        // Service Type Filter quick-toggle buttons
+        const toggleGroup = document.getElementById('serviceTypeToggleGroup');
+        if (toggleGroup) {
+          toggleGroup.addEventListener('click', (e) => {
+            const btn = e.target.closest('.st-filter-btn');
+            if (!btn) return;
+            const filter = btn.dataset.filter;
+            appState.activeFilter = filter;
+
+            // Update button styles
+            const allBtns = toggleGroup.querySelectorAll('.st-filter-btn');
+            allBtns.forEach(b => {
+              if (b === btn) {
+                b.className = 'st-filter-btn px-3 py-1.5 rounded-lg font-bold bg-[#0f2e59] text-white shadow-sm transition';
+              } else {
+                b.className = 'st-filter-btn px-3 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition';
+              }
+            });
+
+            renderReport();
+            if (appState.trendChart) renderTrendChart();
+          });
+        }
+
+        // Add Branch modal trigger
+        const btnOpenAdd = document.getElementById('btnOpenAddBranchModal');
+        if (btnOpenAdd) btnOpenAdd.addEventListener('click', () => openAddBranchModal());
+
+        // File dropzone & file picker
+        const dropZone = document.getElementById('modalDropZone');
+        const fileInput = document.getElementById('modalFileInput');
+        if (dropZone && fileInput) {
+          dropZone.addEventListener('click', () => fileInput.click());
+          fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+              handleModalFile(e.target.files[0]);
+            }
+          });
+          dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+          dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+          dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+              handleModalFile(e.dataTransfer.files[0]);
+            }
+          });
+        }
+
+        // Paste parse button
+        const btnParseText = document.getElementById('btnParsePastedText');
+        if (btnParseText) btnParseText.addEventListener('click', handleModalPasteText);
+
+        // Save branch data button
+        const btnSaveBranch = document.getElementById('btnSaveBranchData');
+        if (btnSaveBranch) btnSaveBranch.addEventListener('click', saveBranchData);
+
+        // Clear all branches button
+        const btnClearAll = document.getElementById('btnClearAllBranches');
+        if (btnClearAll) {
+          btnClearAll.addEventListener('click', () => {
+            if (appState.branches.length === 0) return;
+            appState.branches = [];
+            renderActiveBranchChips();
+            renderReport();
+            showToast('All branches cleared.');
+          });
+        }
+
+        // Top actions
+        const btnSample = document.getElementById('btnTopLoadSample');
+        if (btnSample) btnSample.addEventListener('click', loadSampleMultiBranchData);
+
+        const btnMail = document.getElementById('btnTopCopyMail');
+        if (btnMail) btnMail.addEventListener('click', copyCloserReportHtml);
+
+        const btnCopyCloser = document.getElementById('btnCopyCloserHtml');
+        if (btnCopyCloser) btnCopyCloser.addEventListener('click', copyCloserReportHtml);
+
+        const btnExport = document.getElementById('btnTopExportExcel');
+        if (btnExport) btnExport.addEventListener('click', exportMultiBranchExcel);
+
+        const btnExportCloser = document.getElementById('btnExportCloserExcel');
+        if (btnExportCloser) btnExportCloser.addEventListener('click', exportMultiBranchExcel);
+
+        const btnTrend = document.getElementById('btnTopTrendGraphs');
+        if (btnTrend) btnTrend.addEventListener('click', openTrendModal);
+
+        // Auto-load demo multi-branch data on first visit
+        loadSampleMultiBranchData();
+      });
+
+    })();
+  </script>
+</body>
+</html>

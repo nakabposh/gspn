@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVC Information &amp; Manpower Directory — Context — GSPN Tools</title>
+  <meta name="description" content="SVC Information and Manpower Management directory for Samsung service centers. Manage engineer rosters, download templates, and maintain authoritative JSON datasets.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+  <!-- SheetJS for Excel (.xlsx/.csv) generation & parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Universal Context & Master Branch Directory -->
+  <script src="assets/js/context.js"></script>
+  <style>
+    :root {
+      --svc-primary: #1e40af;
+      --svc-accent: #0284c7;
+      --svc-success: #059669;
+      --svc-warning: #d97706;
+      --svc-danger: #dc2626;
+    }
+
+    .svc-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 4px;
+      background: var(--primary);
+    }
+    .kpi-card.kpi-success::before { background: #10b981; }
+    .kpi-card.kpi-warning::before { background: #f59e0b; }
+    .kpi-card.kpi-purple::before { background: #8b5cf6; }
+    .kpi-card.kpi-cyan::before { background: #06b6d4; }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+    .kpi-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    /* Toolbar buttons */
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+    .btn-action-primary {
+      background: #2563eb;
+      color: white;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    }
+    .btn-action-primary:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+    .btn-action-save {
+      background: #059669;
+      color: white;
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+    }
+    .btn-action-save:hover {
+      background: #047857;
+      transform: translateY(-1px);
+    }
+    .btn-action-outline {
+      background: white;
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+    .btn-action-outline:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+      color: #0f172a;
+    }
+
+    /* Tabs */
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+    .view-tab-btn {
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748b;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      border-radius: 8px 8px 0 0;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .view-tab-btn:hover {
+      color: #1e293b;
+      background: rgba(241, 245, 249, 0.7);
+    }
+    .view-tab-btn.active {
+      color: #2563eb;
+      background: white;
+      border-bottom: 2px solid #2563eb;
+      margin-bottom: -2px;
+    }
+
+    /* Roster Table */
+    .table-responsive {
+      overflow-x: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: white;
+    }
+    .manpower-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .manpower-table th {
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 700;
+      padding: 11px 14px;
+      text-align: left;
+      border-bottom: 2px solid #e2e8f0;
+      border-right: 1px solid #f1f5f9;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .manpower-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      border-right: 1px solid #f8fafc;
+      color: #1e293b;
+      vertical-align: middle;
+    }
+    .manpower-table tr:hover td {
+      background: #f8fafc;
+    }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .status-active { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .status-leave { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .status-inactive { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+    .type-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #dbeafe;
+    }
+
+    .branch-code-badge {
+      font-family: 'Fira Code', monospace;
+      font-weight: 700;
+      color: #4338ca;
+      background: #e0e7ff;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Code / JSON Panel */
+    .json-code-box {
+      font-family: 'Fira Code', 'Consolas', monospace;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 520px;
+      overflow-y: auto;
+      white-space: pre;
+      border: 1px solid #1e293b;
+    }
+
+    /* Modal Backdrop */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-dialog {
+      background: white;
+      border-radius: 18px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px -8px rgba(0,0,0,0.3);
+      padding: 24px;
+      transform: translateY(10px);
+      transition: transform 0.2s ease;
+    }
+    .modal-overlay.open .modal-dialog {
+      transform: translateY(0);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 5px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #0f172a;
+      background: #f8fafc;
+      transition: border-color 0.15s ease;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: #2563eb;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Notification Toast */
+    #svcToast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #svcToast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <!-- TOP NAVBAR -->
+  <nav class="top-nav glass-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span class="brand-name">GSPN Tools</span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <div class="nav-links">
+        <a href="index.html" class="nav-link" id="navHome">Home</a>
+
+        <!-- Tools Dropdown -->
+        <div class="nav-dropdown" id="dropdownTools">
+          <button type="button" class="nav-link nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+            <span>Tools</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu">
+            <a href="tools.html" class="dropdown-item">
+              <div class="dropdown-icon icon-blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Data Extraction &amp; Combiner</span>
+                <span class="dropdown-desc">Print Command &amp; Management Lite extractor</span>
+              </div>
+            </a>
+            <a href="custom-template.html" class="dropdown-item">
+              <div class="dropdown-icon icon-cyan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Template Builder</span>
+                <span class="dropdown-desc">Custom column layout &amp; export profiles</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Reports Dropdown -->
+        <div class="nav-dropdown" id="dropdownReports">
+          <button type="button" class="nav-link nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+            <span>Reports</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu dropdown-menu-wide">
+            <div class="dropdown-section">
+              <div class="dropdown-section-header">
+                <span class="section-tag master-tag">Master Reports</span>
+                <span class="section-sub">Executive &amp; Operations</span>
+              </div>
+              <a href="openPending.html" class="dropdown-item">
+                <div class="dropdown-icon icon-rose">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Open Pending Report</span>
+                    <span class="badge-mini-live">Live Daily</span>
+                  </div>
+                  <span class="dropdown-desc">RC-GD daily tracking, aging matrix &amp; branches</span>
+                </div>
+              </a>
+              <a href="reportMaking.html" class="dropdown-item">
+                <div class="dropdown-icon icon-blue">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <span class="dropdown-title">Report Maker</span>
+                  <span class="dropdown-desc">Multi-SVC service reporter &amp; mail compiler</span>
+                </div>
+              </a>
+              <a href="masterCloser.html" class="dropdown-item">
+                <div class="dropdown-icon icon-green">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Master Closer</span>
+                    <span class="badge-mini-live" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0;">Closer %</span>
+                  </div>
+                  <span class="dropdown-desc">Morning vs Inflow vs Current Closer %</span>
+                </div>
+              </a>
+              <a href="cancellationReport.html" class="dropdown-item">
+                <div class="dropdown-icon icon-rose" style="background:#ffe4e6; color:#e11d48;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Cancellation Report</span>
+                    <span class="badge-mini-live" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;">FDR / GD</span>
+                  </div>
+                  <span class="dropdown-desc">Cancellation %, X09 % &amp; OW repair analysis</span>
+                </div>
+              </a>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            <div class="dropdown-section">
+              <div class="dropdown-section-header">
+                <span class="section-tag svc-tag">SVC (Service Center)</span>
+                <span class="section-sub">Center Analytics &amp; TAT</span>
+              </div>
+              <a href="saltReport.html" class="dropdown-item">
+                <div class="dropdown-icon" style="background:#dbeafe; color:#1d4ed8;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">SALT Report</span>
+                    <span class="badge-mini-live" style="background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;">SALT / TAT</span>
+                  </div>
+                  <span class="dropdown-desc">Lead time, Happy Code YES &amp; Time Trimmer</span>
+                </div>
+              </a>
+              <a href="reports.html" class="dropdown-item">
+                <div class="dropdown-icon icon-orange">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <span class="dropdown-title">SVC Reports &amp; Analytics</span>
+                  <span class="dropdown-desc">TAT performance, aging distribution &amp; summaries</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Context Dropdown (Dictionary, Formats & SVC Information) -->
+        <div class="nav-dropdown active" id="dropdownContext">
+          <button type="button" class="nav-link nav-dropdown-btn active" aria-haspopup="true" aria-expanded="false">
+            <span>Context</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu">
+            <a href="Context.html" class="dropdown-item">
+              <div class="dropdown-icon icon-purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Context &amp; Column Dictionary</span>
+                <span class="dropdown-desc">28 Standard GGN fields &amp; SVC rules</span>
+              </div>
+            </a>
+            <a href="formats.html" class="dropdown-item">
+              <div class="dropdown-icon icon-green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Formats &amp; Templates</span>
+                <span class="dropdown-desc">Management Lite &amp; Print Command specs</span>
+              </div>
+            </a>
+            <!-- Subpage of Context: SVC Information -->
+            <a href="svcInformation.html" class="dropdown-item active">
+              <div class="dropdown-icon icon-blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">SVC Information</span>
+                <span class="dropdown-desc">Service center &amp; manpower management</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="page-container" style="max-width: 1200px; margin: 84px auto 40px; padding: 0 20px;">
+
+    <!-- BREADCRUMB & HEADER -->
+    <div style="margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 8px;">
+        <a href="Context.html" style="color: #64748b; text-decoration: none;">Context</a>
+        <span>/</span>
+        <span style="color: #2563eb; font-weight: 700;">SVC Information</span>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <h1 style="font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+            SVC Information &amp; Manpower
+            <span style="font-size: 11px; font-weight: 700; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 20px; border: 1px solid #bfdbfe;">
+              Subpage of Context
+            </span>
+          </h1>
+          <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+            Service center engineers, branch codes, team leaders, and live tracker directory. Auto-retrieved &amp; saved in website storage.
+          </p>
+        </div>
+
+        <!-- Auto-Get & Save Status Badge -->
+        <div id="storageStatusBadge" style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 14px; border-radius: 30px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03); font-size: 12px;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+          <span id="storageStatusText" style="font-weight: 600; color: #334155;">Auto-sync connected</span>
+          <span id="lastSavedTimestamp" style="color: #94a3b8; font-size: 11px;">(Live)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-label">Total Engineers</span>
+        <span class="kpi-value" id="kpiTotalCount">0</span>
+        <span class="kpi-sub">Across all registered centers</span>
+      </div>
+      <div class="kpi-card kpi-success">
+        <span class="kpi-label">Active on Field</span>
+        <span class="kpi-value" id="kpiActiveCount" style="color: #059669;">0</span>
+        <span class="kpi-sub" id="kpiActivePercent">0% operational capacity</span>
+      </div>
+      <div class="kpi-card kpi-warning">
+        <span class="kpi-label">Leave / Inactive</span>
+        <span class="kpi-value" id="kpiLeaveCount" style="color: #d97706;">0</span>
+        <span class="kpi-sub">Off-field or pending review</span>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <span class="kpi-label">Branches Covered</span>
+        <span class="kpi-value" id="kpiBranchCount" style="color: #7c3aed;">0</span>
+        <span class="kpi-sub" id="kpiBranchList">MSC locations</span>
+      </div>
+      <div class="kpi-card kpi-cyan">
+        <span class="kpi-label">Team Leaders &amp; Trackers</span>
+        <span class="kpi-value" id="kpiTlCount" style="color: #0891b2;">0</span>
+        <span class="kpi-sub">Supervisory network</span>
+      </div>
+    </div>
+
+    <!-- PRIMARY ACTION TOOLBAR -->
+    <div class="svc-card" style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <!-- SAVE BUTTON (Prominent as requested) -->
+        <button id="btnSaveWebsiteDetails" class="btn-action btn-action-save" title="Save details to website storage (auto retrieved on refresh)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+          </svg>
+          <span>Save Details</span>
+        </button>
+
+        <!-- DOWNLOAD TEMPLATE BUTTON -->
+        <button id="btnDownloadTemplate" class="btn-action btn-action-outline" title="Download Excel template (.xlsx) with exact sample format">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Download Template (.xlsx)</span>
+        </button>
+
+        <!-- ADD SINGLE ENGINEER -->
+        <button id="btnOpenAddModal" class="btn-action btn-action-primary" title="Add single engineer record">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>Add Manpower Details</span>
+        </button>
+
+        <!-- BULK IMPORT MODAL -->
+        <button id="btnOpenBulkImport" class="btn-action btn-action-outline" title="Paste multiple records copied directly from Excel/Sheets">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          </svg>
+          <span>Bulk Paste / Import</span>
+        </button>
+
+        <!-- UPLOAD FILE -->
+        <label for="fileUploadInput" class="btn-action btn-action-outline" style="cursor: pointer;" title="Import from Excel or CSV file">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span>Upload File</span>
+          <input type="file" id="fileUploadInput" accept=".xlsx, .xls, .csv, .tsv" style="display: none;">
+        </label>
+      </div>
+
+      <!-- Quick Reset / Reload -->
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button id="btnReloadStored" class="btn-action btn-action-outline" style="padding: 8px 12px;" title="Reload latest from saved website details">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <span>Refresh</span>
+        </button>
+        <button id="btnResetDefault" class="btn-action btn-action-outline" style="padding: 8px 12px; color: #dc2626;" title="Reset to standard sample data">
+          <span>Reset Sample</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN VIEW CARD (TABS: ROSTER TABLE vs ARRAY LIST JSON) -->
+    <div class="svc-card">
+      <div class="view-tabs">
+        <button id="tabBtnTable" class="view-tab-btn active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+          <span>Manpower Roster (Table View)</span>
+          <span id="tabCountBadge" style="font-size: 11px; padding: 2px 7px; border-radius: 10px; background: #eff6ff; color: #2563eb; font-weight: 700;">0</span>
+        </button>
+
+        <button id="tabBtnJson" class="view-tab-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <span>Array List JSON Data</span>
+          <span style="font-size: 10px; padding: 2px 6px; border-radius: 8px; background: #e0e7ff; color: #4338ca; font-weight: 700;">Live Array</span>
+        </button>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- TAB 1: MANPOWER ROSTER (TABLE VIEW) -->
+      <!-- ======================================================== -->
+      <div id="viewTableContainer">
+        <!-- Search and Filter Controls -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1;">
+            <!-- Search -->
+            <div style="position: relative; min-width: 240px; flex: 1; max-width: 360px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="filterSearch" placeholder="Search Engineer, Code, Phone, TL, Tracker..." class="form-control" style="padding-left: 32px; font-size: 12px; border-radius: 20px;">
+            </div>
+
+            <!-- Branch Filter -->
+            <select id="filterBranch" class="form-control" style="width: auto; font-size: 12px; font-weight: 600; border-radius: 20px; padding: 7px 14px;">
+              <option value="ALL">All Branches</option>
+            </select>
+
+            <!-- Status Filter -->
+            <select id="filterStatus" class="form-control" style="width: auto; font-size: 12px; font-weight: 600; border-radius: 20px; padding: 7px 14px;">
+              <option value="ALL">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Leave">Leave</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+
+            <!-- Type Filter -->
+            <select id="filterType" class="form-control" style="width: auto; font-size: 12px; font-weight: 600; border-radius: 20px; padding: 7px 14px;">
+              <option value="ALL">All Engineer Types</option>
+              <option value="In-Home">In-Home</option>
+              <option value="Carry-In">Carry-In</option>
+              <option value="Sr. Engineer">Sr. Engineer</option>
+              <option value="Installation Specialist">Installation Specialist</option>
+              <option value="Workshop">Workshop</option>
+            </select>
+          </div>
+
+          <!-- Table Actions -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="btnExportExcel" class="btn-action btn-action-outline" style="padding: 6px 12px; font-size: 12px;" title="Export current list to Excel (.xlsx)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span>Export Excel</span>
+            </button>
+            <button id="btnExportCsv" class="btn-action btn-action-outline" style="padding: 6px 12px; font-size: 12px;" title="Export current list to CSV">
+              <span>CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Element -->
+        <div class="table-responsive">
+          <table class="manpower-table" id="manpowerTable">
+            <thead>
+              <tr>
+                <th style="width: 40px; text-align: center;">No</th>
+                <th>Branch Code</th>
+                <th>Branch Name</th>
+                <th>Engineer Code</th>
+                <th>Engineer Type</th>
+                <th>Name</th>
+                <th>Tel No</th>
+                <th style="text-align: center;">Status</th>
+                <th>TL Name</th>
+                <th>Tracker Name</th>
+                <th style="text-align: center; width: 90px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="manpowerTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Table Footer Info -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 12px; color: #64748b;">
+          <span id="tableRecordCountText">Showing 0 records</span>
+          <span style="font-size: 11px;">Format: <code>[Branch Code | Branch Name | No | Engineer Code | Engineer Type | Name | Tel No | Status | TL Name | Tracker Name]</code></span>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- TAB 2: ARRAY LIST JSON DATA (LIVE JSON PREVIEW & EDITOR) -->
+      <!-- ======================================================== -->
+      <div id="viewJsonContainer" style="display: none;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <h3 style="font-size: 15px; font-weight: 700; color: #0f172a;">Array List JSON Data</h3>
+            <p style="font-size: 12px; color: #64748b;">Authoritative JSON array structure for API integration, website state, and automated reporting.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="btnCopyJson" class="btn-action btn-action-primary" style="padding: 7px 14px; font-size: 12px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy JSON Array</span>
+            </button>
+            <button id="btnDownloadJson" class="btn-action btn-action-outline" style="padding: 7px 14px; font-size: 12px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Download manpower.json</span>
+            </button>
+            <button id="btnApplyEditedJson" class="btn-action btn-action-outline" style="padding: 7px 14px; font-size: 12px; color: #1e40af;">
+              <span>Apply Edited JSON</span>
+            </button>
+          </div>
+        </div>
+
+        <textarea id="jsonEditorArea" class="json-code-box" style="width: 100%; height: 420px; resize: vertical;" spellcheck="false"></textarea>
+
+        <!-- JSON Specification Card -->
+        <div style="margin-top: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px;">
+          <h4 style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; margin-bottom: 8px;">Array Schema Reference</h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; font-size: 11px;">
+            <div><code>branchCode</code> (string): Service center branch code</div>
+            <div><code>branchName</code> (string): MSC branch city name</div>
+            <div><code>no</code> (number): Serial order in roster</div>
+            <div><code>engineerCode</code> (string): Unique engineer employee ID</div>
+            <div><code>engineerType</code> (string): Role (In-Home / Carry-In / Workshop)</div>
+            <div><code>name</code> (string): Full name of engineer</div>
+            <div><code>telNo</code> (string): Contact telephone number</div>
+            <div><code>status</code> (string): Active / Leave / Inactive</div>
+            <div><code>tlName</code> (string): Assigned Team Leader</div>
+            <div><code>trackerName</code> (string): Assigned Operations Tracker</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: ADD / EDIT ENGINEER -->
+  <!-- ======================================================== -->
+  <div id="engineerModal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+        <h3 id="modalTitle" style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: #0f172a;">Add Manpower Record</h3>
+        <button id="btnCloseModalX" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer;">&times;</button>
+      </div>
+
+      <form id="engineerForm">
+        <input type="hidden" id="editRowIndex" value="-1">
+
+        <div class="form-grid-2">
+          <!-- Branch Name with Auto-complete from context -->
+          <div class="form-group">
+            <label class="form-label" for="inputBranchName">Branch Name *</label>
+            <input type="text" id="inputBranchName" list="branchDatalist" class="form-control" placeholder="e.g. GURGAON" required>
+            <datalist id="branchDatalist"></datalist>
+          </div>
+
+          <!-- Branch Code -->
+          <div class="form-group">
+            <label class="form-label" for="inputBranchCode">Branch Code *</label>
+            <input type="text" id="inputBranchCode" class="form-control" placeholder="e.g. P103" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- No (Serial) -->
+          <div class="form-group">
+            <label class="form-label" for="inputNo">No (Sequence #)</label>
+            <input type="number" id="inputNo" class="form-control" placeholder="1" min="1">
+          </div>
+
+          <!-- Engineer Code -->
+          <div class="form-group">
+            <label class="form-label" for="inputEngineerCode">Engineer Code *</label>
+            <input type="text" id="inputEngineerCode" class="form-control" placeholder="e.g. ENG-GGN-101" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Engineer Type -->
+          <div class="form-group">
+            <label class="form-label" for="inputEngineerType">Engineer Type *</label>
+            <select id="inputEngineerType" class="form-control" required>
+              <option value="In-Home">In-Home</option>
+              <option value="Carry-In">Carry-In</option>
+              <option value="Sr. Engineer">Sr. Engineer</option>
+              <option value="Installation Specialist">Installation Specialist</option>
+              <option value="Workshop">Workshop</option>
+              <option value="Apprentice / Trainee">Apprentice / Trainee</option>
+            </select>
+          </div>
+
+          <!-- Full Name -->
+          <div class="form-group">
+            <label class="form-label" for="inputName">Engineer Name *</label>
+            <input type="text" id="inputName" class="form-control" placeholder="e.g. Ramesh Kumar" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Tel No -->
+          <div class="form-group">
+            <label class="form-label" for="inputTelNo">Tel No *</label>
+            <input type="text" id="inputTelNo" class="form-control" placeholder="e.g. 9812345670" required>
+          </div>
+
+          <!-- Status -->
+          <div class="form-group">
+            <label class="form-label" for="inputStatus">Status *</label>
+            <select id="inputStatus" class="form-control" required>
+              <option value="Active">Active</option>
+              <option value="Leave">Leave</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- TL Name -->
+          <div class="form-group">
+            <label class="form-label" for="inputTlName">TL Name (Team Leader)</label>
+            <input type="text" id="inputTlName" class="form-control" placeholder="e.g. Vikram Singh">
+          </div>
+
+          <!-- Tracker Name -->
+          <div class="form-group">
+            <label class="form-label" for="inputTrackerName">Tracker Name</label>
+            <input type="text" id="inputTrackerName" class="form-control" placeholder="e.g. Pooja Sharma">
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+          <button type="button" id="btnCancelModal" class="btn-action btn-action-outline">Cancel</button>
+          <button type="submit" class="btn-action btn-action-primary" id="btnSaveRecord">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: BULK PASTE / IMPORT -->
+  <!-- ======================================================== -->
+  <div id="bulkImportModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 720px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+        <div>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: #0f172a;">Bulk Paste / Import Manpower</h3>
+          <p style="font-size: 12px; color: #64748b; margin-top: 2px;">Copy cells directly from Excel, Google Sheets, or CSV text.</p>
+        </div>
+        <button id="btnCloseBulkModalX" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer;">&times;</button>
+      </div>
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 11px; color: #475569; margin-bottom: 14px;">
+        <strong>Expected Columns (Tab or Comma separated):</strong><br>
+        <code>Branch Code &bull; Branch Name &bull; No &bull; Engineer Code &bull; Engineer Type &bull; Name &bull; Tel No &bull; Status &bull; TL Name &bull; Tracker Name</code>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="bulkPasteInput">Paste Tab-Separated or CSV Data:</label>
+        <textarea id="bulkPasteInput" class="form-control" style="font-family: 'Fira Code', monospace; font-size: 11px; height: 180px; resize: vertical;" placeholder="P103	GURGAON	1	ENG-GGN-101	In-Home	Ramesh Kumar	9812345670	Active	Vikram Singh	Pooja Sharma"></textarea>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155; cursor: pointer;">
+          <input type="radio" name="bulkImportMode" value="append" checked> Append to existing list
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155; cursor: pointer;">
+          <input type="radio" name="bulkImportMode" value="replace"> Replace entire list
+        </label>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+        <button type="button" id="btnCancelBulkModal" class="btn-action btn-action-outline">Cancel</button>
+        <button type="button" id="btnExecuteBulkImport" class="btn-action btn-action-primary">Process &amp; Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="svcToast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="svcToastText">Operation completed successfully</span>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <!-- ======================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      // STORAGE KEYS
+      const STORAGE_KEY = 'GSPN_MANPOWER_DATA';
+      const STORAGE_TIMESTAMP_KEY = 'GSPN_MANPOWER_TIMESTAMP';
+
+      // STATE
+      let manpowerList = [];
+      let isDirty = false;
+
+      // DOM ELEMENTS
+      const tableBody = document.getElementById('manpowerTableBody');
+      const jsonEditor = document.getElementById('jsonEditorArea');
+      const searchInput = document.getElementById('filterSearch');
+      const branchFilter = document.getElementById('filterBranch');
+      const statusFilter = document.getElementById('filterStatus');
+      const typeFilter = document.getElementById('filterType');
+
+      const kpiTotal = document.getElementById('kpiTotalCount');
+      const kpiActive = document.getElementById('kpiActiveCount');
+      const kpiActivePct = document.getElementById('kpiActivePercent');
+      const kpiLeave = document.getElementById('kpiLeaveCount');
+      const kpiBranch = document.getElementById('kpiBranchCount');
+      const kpiBranchSub = document.getElementById('kpiBranchList');
+      const kpiTl = document.getElementById('kpiTlCount');
+      const tableRecordCount = document.getElementById('tableRecordCountText');
+      const tabCountBadge = document.getElementById('tabCountBadge');
+      const storageBadgeText = document.getElementById('storageStatusText');
+      const storageTimestamp = document.getElementById('lastSavedTimestamp');
+
+      // Toast Function
+      function showToast(msg, isSuccess = true) {
+        const toast = document.getElementById('svcToast');
+        const text = document.getElementById('svcToastText');
+        text.textContent = msg;
+        toast.className = 'show';
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => {
+          toast.className = '';
+        }, 3200);
+      }
+
+      // Default Seed Data (Samsung ASC Standard Manpower)
+      function getDefaultSampleData() {
+        return [
+          {
+            branchCode: "P103",
+            branchName: "GURGAON",
+            no: 1,
+            engineerCode: "ENG-GGN-101",
+            engineerType: "In-Home",
+            name: "Ramesh Kumar",
+            telNo: "9812345670",
+            status: "Active",
+            tlName: "Vikram Singh",
+            trackerName: "Pooja Sharma"
+          },
+          {
+            branchCode: "P103",
+            branchName: "GURGAON",
+            no: 2,
+            engineerCode: "ENG-GGN-102",
+            engineerType: "In-Home",
+            name: "Sandeep Verma",
+            telNo: "9812345671",
+            status: "Active",
+            tlName: "Vikram Singh",
+            trackerName: "Pooja Sharma"
+          },
+          {
+            branchCode: "P103",
+            branchName: "GURGAON",
+            no: 3,
+            engineerCode: "ENG-GGN-103",
+            engineerType: "Carry-In",
+            name: "Amit Rawat",
+            telNo: "9812345672",
+            status: "Active",
+            tlName: "Vikram Singh",
+            trackerName: "Deepak Yadav"
+          },
+          {
+            branchCode: "DEL01",
+            branchName: "DELHI",
+            no: 4,
+            engineerCode: "ENG-DEL-201",
+            engineerType: "Sr. Engineer",
+            name: "Mohit Joshi",
+            telNo: "9871122330",
+            status: "Active",
+            tlName: "Rajesh Gupta",
+            trackerName: "Neha Singhal"
+          },
+          {
+            branchCode: "DEL01",
+            branchName: "DELHI",
+            no: 5,
+            engineerCode: "ENG-DEL-202",
+            engineerType: "In-Home",
+            name: "Praveen Chauhan",
+            telNo: "9871122331",
+            status: "Leave",
+            tlName: "Rajesh Gupta",
+            trackerName: "Neha Singhal"
+          },
+          {
+            branchCode: "DEL01",
+            branchName: "DELHI",
+            no: 6,
+            engineerCode: "ENG-DEL-203",
+            engineerType: "Workshop",
+            name: "Karan Malhotra",
+            telNo: "9871122332",
+            status: "Active",
+            tlName: "Rajesh Gupta",
+            trackerName: "Neha Singhal"
+          },
+          {
+            branchCode: "NOI01",
+            branchName: "NOIDA",
+            no: 7,
+            engineerCode: "ENG-NOI-301",
+            engineerType: "In-Home",
+            name: "Sunil Sharma",
+            telNo: "9911002233",
+            status: "Active",
+            tlName: "Anurag Mishra",
+            trackerName: "Kavita Verma"
+          },
+          {
+            branchCode: "NOI01",
+            branchName: "NOIDA",
+            no: 8,
+            engineerCode: "ENG-NOI-302",
+            engineerType: "Installation Specialist",
+            name: "Dinesh Yadav",
+            telNo: "9911002234",
+            status: "Active",
+            tlName: "Anurag Mishra",
+            trackerName: "Kavita Verma"
+          },
+          {
+            branchCode: "FAR01",
+            branchName: "FARIDABAD",
+            no: 9,
+            engineerCode: "ENG-FAR-401",
+            engineerType: "In-Home",
+            name: "Anil Kumar",
+            telNo: "9899112244",
+            status: "Active",
+            tlName: "Harish Chand",
+            trackerName: "Rahul Mehra"
+          },
+          {
+            branchCode: "FAR01",
+            branchName: "FARIDABAD",
+            no: 10,
+            engineerCode: "ENG-FAR-402",
+            engineerType: "Carry-In",
+            name: "Vikas Tyagi",
+            telNo: "9899112245",
+            status: "Inactive",
+            tlName: "Harish Chand",
+            trackerName: "Rahul Mehra"
+          },
+          {
+            branchCode: "GZB01",
+            branchName: "GHAZIABAD",
+            no: 11,
+            engineerCode: "ENG-GZB-501",
+            engineerType: "In-Home",
+            name: "Ajay Chauhan",
+            telNo: "9810998877",
+            status: "Active",
+            tlName: "Sunil Rawat",
+            trackerName: "Monika Sen"
+          },
+          {
+            branchCode: "JPR01",
+            branchName: "JAIPUR",
+            no: 12,
+            engineerCode: "ENG-JPR-601",
+            engineerType: "In-Home",
+            name: "Rajendra Meena",
+            telNo: "9414001122",
+            status: "Active",
+            tlName: "Mahesh Sharma",
+            trackerName: "Preeti Soni"
+          }
+        ];
+      }
+
+      // Initialize Branch Datalist from Master Context if available
+      function populateBranchDatalist() {
+        const datalist = document.getElementById('branchDatalist');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+        if (window.GSPN_CONTEXT && Array.isArray(window.GSPN_CONTEXT.BRANCHES)) {
+          window.GSPN_CONTEXT.BRANCHES.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.name.toUpperCase();
+            opt.dataset.code = b.code || b.mscCode || '';
+            datalist.appendChild(opt);
+          });
+        }
+      }
+
+      // Auto-populate branch code when typing branch name
+      const inputBranchName = document.getElementById('inputBranchName');
+      const inputBranchCode = document.getElementById('inputBranchCode');
+      if (inputBranchName && inputBranchCode) {
+        inputBranchName.addEventListener('input', () => {
+          const val = inputBranchName.value.trim().toUpperCase();
+          if (window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getBranchInfo === 'function') {
+            const info = window.GSPN_CONTEXT.getBranchInfo(val);
+            if (info && (info.code || info.mscCode)) {
+              inputBranchCode.value = info.code || info.mscCode;
+            }
+          }
+        });
+      }
+
+      // Populate Branch Filter Dropdown
+      function updateBranchFilterOptions() {
+        const uniqueBranches = Array.from(new Set(manpowerList.map(item => (item.branchName || '').trim()).filter(Boolean))).sort();
+        const curVal = branchFilter.value;
+        branchFilter.innerHTML = '<option value="ALL">All Branches</option>';
+        uniqueBranches.forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = b;
+          opt.textContent = b;
+          branchFilter.appendChild(opt);
+        });
+        if (uniqueBranches.includes(curVal)) {
+          branchFilter.value = curVal;
+        }
+      }
+
+      // Calculate and Render KPIs
+      function updateKpis() {
+        const total = manpowerList.length;
+        const active = manpowerList.filter(m => (m.status || '').toLowerCase() === 'active').length;
+        const leave = total - active;
+        const branches = new Set(manpowerList.map(m => (m.branchName || '').toUpperCase().trim()).filter(Boolean));
+        const tls = new Set(manpowerList.map(m => (m.tlName || '').trim()).filter(Boolean));
+        const trackers = new Set(manpowerList.map(m => (m.trackerName || '').trim()).filter(Boolean));
+
+        kpiTotal.textContent = total;
+        kpiActive.textContent = active;
+        kpiActivePct.textContent = total > 0 ? `${Math.round((active / total) * 100)}% operational` : '0%';
+        kpiLeave.textContent = leave;
+        kpiBranch.textContent = branches.size;
+        kpiBranchSub.textContent = `${branches.size} active MSC hubs`;
+        kpiTl.textContent = `${tls.size} TL / ${trackers.size} Trk`;
+        tabCountBadge.textContent = total;
+      }
+
+      // Render Roster Table
+      function renderTable() {
+        const q = (searchInput.value || '').toLowerCase().trim();
+        const selBranch = branchFilter.value;
+        const selStatus = statusFilter.value;
+        const selType = typeFilter.value;
+
+        const filtered = manpowerList.filter((m) => {
+          if (selBranch !== 'ALL' && (m.branchName || '').toUpperCase() !== selBranch.toUpperCase()) return false;
+          if (selStatus !== 'ALL' && (m.status || '').toLowerCase() !== selStatus.toLowerCase()) return false;
+          if (selType !== 'ALL' && (m.engineerType || '').toLowerCase() !== selType.toLowerCase()) return false;
+
+          if (q) {
+            const searchable = [
+              m.name, m.engineerCode, m.branchName, m.branchCode,
+              m.telNo, m.tlName, m.trackerName, m.engineerType, m.status
+            ].map(v => String(v || '').toLowerCase()).join(' ');
+            if (!searchable.includes(q)) return false;
+          }
+          return true;
+        });
+
+        tableRecordCount.textContent = `Showing ${filtered.length} of ${manpowerList.length} manpower records`;
+
+        if (filtered.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 36px; color: #94a3b8; font-weight: 500;">No engineer records match the filter criteria.</td></tr>`;
+          return;
+        }
+
+        tableBody.innerHTML = filtered.map((m, idx) => {
+          const realIdx = manpowerList.indexOf(m);
+          const stClass = (m.status || '').toLowerCase() === 'active' ? 'status-active' :
+            (m.status || '').toLowerCase() === 'leave' ? 'status-leave' : 'status-inactive';
+
+          return `
+            <tr>
+              <td style="text-align: center; color: #64748b; font-weight: 600;">${m.no || (realIdx + 1)}</td>
+              <td><span class="branch-code-badge">${m.branchCode || '-'}</span></td>
+              <td style="font-weight: 700; color: #0f172a;">${m.branchName || '-'}</td>
+              <td style="font-family: 'Fira Code', monospace; font-weight: 600; color: #1e40af;">${m.engineerCode || '-'}</td>
+              <td><span class="type-badge">${m.engineerType || 'In-Home'}</span></td>
+              <td style="font-weight: 600; color: #0f172a;">${m.name || '-'}</td>
+              <td>
+                <a href="tel:${m.telNo}" style="color: #0284c7; text-decoration: none; font-family: 'Fira Code', monospace; font-weight: 500;" title="Call / Copy">${m.telNo || '-'}</a>
+              </td>
+              <td style="text-align: center;">
+                <span class="status-badge ${stClass}">
+                  <span style="width: 6px; height: 6px; border-radius: 50%; background: currentColor;"></span>
+                  ${m.status || 'Active'}
+                </span>
+              </td>
+              <td style="color: #334155; font-weight: 500;">${m.tlName || '-'}</td>
+              <td style="color: #475569;">${m.trackerName || '-'}</td>
+              <td style="text-align: center;">
+                <button onclick="window.editEngineerRow(${realIdx})" style="background: none; border: none; cursor: pointer; color: #2563eb; padding: 4px;" title="Edit record">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button onclick="window.deleteEngineerRow(${realIdx})" style="background: none; border: none; cursor: pointer; color: #dc2626; padding: 4px; margin-left: 6px;" title="Delete record">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Update Live JSON Editor
+      function updateJsonView() {
+        jsonEditor.value = JSON.stringify(manpowerList, null, 2);
+      }
+
+      // Sync Everything
+      function syncUi() {
+        updateBranchFilterOptions();
+        updateKpis();
+        renderTable();
+        updateJsonView();
+      }
+
+      // ==========================================================
+      // PERSISTENCE: SAVE INTO WEBSITE DETAILS & AUTO-GET
+      // ==========================================================
+      function saveToWebsiteDetails(showFeedback = true) {
+        try {
+          const serialized = JSON.stringify(manpowerList);
+          const nowStr = new Date().toLocaleTimeString();
+          localStorage.setItem(STORAGE_KEY, serialized);
+          localStorage.setItem(STORAGE_TIMESTAMP_KEY, nowStr);
+
+          // Also asynchronously save to server /api/manpower endpoint
+          fetch('/api/manpower', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: serialized
+          }).catch(err => console.warn('Server sync note:', err));
+
+          storageBadgeText.textContent = `Saved (${manpowerList.length} records)`;
+          storageTimestamp.textContent = `at ${nowStr}`;
+          isDirty = false;
+
+          if (showFeedback) {
+            showToast(`Saved ${manpowerList.length} manpower details to website storage!`);
+          }
+        } catch (e) {
+          console.error('Error saving to storage:', e);
+          showToast('Failed to save to website details', false);
+        }
+      }
+
+      // Auto-Get: Automatically retrieved when re-opening or refreshing
+      async function autoGetWebsiteDetails() {
+        let loaded = false;
+
+        // 1. Check LocalStorage first
+        try {
+          const localData = localStorage.getItem(STORAGE_KEY);
+          const localTime = localStorage.getItem(STORAGE_TIMESTAMP_KEY);
+          if (localData) {
+            const parsed = JSON.parse(localData);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              manpowerList = parsed;
+              storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
+              storageTimestamp.textContent = localTime ? `Saved ${localTime}` : '(Local)';
+              loaded = true;
+            }
+          }
+        } catch (e) {
+          console.warn('LocalStorage read error:', e);
+        }
+
+        // 2. Fallback to /api/manpower or Default Seed Data
+        if (!loaded) {
+          try {
+            const resp = await fetch('/api/manpower');
+            if (resp.ok) {
+              const resJson = await resp.json();
+              if (resJson.success && Array.isArray(resJson.data) && resJson.data.length > 0) {
+                manpowerList = resJson.data;
+                storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
+                storageTimestamp.textContent = '(Server)';
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(manpowerList));
+                loaded = true;
+              }
+            }
+          } catch (e) {
+            console.warn('API fetch error:', e);
+          }
+        }
+
+        // 3. Fallback to built-in sample data if completely empty
+        if (!loaded) {
+          manpowerList = getDefaultSampleData();
+          saveToWebsiteDetails(false);
+          storageBadgeText.textContent = `Initialized sample (${manpowerList.length} records)`;
+          storageTimestamp.textContent = '(Ready)';
+        }
+
+        syncUi();
+      }
+
+      // ==========================================================
+      // DOWNLOAD TEMPLATE (EXCEL .xlsx & .csv)
+      // ==========================================================
+      function downloadTemplateXlsx() {
+        const headers = [
+          'Branch Code', 'Branch Name', 'No', 'Engineer Code',
+          'Engineer Type', 'Name', 'Tel No', 'Status', 'TL Name', 'Tracker Name'
+        ];
+
+        const sampleRows = [
+          ['P103', 'GURGAON', 1, 'ENG-GGN-101', 'In-Home', 'Ramesh Kumar', '9812345670', 'Active', 'Vikram Singh', 'Pooja Sharma'],
+          ['DEL01', 'DELHI', 2, 'ENG-DEL-201', 'Sr. Engineer', 'Mohit Joshi', '9871122330', 'Active', 'Rajesh Gupta', 'Neha Singhal'],
+          ['NOI01', 'NOIDA', 3, 'ENG-NOI-301', 'Installation Specialist', 'Sunil Sharma', '9911002233', 'Active', 'Anurag Mishra', 'Kavita Verma']
+        ];
+
+        const aoa = [headers, ...sampleRows];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+        // Styling column widths
+        ws['!cols'] = [
+          { wch: 14 }, { wch: 16 }, { wch: 6 }, { wch: 16 },
+          { wch: 22 }, { wch: 20 }, { wch: 14 }, { wch: 10 },
+          { wch: 18 }, { wch: 18 }
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Manpower_Template');
+        XLSX.writeFile(wb, 'GSPN_Manpower_Details_Template.xlsx');
+        showToast('Downloaded Manpower_Details_Template.xlsx');
+      }
+
+      // Export Current Table to Excel
+      function exportCurrentTableToExcel() {
+        if (manpowerList.length === 0) {
+          showToast('No manpower records to export', false);
+          return;
+        }
+
+        const headers = [
+          'Branch Code', 'Branch Name', 'No', 'Engineer Code',
+          'Engineer Type', 'Name', 'Tel No', 'Status', 'TL Name', 'Tracker Name'
+        ];
+
+        const rows = manpowerList.map((m, i) => [
+          m.branchCode || '',
+          m.branchName || '',
+          m.no || (i + 1),
+          m.engineerCode || '',
+          m.engineerType || 'In-Home',
+          m.name || '',
+          m.telNo || '',
+          m.status || 'Active',
+          m.tlName || '',
+          m.trackerName || ''
+        ]);
+
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        ws['!cols'] = [
+          { wch: 14 }, { wch: 16 }, { wch: 6 }, { wch: 16 },
+          { wch: 22 }, { wch: 20 }, { wch: 14 }, { wch: 10 },
+          { wch: 18 }, { wch: 18 }
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'SVC_Manpower');
+        const dateStr = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(wb, `GSPN_SVC_Manpower_Directory_${dateStr}.xlsx`);
+        showToast('Exported manpower directory to Excel!');
+      }
+
+      // Export CSV
+      function exportCurrentTableToCsv() {
+        if (manpowerList.length === 0) {
+          showToast('No records to export', false);
+          return;
+        }
+        const headers = ['Branch Code', 'Branch Name', 'No', 'Engineer Code', 'Engineer Type', 'Name', 'Tel No', 'Status', 'TL Name', 'Tracker Name'];
+        const csvRows = [headers.join(',')];
+
+        manpowerList.forEach((m, i) => {
+          const row = [
+            `"${m.branchCode || ''}"`,
+            `"${m.branchName || ''}"`,
+            m.no || (i + 1),
+            `"${m.engineerCode || ''}"`,
+            `"${m.engineerType || ''}"`,
+            `"${m.name || ''}"`,
+            `"${m.telNo || ''}"`,
+            `"${m.status || ''}"`,
+            `"${m.tlName || ''}"`,
+            `"${m.trackerName || ''}"`
+          ];
+          csvRows.push(row.join(','));
+        });
+
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `GSPN_Manpower_Directory_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Exported CSV file!');
+      }
+
+      // ==========================================================
+      // BULK PASTE & FILE UPLOAD PARSING
+      // ==========================================================
+      function parseBulkLines(text) {
+        if (!text || !text.trim()) return [];
+        const lines = text.trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const records = [];
+
+        lines.forEach(line => {
+          // Skip header row if pasted
+          if (/branch\s*code/i.test(line) && /engineer/i.test(line)) return;
+
+          let parts = [];
+          if (line.includes('\t')) {
+            parts = line.split('\t').map(p => p.trim());
+          } else if (line.includes(',')) {
+            parts = line.split(',').map(p => p.trim().replace(/^["']|["']$/g, ''));
+          } else {
+            parts = line.split(/\s{2,}/).map(p => p.trim());
+          }
+
+          if (parts.length >= 4) {
+            // Sample format Manpower: [Branch Code, Branch Name, No, Engineer Code, Engineer Type, Name, Tel No, Status, TL Name, Tracker Name]
+            records.push({
+              branchCode: parts[0] || '',
+              branchName: (parts[1] || '').toUpperCase(),
+              no: parseInt(parts[2], 10) || (manpowerList.length + records.length + 1),
+              engineerCode: parts[3] || '',
+              engineerType: parts[4] || 'In-Home',
+              name: parts[5] || '',
+              telNo: parts[6] || '',
+              status: parts[7] || 'Active',
+              tlName: parts[8] || '',
+              trackerName: parts[9] || ''
+            });
+          }
+        });
+
+        return records;
+      }
+
+      // Parse uploaded Excel or CSV file
+      function handleFileUpload(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const wb = XLSX.read(data, { type: 'array' });
+            const sheet = wb.Sheets[wb.SheetNames[0]];
+            const jsonRows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+            if (jsonRows.length < 2) {
+              showToast('File is empty or contains no data rows', false);
+              return;
+            }
+
+            // Find header indexes
+            const headerRow = jsonRows[0].map(h => String(h || '').trim().toLowerCase());
+            let bCodeIdx = headerRow.findIndex(h => h.includes('branch') && h.includes('code'));
+            let bNameIdx = headerRow.findIndex(h => h.includes('branch') && (h.includes('name') || !h.includes('code')));
+            let noIdx = headerRow.findIndex(h => h === 'no' || h.includes('sr') || h.includes('seq'));
+            let engCodeIdx = headerRow.findIndex(h => h.includes('engineer') && h.includes('code'));
+            let engTypeIdx = headerRow.findIndex(h => h.includes('engineer') && h.includes('type'));
+            let nameIdx = headerRow.findIndex(h => h === 'name' || h.includes('engineer name'));
+            let telIdx = headerRow.findIndex(h => h.includes('tel') || h.includes('phone') || h.includes('mobile'));
+            let statusIdx = headerRow.findIndex(h => h.includes('status'));
+            let tlIdx = headerRow.findIndex(h => h.includes('tl') || h.includes('leader'));
+            let trkIdx = headerRow.findIndex(h => h.includes('tracker'));
+
+            // Fallback to positional mapping [Branch Code, Branch Name, No, Engineer Code, Engineer Type, Name, Tel No, Status, TL Name, Tracker Name]
+            if (bCodeIdx === -1) bCodeIdx = 0;
+            if (bNameIdx === -1) bNameIdx = 1;
+            if (noIdx === -1) noIdx = 2;
+            if (engCodeIdx === -1) engCodeIdx = 3;
+            if (engTypeIdx === -1) engTypeIdx = 4;
+            if (nameIdx === -1) nameIdx = 5;
+            if (telIdx === -1) telIdx = 6;
+            if (statusIdx === -1) statusIdx = 7;
+            if (tlIdx === -1) tlIdx = 8;
+            if (trkIdx === -1) trkIdx = 9;
+
+            const parsed = [];
+            for (let i = 1; i < jsonRows.length; i++) {
+              const row = jsonRows[i];
+              if (!row || row.length === 0) continue;
+              parsed.push({
+                branchCode: String(row[bCodeIdx] || '').trim(),
+                branchName: String(row[bNameIdx] || '').trim().toUpperCase(),
+                no: parseInt(row[noIdx], 10) || (manpowerList.length + parsed.length + 1),
+                engineerCode: String(row[engCodeIdx] || '').trim(),
+                engineerType: String(row[engTypeIdx] || 'In-Home').trim(),
+                name: String(row[nameIdx] || '').trim(),
+                telNo: String(row[telIdx] || '').trim(),
+                status: String(row[statusIdx] || 'Active').trim(),
+                tlName: String(row[tlIdx] || '').trim(),
+                trackerName: String(row[trkIdx] || '').trim()
+              });
+            }
+
+            if (parsed.length > 0) {
+              manpowerList = parsed;
+              saveToWebsiteDetails(true);
+              syncUi();
+              showToast(`Imported ${parsed.length} rows from ${file.name}!`);
+            } else {
+              showToast('No valid rows found in file', false);
+            }
+          } catch (err) {
+            console.error('File parse error:', err);
+            showToast('Failed to parse spreadsheet file', false);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      // ==========================================================
+      // GLOBAL ACTIONS (MODALS, EDIT, DELETE)
+      // ==========================================================
+      window.editEngineerRow = function (idx) {
+        const item = manpowerList[idx];
+        if (!item) return;
+
+        document.getElementById('editRowIndex').value = idx;
+        document.getElementById('modalTitle').textContent = `Edit Engineer: ${item.name || item.engineerCode}`;
+        document.getElementById('inputBranchName').value = item.branchName || '';
+        document.getElementById('inputBranchCode').value = item.branchCode || '';
+        document.getElementById('inputNo').value = item.no || (idx + 1);
+        document.getElementById('inputEngineerCode').value = item.engineerCode || '';
+        document.getElementById('inputEngineerType').value = item.engineerType || 'In-Home';
+        document.getElementById('inputName').value = item.name || '';
+        document.getElementById('inputTelNo').value = item.telNo || '';
+        document.getElementById('inputStatus').value = item.status || 'Active';
+        document.getElementById('inputTlName').value = item.tlName || '';
+        document.getElementById('inputTrackerName').value = item.trackerName || '';
+
+        document.getElementById('engineerModal').classList.add('open');
+      };
+
+      window.deleteEngineerRow = function (idx) {
+        const item = manpowerList[idx];
+        if (!item) return;
+        if (confirm(`Delete engineer record for "${item.name} (${item.engineerCode})"?`)) {
+          manpowerList.splice(idx, 1);
+          saveToWebsiteDetails(true);
+          syncUi();
+          showToast(`Deleted ${item.name}`);
+        }
+      };
+
+      // ==========================================================
+      // EVENT LISTENERS
+      // ==========================================================
+      document.addEventListener('DOMContentLoaded', () => {
+        populateBranchDatalist();
+        autoGetWebsiteDetails();
+
+        // Tabs
+        const tabBtnTable = document.getElementById('tabBtnTable');
+        const tabBtnJson = document.getElementById('tabBtnJson');
+        const viewTable = document.getElementById('viewTableContainer');
+        const viewJson = document.getElementById('viewJsonContainer');
+
+        tabBtnTable.addEventListener('click', () => {
+          tabBtnTable.classList.add('active');
+          tabBtnJson.classList.remove('active');
+          viewTable.style.display = 'block';
+          viewJson.style.display = 'none';
+        });
+
+        tabBtnJson.addEventListener('click', () => {
+          tabBtnJson.classList.add('active');
+          tabBtnTable.classList.remove('active');
+          viewTable.style.display = 'none';
+          viewJson.style.display = 'block';
+          updateJsonView();
+        });
+
+        // Search & Filters
+        searchInput.addEventListener('input', renderTable);
+        branchFilter.addEventListener('change', renderTable);
+        statusFilter.addEventListener('change', renderTable);
+        typeFilter.addEventListener('change', renderTable);
+
+        // Save Button (Explicit Website Details Save)
+        document.getElementById('btnSaveWebsiteDetails').addEventListener('click', () => {
+          saveToWebsiteDetails(true);
+        });
+
+        // Download Template (.xlsx)
+        document.getElementById('btnDownloadTemplate').addEventListener('click', downloadTemplateXlsx);
+
+        // Exports
+        document.getElementById('btnExportExcel').addEventListener('click', exportCurrentTableToExcel);
+        document.getElementById('btnExportCsv').addEventListener('click', exportCurrentTableToCsv);
+
+        // Refresh & Reset
+        document.getElementById('btnReloadStored').addEventListener('click', () => {
+          autoGetWebsiteDetails();
+          showToast('Reloaded website details!');
+        });
+
+        document.getElementById('btnResetDefault').addEventListener('click', () => {
+          if (confirm('Reset to standard sample manpower dataset? Any unsaved edits will be replaced.')) {
+            manpowerList = getDefaultSampleData();
+            saveToWebsiteDetails(true);
+            syncUi();
+            showToast('Reset to default sample roster!');
+          }
+        });
+
+        // Single Add Modal Controls
+        const engineerModal = document.getElementById('engineerModal');
+        document.getElementById('btnOpenAddModal').addEventListener('click', () => {
+          document.getElementById('editRowIndex').value = '-1';
+          document.getElementById('modalTitle').textContent = 'Add Manpower Record';
+          document.getElementById('engineerForm').reset();
+          document.getElementById('inputNo').value = manpowerList.length + 1;
+          engineerModal.classList.add('open');
+        });
+
+        document.getElementById('btnCloseModalX').addEventListener('click', () => {
+          engineerModal.classList.remove('open');
+        });
+        document.getElementById('btnCancelModal').addEventListener('click', () => {
+          engineerModal.classList.remove('open');
+        });
+
+        // Form Submit
+        document.getElementById('engineerForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const editIdx = parseInt(document.getElementById('editRowIndex').value, 10);
+
+          const record = {
+            branchCode: document.getElementById('inputBranchCode').value.trim(),
+            branchName: document.getElementById('inputBranchName').value.trim().toUpperCase(),
+            no: parseInt(document.getElementById('inputNo').value, 10) || (manpowerList.length + 1),
+            engineerCode: document.getElementById('inputEngineerCode').value.trim(),
+            engineerType: document.getElementById('inputEngineerType').value,
+            name: document.getElementById('inputName').value.trim(),
+            telNo: document.getElementById('inputTelNo').value.trim(),
+            status: document.getElementById('inputStatus').value,
+            tlName: document.getElementById('inputTlName').value.trim(),
+            trackerName: document.getElementById('inputTrackerName').value.trim()
+          };
+
+          if (editIdx >= 0 && editIdx < manpowerList.length) {
+            manpowerList[editIdx] = record;
+            showToast(`Updated ${record.name}`);
+          } else {
+            manpowerList.push(record);
+            showToast(`Added ${record.name} to roster!`);
+          }
+
+          engineerModal.classList.remove('open');
+          saveToWebsiteDetails(true);
+          syncUi();
+        });
+
+        // Bulk Import Modal Controls
+        const bulkModal = document.getElementById('bulkImportModal');
+        document.getElementById('btnOpenBulkImport').addEventListener('click', () => {
+          document.getElementById('bulkPasteInput').value = '';
+          bulkModal.classList.add('open');
+        });
+        document.getElementById('btnCloseBulkModalX').addEventListener('click', () => {
+          bulkModal.classList.remove('open');
+        });
+        document.getElementById('btnCancelBulkModal').addEventListener('click', () => {
+          bulkModal.classList.remove('open');
+        });
+
+        document.getElementById('btnExecuteBulkImport').addEventListener('click', () => {
+          const raw = document.getElementById('bulkPasteInput').value;
+          const parsed = parseBulkLines(raw);
+          if (parsed.length === 0) {
+            showToast('No valid lines detected. Check formatting.', false);
+            return;
+          }
+
+          const mode = document.querySelector('input[name="bulkImportMode"]:checked')?.value || 'append';
+          if (mode === 'replace') {
+            manpowerList = parsed;
+          } else {
+            manpowerList = manpowerList.concat(parsed);
+          }
+
+          bulkModal.classList.remove('open');
+          saveToWebsiteDetails(true);
+          syncUi();
+          showToast(`Successfully imported ${parsed.length} engineer records!`);
+        });
+
+        // File Upload Input
+        const fileUploadInput = document.getElementById('fileUploadInput');
+        fileUploadInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0]) {
+            handleFileUpload(e.target.files[0]);
+            fileUploadInput.value = '';
+          }
+        });
+
+        // JSON Actions
+        document.getElementById('btnCopyJson').addEventListener('click', () => {
+          const jsonStr = JSON.stringify(manpowerList, null, 2);
+          navigator.clipboard.writeText(jsonStr).then(() => {
+            showToast('Copied JSON Array to clipboard!');
+          }).catch(() => {
+            showToast('Failed to copy to clipboard', false);
+          });
+        });
+
+        document.getElementById('btnDownloadJson').addEventListener('click', () => {
+          const jsonStr = JSON.stringify(manpowerList, null, 2);
+          const blob = new Blob([jsonStr], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `manpower.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('Downloaded manpower.json');
+        });
+
+        document.getElementById('btnApplyEditedJson').addEventListener('click', () => {
+          try {
+            const parsed = JSON.parse(jsonEditor.value);
+            if (!Array.isArray(parsed)) {
+              showToast('Invalid JSON: Root must be an array of objects', false);
+              return;
+            }
+            manpowerList = parsed;
+            saveToWebsiteDetails(true);
+            syncUi();
+            showToast(`Applied ${parsed.length} records from JSON editor!`);
+          } catch (err) {
+            showToast(`JSON Parse Error: ${err.message}`, false);
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
