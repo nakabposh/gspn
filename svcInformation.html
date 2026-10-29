@@ -658,8 +658,9 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           <span>Refresh</span>
         </button>
-        <button id="btnResetDefault" class="btn-action btn-action-outline" style="padding: 8px 12px; color: #dc2626;" title="Reset to standard sample data">
-          <span>Reset Sample</span>
+        <button id="btnResetDefault" class="btn-action btn-action-outline" style="padding: 8px 14px; color: #dc2626; border-color: #fca5a5; background: #fff5f5; font-weight: 600;" title="Clear and delete all manpower records">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          <span>Clear / Delete All</span>
         </button>
       </div>
     </div>
@@ -884,7 +885,7 @@
           <!-- Full Name -->
           <div class="form-group">
             <label class="form-label" for="inputName">Engineer Name *</label>
-            <input type="text" id="inputName" class="form-control" placeholder="e.g. Ramesh Kumar" required>
+            <input type="text" id="inputName" class="form-control" placeholder="e.g. SOHAN LAL" required>
           </div>
         </div>
 
@@ -910,7 +911,19 @@
           <!-- TL Name -->
           <div class="form-group">
             <label class="form-label" for="inputTlName">TL Name (Team Leader)</label>
-            <input type="text" id="inputTlName" class="form-control" placeholder="e.g. Vikram Singh">
+            <input type="text" id="inputTlName" list="tlDatalist" class="form-control" placeholder="e.g. SUNIL">
+            <datalist id="tlDatalist">
+              <option value="SANJEEV"></option>
+              <option value="SANDEEP"></option>
+              <option value="BINOD"></option>
+              <option value="HARRY"></option>
+              <option value="KHUSHI"></option>
+              <option value="RAVI"></option>
+              <option value="RAMJI"></option>
+              <option value="SUNIL"></option>
+              <option value="Jitender"></option>
+              <option value="VIKASH"></option>
+            </datalist>
           </div>
 
           <!-- Tracker Name -->
@@ -948,7 +961,7 @@
 
       <div class="form-group">
         <label class="form-label" for="bulkPasteInput">Paste Tab-Separated or CSV Data:</label>
-        <textarea id="bulkPasteInput" class="form-control" style="font-family: 'Fira Code', monospace; font-size: 11px; height: 180px; resize: vertical;" placeholder="P103	GURGAON	1	ENG-GGN-101	In-Home	Ramesh Kumar	9812345670	Active	Vikram Singh	Pooja Sharma"></textarea>
+        <textarea id="bulkPasteInput" class="form-control" style="font-family: 'Fira Code', monospace; font-size: 11px; height: 180px; resize: vertical;" placeholder="P103	GURGAON	1	ENG-GGN-013	In-Home	PARVEEN THAKOOR	9800000013	Active	Jitender	Pooja Sharma"></textarea>
       </div>
 
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
@@ -1041,6 +1054,33 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: DELETE / CLEAR CONFIRMATION (In-App Dialog) -->
+  <!-- ======================================================== -->
+  <div id="confirmDeleteModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 440px; text-align: center; padding: 28px 24px;">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+        </svg>
+      </div>
+      <h3 id="confirmDeleteTitle" style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">
+        Confirm Delete
+      </h3>
+      <p id="confirmDeleteMessage" style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 22px;">
+        Are you sure you want to delete this record?
+      </p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button type="button" id="btnCancelDeleteAction" class="btn-action btn-action-outline" style="min-width: 110px;">
+          Cancel
+        </button>
+        <button type="button" id="btnConfirmDeleteAction" class="btn-action btn-action-primary" style="min-width: 120px; background: #dc2626; border-color: #dc2626;">
+          Delete Now
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1174,153 +1214,1016 @@
       function getDefaultSampleData() {
         return [
           {
-            branchCode: "P103",
-            branchName: "GURGAON",
-            no: 1,
-            engineerCode: "ENG-GGN-101",
-            engineerType: "In-Home",
-            name: "Ramesh Kumar",
-            telNo: "9812345670",
-            status: "Active",
-            tlName: "Vikram Singh",
-            trackerName: "Pooja Sharma"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 1,
+            "engineerCode": "ENG-GGN-013",
+            "engineerType": "In-Home",
+            "name": "PARVEEN THAKOOR",
+            "telNo": "9800000013",
+            "status": "Active",
+            "tlName": "Jitender",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "P103",
-            branchName: "GURGAON",
-            no: 2,
-            engineerCode: "ENG-GGN-102",
-            engineerType: "In-Home",
-            name: "Sandeep Verma",
-            telNo: "9812345671",
-            status: "Active",
-            tlName: "Vikram Singh",
-            trackerName: "Pooja Sharma"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 2,
+            "engineerCode": "8486268711",
+            "engineerType": "In-Home",
+            "name": "Mohit",
+            "telNo": "8486268711",
+            "status": "Active",
+            "tlName": "RAMJI",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "P103",
-            branchName: "GURGAON",
-            no: 3,
-            engineerCode: "ENG-GGN-103",
-            engineerType: "Carry-In",
-            name: "Amit Rawat",
-            telNo: "9812345672",
-            status: "Active",
-            tlName: "Vikram Singh",
-            trackerName: "Deepak Yadav"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 3,
+            "engineerCode": "ENG-GGN-015",
+            "engineerType": "In-Home",
+            "name": "GOVIND KUMAR",
+            "telNo": "9800000015",
+            "status": "Active",
+            "tlName": "BINOD",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "DEL01",
-            branchName: "DELHI",
-            no: 4,
-            engineerCode: "ENG-DEL-201",
-            engineerType: "Sr. Engineer",
-            name: "Mohit Joshi",
-            telNo: "9871122330",
-            status: "Active",
-            tlName: "Rajesh Gupta",
-            trackerName: "Neha Singhal"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 4,
+            "engineerCode": "ENG-GGN-016",
+            "engineerType": "In-Home",
+            "name": "VIVEK PATEL",
+            "telNo": "9800000016",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "DEL01",
-            branchName: "DELHI",
-            no: 5,
-            engineerCode: "ENG-DEL-202",
-            engineerType: "In-Home",
-            name: "Praveen Chauhan",
-            telNo: "9871122331",
-            status: "Leave",
-            tlName: "Rajesh Gupta",
-            trackerName: "Neha Singhal"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 5,
+            "engineerCode": "8486268069",
+            "engineerType": "In-Home",
+            "name": "MOHD ASIF",
+            "telNo": "8486268069",
+            "status": "Active",
+            "tlName": "HARRY",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "DEL01",
-            branchName: "DELHI",
-            no: 6,
-            engineerCode: "ENG-DEL-203",
-            engineerType: "Workshop",
-            name: "Karan Malhotra",
-            telNo: "9871122332",
-            status: "Active",
-            tlName: "Rajesh Gupta",
-            trackerName: "Neha Singhal"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 6,
+            "engineerCode": "ENG-GGN-018",
+            "engineerType": "In-Home",
+            "name": "PARTAP SHARMA",
+            "telNo": "9800000018",
+            "status": "Active",
+            "tlName": "SANDEEP",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "NOI01",
-            branchName: "NOIDA",
-            no: 7,
-            engineerCode: "ENG-NOI-301",
-            engineerType: "In-Home",
-            name: "Sunil Sharma",
-            telNo: "9911002233",
-            status: "Active",
-            tlName: "Anurag Mishra",
-            trackerName: "Kavita Verma"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 7,
+            "engineerCode": "ENG-GGN-019",
+            "engineerType": "In-Home",
+            "name": "VIVEK KUMAR THAKUR",
+            "telNo": "9800000019",
+            "status": "Active",
+            "tlName": "SANDEEP",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "NOI01",
-            branchName: "NOIDA",
-            no: 8,
-            engineerCode: "ENG-NOI-302",
-            engineerType: "Installation Specialist",
-            name: "Dinesh Yadav",
-            telNo: "9911002234",
-            status: "Active",
-            tlName: "Anurag Mishra",
-            trackerName: "Kavita Verma"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 8,
+            "engineerCode": "ENG-GGN-020",
+            "engineerType": "In-Home",
+            "name": "KANWAR PAL",
+            "telNo": "9800000020",
+            "status": "Active",
+            "tlName": "RAVI",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "FAR01",
-            branchName: "FARIDABAD",
-            no: 9,
-            engineerCode: "ENG-FAR-401",
-            engineerType: "In-Home",
-            name: "Anil Kumar",
-            telNo: "9899112244",
-            status: "Active",
-            tlName: "Harish Chand",
-            trackerName: "Rahul Mehra"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 9,
+            "engineerCode": "ENG-GGN-021",
+            "engineerType": "In-Home",
+            "name": "PRINCE",
+            "telNo": "9800000021",
+            "status": "Active",
+            "tlName": "BINOD",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "FAR01",
-            branchName: "FARIDABAD",
-            no: 10,
-            engineerCode: "ENG-FAR-402",
-            engineerType: "Carry-In",
-            name: "Vikas Tyagi",
-            telNo: "9899112245",
-            status: "Inactive",
-            tlName: "Harish Chand",
-            trackerName: "Rahul Mehra"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 10,
+            "engineerCode": "ENG-GGN-022",
+            "engineerType": "In-Home",
+            "name": "PRIYANSHU YADAV",
+            "telNo": "9800000022",
+            "status": "Active",
+            "tlName": "RAVI",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "GZB01",
-            branchName: "GHAZIABAD",
-            no: 11,
-            engineerCode: "ENG-GZB-501",
-            engineerType: "In-Home",
-            name: "Ajay Chauhan",
-            telNo: "9810998877",
-            status: "Active",
-            tlName: "Sunil Rawat",
-            trackerName: "Monika Sen"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 11,
+            "engineerCode": "8486099074",
+            "engineerType": "In-Home",
+            "name": "SANDEEP SHARMA",
+            "telNo": "8486099074",
+            "status": "Active",
+            "tlName": "BINOD",
+            "trackerName": "Pooja Sharma"
           },
           {
-            branchCode: "JPR01",
-            branchName: "JAIPUR",
-            no: 12,
-            engineerCode: "ENG-JPR-601",
-            engineerType: "In-Home",
-            name: "Rajendra Meena",
-            telNo: "9414001122",
-            status: "Active",
-            tlName: "Mahesh Sharma",
-            trackerName: "Preeti Soni"
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 12,
+            "engineerCode": "ENG-GGN-024",
+            "engineerType": "In-Home",
+            "name": "AKHILESH KUMAR",
+            "telNo": "9800000024",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 13,
+            "engineerCode": "8486222858",
+            "engineerType": "In-Home",
+            "name": "KRISHAN AC",
+            "telNo": "8486222858",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 14,
+            "engineerCode": "ENG-GGN-026",
+            "engineerType": "In-Home",
+            "name": "AMAN PRAJAPATI",
+            "telNo": "9800000026",
+            "status": "Active",
+            "tlName": "SANJEEV",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 15,
+            "engineerCode": "ENG-GGN-027",
+            "engineerType": "In-Home",
+            "name": "SHATRUGHNA KUMAR BHARATI",
+            "telNo": "9800000027",
+            "status": "Active",
+            "tlName": "SANDEEP",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 16,
+            "engineerCode": "ENG-GGN-028",
+            "engineerType": "In-Home",
+            "name": "SACHIN",
+            "telNo": "9800000028",
+            "status": "Active",
+            "tlName": "RAVI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 17,
+            "engineerCode": "ENG-GGN-029",
+            "engineerType": "In-Home",
+            "name": "ASHISH KUMAR VERMA",
+            "telNo": "9800000029",
+            "status": "Active",
+            "tlName": "HARRY",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 18,
+            "engineerCode": "ENG-GGN-030",
+            "engineerType": "In-Home",
+            "name": "PAWAN KUMAR",
+            "telNo": "9800000030",
+            "status": "Active",
+            "tlName": "RAVI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 19,
+            "engineerCode": "ENG-GGN-031",
+            "engineerType": "In-Home",
+            "name": "ROOP KAMAL",
+            "telNo": "9800000031",
+            "status": "Active",
+            "tlName": "HARRY",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 20,
+            "engineerCode": "ENG-GGN-032",
+            "engineerType": "In-Home",
+            "name": "Keshav Prasad Pandey",
+            "telNo": "9800000032",
+            "status": "Active",
+            "tlName": "SANJEEV",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 21,
+            "engineerCode": "ENG-GGN-033",
+            "engineerType": "In-Home",
+            "name": "RAHUL KUMAR",
+            "telNo": "9800000033",
+            "status": "Active",
+            "tlName": "Jitender",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 22,
+            "engineerCode": "ENG-GGN-034",
+            "engineerType": "In-Home",
+            "name": "VIPUL",
+            "telNo": "9800000034",
+            "status": "Active",
+            "tlName": "HARRY",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 23,
+            "engineerCode": "ENG-GGN-035",
+            "engineerType": "In-Home",
+            "name": "RAJESH KUMAR",
+            "telNo": "9800000035",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 24,
+            "engineerCode": "8486268408",
+            "engineerType": "In-Home",
+            "name": "LALIT",
+            "telNo": "8486268408",
+            "status": "Active",
+            "tlName": "Jitender",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 25,
+            "engineerCode": "ENG-GGN-037",
+            "engineerType": "In-Home",
+            "name": "TARUN",
+            "telNo": "9800000037",
+            "status": "Active",
+            "tlName": "SUNIL",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 26,
+            "engineerCode": "ENG-GGN-038",
+            "engineerType": "In-Home",
+            "name": "SOHAN LAL",
+            "telNo": "9800000038",
+            "status": "Active",
+            "tlName": "SUNIL",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 27,
+            "engineerCode": "ENG-GGN-039",
+            "engineerType": "In-Home",
+            "name": "PRAVEEN KUMAR",
+            "telNo": "9800000039",
+            "status": "Active",
+            "tlName": "KHUSHI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 28,
+            "engineerCode": "ENG-GGN-040",
+            "engineerType": "In-Home",
+            "name": "SURJAN SINGH",
+            "telNo": "9800000040",
+            "status": "Active",
+            "tlName": "Jitender",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 29,
+            "engineerCode": "ENG-GGN-041",
+            "engineerType": "In-Home",
+            "name": "MANISH NISHAD",
+            "telNo": "9800000041",
+            "status": "Active",
+            "tlName": "SUNIL",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 30,
+            "engineerCode": "ENG-GGN-042",
+            "engineerType": "In-Home",
+            "name": "SATYENDER UPADHYAY",
+            "telNo": "9800000042",
+            "status": "Active",
+            "tlName": "BINOD",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 31,
+            "engineerCode": "ENG-GGN-043",
+            "engineerType": "In-Home",
+            "name": "Amit Kumar",
+            "telNo": "9800000043",
+            "status": "Active",
+            "tlName": "SANDEEP",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 32,
+            "engineerCode": "ENG-GGN-044",
+            "engineerType": "In-Home",
+            "name": "MONESH KUMAR",
+            "telNo": "9800000044",
+            "status": "Active",
+            "tlName": "KHUSHI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 33,
+            "engineerCode": "ENG-GGN-045",
+            "engineerType": "In-Home",
+            "name": "NEK MOHAMMAD",
+            "telNo": "9800000045",
+            "status": "Active",
+            "tlName": "SUNIL",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 34,
+            "engineerCode": "ENG-GGN-046",
+            "engineerType": "In-Home",
+            "name": "JHINKOO LAL YADAV",
+            "telNo": "9800000046",
+            "status": "Active",
+            "tlName": "SANDEEP",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 35,
+            "engineerCode": "ENG-GGN-047",
+            "engineerType": "In-Home",
+            "name": "DEEPAK KUMRAR",
+            "telNo": "9800000047",
+            "status": "Active",
+            "tlName": "SANJEEV",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 36,
+            "engineerCode": "ENG-GGN-048",
+            "engineerType": "In-Home",
+            "name": "MUKESH KUMAR",
+            "telNo": "9800000048",
+            "status": "Active",
+            "tlName": "SANJEEV",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 37,
+            "engineerCode": "ENG-GGN-049",
+            "engineerType": "In-Home",
+            "name": "LAXMAN YADAV",
+            "telNo": "9800000049",
+            "status": "Active",
+            "tlName": "RAVI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 38,
+            "engineerCode": "ENG-GGN-050",
+            "engineerType": "IT",
+            "name": "AMIT KUMAR IT",
+            "telNo": "9800000050",
+            "status": "Active",
+            "tlName": "BINOD",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 39,
+            "engineerCode": "ENG-GGN-051",
+            "engineerType": "In-Home",
+            "name": "KRISHN KUMAR",
+            "telNo": "9800000051",
+            "status": "Active",
+            "tlName": "KHUSHI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 40,
+            "engineerCode": "ENG-GGN-052",
+            "engineerType": "In-Home",
+            "name": "AJEET SINGH",
+            "telNo": "9800000052",
+            "status": "Active",
+            "tlName": "RAVI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 41,
+            "engineerCode": "ENG-GGN-053",
+            "engineerType": "In-Home",
+            "name": "SANGIT YADAV",
+            "telNo": "9800000053",
+            "status": "Active",
+            "tlName": "SUNIL",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 42,
+            "engineerCode": "ENG-GGN-054",
+            "engineerType": "In-Home",
+            "name": "TEJVEER SAINI",
+            "telNo": "9800000054",
+            "status": "Active",
+            "tlName": "SANJEEV",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 43,
+            "engineerCode": "ENG-GGN-055",
+            "engineerType": "In-Home",
+            "name": "MUKESH YADAV",
+            "telNo": "9800000055",
+            "status": "Active",
+            "tlName": "KHUSHI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 44,
+            "engineerCode": "ENG-GGN-056",
+            "engineerType": "In-Home",
+            "name": "SHAMBHU SHARMA",
+            "telNo": "9800000056",
+            "status": "Active",
+            "tlName": "SANDEEP",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 45,
+            "engineerCode": "ENG-GGN-057",
+            "engineerType": "In-Home",
+            "name": "VIKASH GUPTA GUPTA",
+            "telNo": "9800000057",
+            "status": "Active",
+            "tlName": "RAVI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 46,
+            "engineerCode": "ENG-GGN-058",
+            "engineerType": "In-Home",
+            "name": "SUBHASH CHANDER",
+            "telNo": "9800000058",
+            "status": "Active",
+            "tlName": "KHUSHI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 47,
+            "engineerCode": "ENG-GGN-059",
+            "engineerType": "In-Home",
+            "name": "OM PRAKASH",
+            "telNo": "9800000059",
+            "status": "Active",
+            "tlName": "Jitender",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 48,
+            "engineerCode": "ENG-GGN-060",
+            "engineerType": "IIDM",
+            "name": "MANOJ KUMAR IIDM",
+            "telNo": "9800000060",
+            "status": "Active",
+            "tlName": "Jitender",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 49,
+            "engineerCode": "ENG-GGN-061",
+            "engineerType": "In-Home",
+            "name": "Brijesh ..",
+            "telNo": "9800000061",
+            "status": "Active",
+            "tlName": "Jitender",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 50,
+            "engineerCode": "ENG-GGN-062",
+            "engineerType": "In-Home",
+            "name": "DHANANJAY KUMAR",
+            "telNo": "9800000062",
+            "status": "Active",
+            "tlName": "SUNIL",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 51,
+            "engineerCode": "ENG-GGN-063",
+            "engineerType": "In-Home",
+            "name": "ANOOP KUMAR",
+            "telNo": "9800000063",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 52,
+            "engineerCode": "ENG-GGN-064",
+            "engineerType": "In-Home",
+            "name": "DURGESH MAURYA",
+            "telNo": "9800000064",
+            "status": "Active",
+            "tlName": "HARRY",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 53,
+            "engineerCode": "ENG-GGN-065",
+            "engineerType": "In-Home",
+            "name": "MOHD NOORUDDIN",
+            "telNo": "9800000065",
+            "status": "Active",
+            "tlName": "SUNIL",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 54,
+            "engineerCode": "ENG-GGN-066",
+            "engineerType": "In-Home",
+            "name": "VIKAS PRAJAPATI",
+            "telNo": "9800000066",
+            "status": "Active",
+            "tlName": "SANJEEV",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 55,
+            "engineerCode": "8486266015",
+            "engineerType": "In-Home",
+            "name": "UMA SHANKAR",
+            "telNo": "8486266015",
+            "status": "Active",
+            "tlName": "HARRY",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 56,
+            "engineerCode": "ENG-GGN-068",
+            "engineerType": "In-Home",
+            "name": "SANTOSH CHAUHAN",
+            "telNo": "9800000068",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 57,
+            "engineerCode": "ENG-GGN-069",
+            "engineerType": "In-Home",
+            "name": "PRABHAT GAUR",
+            "telNo": "9800000069",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 58,
+            "engineerCode": "ENG-GGN-070",
+            "engineerType": "In-Home",
+            "name": "RABBUL ANSARI",
+            "telNo": "9800000070",
+            "status": "Active",
+            "tlName": "Jitender",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 59,
+            "engineerCode": "ENG-GGN-071",
+            "engineerType": "In-Home",
+            "name": "AASH MOHMMAD",
+            "telNo": "9800000071",
+            "status": "Active",
+            "tlName": "SUNIL",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 60,
+            "engineerCode": "ENG-GGN-072",
+            "engineerType": "In-Home",
+            "name": "RAJU",
+            "telNo": "9800000072",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 61,
+            "engineerCode": "ENG-GGN-073",
+            "engineerType": "In-Home",
+            "name": "DINESH KUMAR",
+            "telNo": "9800000073",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 62,
+            "engineerCode": "ENG-GGN-074",
+            "engineerType": "In-Home",
+            "name": "KHURSHEED AHMAD",
+            "telNo": "9800000074",
+            "status": "Active",
+            "tlName": "SANDEEP",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 63,
+            "engineerCode": "ENG-GGN-075",
+            "engineerType": "In-Home",
+            "name": "MANOJ SWAMI",
+            "telNo": "9800000075",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 64,
+            "engineerCode": "ENG-GGN-076",
+            "engineerType": "In-Home",
+            "name": "AMAN KUMAR",
+            "telNo": "9800000076",
+            "status": "Active",
+            "tlName": "KHUSHI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 65,
+            "engineerCode": "ENG-GGN-077",
+            "engineerType": "In-Home",
+            "name": "ROHIT KUMAR SINGH",
+            "telNo": "9800000077",
+            "status": "Active",
+            "tlName": "KHUSHI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 66,
+            "engineerCode": "ENG-GGN-078",
+            "engineerType": "In-Home",
+            "name": "PRAMOD KUMAR",
+            "telNo": "9800000078",
+            "status": "Active",
+            "tlName": "HARRY",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 67,
+            "engineerCode": "ENG-GGN-079",
+            "engineerType": "In-Home",
+            "name": "RAVINDER KUMAR",
+            "telNo": "9800000079",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 68,
+            "engineerCode": "ENG-GGN-080",
+            "engineerType": "In-Home",
+            "name": "RAJ KUMAR SHARMA",
+            "telNo": "9800000080",
+            "status": "Active",
+            "tlName": "Jitender",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 69,
+            "engineerCode": "ENG-GGN-081",
+            "engineerType": "In-Home",
+            "name": "RAHUL WS",
+            "telNo": "9800000081",
+            "status": "Active",
+            "tlName": "SANDEEP",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 70,
+            "engineerCode": "ENG-GGN-082",
+            "engineerType": "In-Home",
+            "name": "SHIVAM KUMAR",
+            "telNo": "9800000082",
+            "status": "Active",
+            "tlName": "HARRY",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 71,
+            "engineerCode": "ENG-GGN-083",
+            "engineerType": "In-Home",
+            "name": "Ugrasen Singh",
+            "telNo": "9800000083",
+            "status": "Active",
+            "tlName": "SUNIL",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 72,
+            "engineerCode": "ENG-GGN-084",
+            "engineerType": "In-Home",
+            "name": "SHIVAM VERMA",
+            "telNo": "9800000084",
+            "status": "Active",
+            "tlName": "SANJEEV",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 73,
+            "engineerCode": "ENG-GGN-085",
+            "engineerType": "In-Home",
+            "name": "SUNIL PALIWAL",
+            "telNo": "9800000085",
+            "status": "Active",
+            "tlName": "RAVI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 74,
+            "engineerCode": "ENG-GGN-086",
+            "engineerType": "In-Home",
+            "name": "MANTU MANDAL",
+            "telNo": "9800000086",
+            "status": "Active",
+            "tlName": "KHUSHI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 75,
+            "engineerCode": "ENG-GGN-087",
+            "engineerType": "In-Home",
+            "name": "VIPIN KUMAR",
+            "telNo": "9800000087",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 76,
+            "engineerCode": "ENG-GGN-088",
+            "engineerType": "In-Home",
+            "name": "MOHD GULSHAN",
+            "telNo": "9800000088",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 77,
+            "engineerCode": "ENG-GGN-089",
+            "engineerType": "In-Home",
+            "name": "Rama Nand",
+            "telNo": "9800000089",
+            "status": "Active",
+            "tlName": "HARRY",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 78,
+            "engineerCode": "ENG-GGN-090",
+            "engineerType": "In-Home",
+            "name": "VIKRAM SINGH",
+            "telNo": "9800000090",
+            "status": "Active",
+            "tlName": "SUNIL",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 79,
+            "engineerCode": "ENG-GGN-091",
+            "engineerType": "In-Home",
+            "name": "MOH JAHID",
+            "telNo": "9800000091",
+            "status": "Active",
+            "tlName": "VIKASH",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 80,
+            "engineerCode": "ENG-GGN-092",
+            "engineerType": "In-Home",
+            "name": "SHIV KUMAR",
+            "telNo": "9800000092",
+            "status": "Active",
+            "tlName": "KHUSHI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 81,
+            "engineerCode": "ENG-GGN-093",
+            "engineerType": "In-Home",
+            "name": "SERAJ",
+            "telNo": "9800000093",
+            "status": "Active",
+            "tlName": "RAMJI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 82,
+            "engineerCode": "ENG-GGN-094",
+            "engineerType": "In-Home",
+            "name": "HARI PRAKASH",
+            "telNo": "9800000094",
+            "status": "Active",
+            "tlName": "RAMJI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 83,
+            "engineerCode": "ENG-GGN-095",
+            "engineerType": "In-Home",
+            "name": "Vivek HA",
+            "telNo": "9800000095",
+            "status": "Active",
+            "tlName": "RAVI",
+            "trackerName": "Pooja Sharma"
+          },
+          {
+            "branchCode": "P103",
+            "branchName": "GURGAON",
+            "no": 84,
+            "engineerCode": "8486272728",
+            "engineerType": "In-Home",
+            "name": "NASIM RASHEED",
+            "telNo": "8486272728",
+            "status": "Active",
+            "tlName": "HARRY",
+            "trackerName": "Pooja Sharma"
           }
         ];
       }
 
-      // Initialize Branch Datalist from Master Context if available
       function populateBranchDatalist() {
         const datalist = document.getElementById('branchDatalist');
         if (!datalist) return;
@@ -1410,7 +2313,23 @@
         tableRecordCount.textContent = `Showing ${filtered.length} of ${manpowerList.length} manpower records`;
 
         if (filtered.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 36px; color: #94a3b8; font-weight: 500;">No engineer records match the filter criteria.</td></tr>`;
+          if (manpowerList.length === 0) {
+            tableBody.innerHTML = `
+              <tr>
+                <td colspan="11" style="text-align: center; padding: 48px 20px;">
+                  <div style="font-size: 32px; margin-bottom: 10px;">🗑️</div>
+                  <div style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">Manpower Roster is Empty</div>
+                  <div style="font-size: 13px; color: #64748b; margin-bottom: 18px;">All engineer records have been deleted. You can add new engineers or restore the standard master roster anytime.</div>
+                  <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="document.getElementById('btnOpenAddModal').click()" class="btn-action btn-action-primary" style="font-size: 12px;">+ Add New Engineer</button>
+                    <button onclick="window.restoreMasterRoster()" class="btn-action btn-action-outline" style="font-size: 12px; color: #2563eb; border-color: #93c5fd;">Restore Master Gurgaon Roster</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          } else {
+            tableBody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 36px; color: #94a3b8; font-weight: 500;">No engineer records match the filter criteria.</td></tr>`;
+          }
           return;
         }
 
@@ -1438,12 +2357,12 @@
               </td>
               <td style="color: #334155; font-weight: 500;">${m.tlName || '-'}</td>
               <td style="color: #475569;">${m.trackerName || '-'}</td>
-              <td style="text-align: center;">
-                <button onclick="window.editEngineerRow(${realIdx})" style="background: none; border: none; cursor: pointer; color: #2563eb; padding: 4px;" title="Edit record">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <td style="text-align: center; white-space: nowrap;">
+                <button onclick="window.editEngineerRow(${realIdx})" style="background: none; border: 1px solid transparent; border-radius: 6px; cursor: pointer; color: #2563eb; padding: 5px 6px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s ease;" onmouseover="this.style.background='#eff6ff'; this.style.borderColor='#bfdbfe';" onmouseout="this.style.background='none'; this.style.borderColor='transparent';" title="Edit engineer">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button onclick="window.deleteEngineerRow(${realIdx})" style="background: none; border: none; cursor: pointer; color: #dc2626; padding: 4px; margin-left: 6px;" title="Delete record">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <button class="btn-delete-row" onclick="window.deleteEngineerRow(${realIdx})" style="background: none; border: 1px solid transparent; border-radius: 6px; cursor: pointer; color: #dc2626; padding: 5px 6px; margin-left: 4px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s ease;" onmouseover="this.style.background='#fee2e2'; this.style.borderColor='#fca5a5';" onmouseout="this.style.background='none'; this.style.borderColor='transparent';" title="Delete engineer">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                 </button>
               </td>
             </tr>
@@ -1469,24 +2388,44 @@
       // ==========================================================
       function saveToWebsiteDetails(showFeedback = true) {
         try {
+          // If JSON editor view is active, capture any edits directly from textarea
+          const viewJson = document.getElementById('viewJsonContainer');
+          if (viewJson && viewJson.style.display !== 'none' && jsonEditor && jsonEditor.value.trim()) {
+            try {
+              const parsed = JSON.parse(jsonEditor.value);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                manpowerList = parsed;
+              }
+            } catch (err) {
+              console.warn('JSON textarea sync before save:', err);
+            }
+          }
+
           // Guarantee zero duplicates before saving
           manpowerList = deduplicateManpowerList(manpowerList);
           const serialized = JSON.stringify(manpowerList);
           const nowStr = new Date().toLocaleTimeString();
+
+          // Save to local browser storage across both standard keys
           localStorage.setItem(STORAGE_KEY, serialized);
           localStorage.setItem('gspn_manpower_roster', serialized);
           localStorage.setItem(STORAGE_TIMESTAMP_KEY, nowStr);
+          localStorage.setItem('GSPN_MANPOWER_SAVED_AT', String(Date.now()));
 
-          // Also asynchronously save to server /api/manpower endpoint
+          // Also asynchronously save to server /api/manpower endpoint (updates context/manpower.json on disk)
           fetch('/api/manpower', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: serialized
+          }).then(res => res.json()).then(resp => {
+            console.log('[SVC Information] Saved to server /api/manpower disk file:', resp);
           }).catch(err => console.warn('Server sync note:', err));
 
-          storageBadgeText.textContent = `Saved (${manpowerList.length} records)`;
-          storageTimestamp.textContent = `at ${nowStr}`;
+          if (storageBadgeText) storageBadgeText.textContent = `Saved (${manpowerList.length} records)`;
+          if (storageTimestamp) storageTimestamp.textContent = `at ${nowStr}`;
           isDirty = false;
+
+          syncUi();
 
           if (showFeedback) {
             showToast(`Saved ${manpowerList.length} manpower details to website storage!`);
@@ -1498,21 +2437,95 @@
       }
 
       // Auto-Get: Automatically retrieved when re-opening or refreshing
-      async function autoGetWebsiteDetails() {
+      async function autoGetWebsiteDetails(forceRemote = false) {
         let loaded = false;
         const cacheBust = `_t=${Date.now()}`;
         const candidateUrls = [
+          `/api/manpower?${cacheBust}`,
           `context/manpower.json?${cacheBust}`,
           `./context/manpower.json?${cacheBust}`,
-          `https://nakabposh.github.io/gspn/context/manpower.json?${cacheBust}`,
-          `/api/manpower?${cacheBust}`,
           `/context/manpower.json?${cacheBust}`
         ];
 
-        let remoteList = null;
-        let sourceLabel = 'Static File';
+        // 1. First, check LocalStorage (authoritative user saved data) unless forceRemote is requested
+        let localList = null;
+        if (!forceRemote) {
+          try {
+            const localData = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('gspn_manpower_roster');
+            if (localData) {
+              const parsed = JSON.parse(localData);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                // Purge any legacy sample names
+                let cleaned = parsed.filter(m =>
+                  !['Ramesh Kumar', 'Sandeep Verma', 'Amit Rawat', 'Mohit Joshi', 'Praveen Chauhan', 'Karan Malhotra', 'Sunil Sharma', 'Dinesh Yadav', 'Anil Kumar', 'Vikas Tyagi', 'Ajay Chauhan', 'Rajendra Meena'].includes(m.name) &&
+                  !['Vikram Singh', 'Rajesh Gupta', 'Anurag Mishra', 'Harish Chand', 'Sunil Rawat', 'Mahesh Sharma'].includes(m.tlName)
+                );
 
-        // 1. Probe candidate URLs
+                // Self-healing: Decouple SOHAN LAL from 8486272728 and ensure NASIM RASHEED exists
+                cleaned.forEach(m => {
+                  if (m.name === 'SOHAN LAL' && (m.telNo === '8486272728' || m.engineerCode === '8486272728')) {
+                    m.telNo = '9800000038';
+                    m.engineerCode = 'ENG-GGN-038';
+                  }
+                  if (m.name === 'KRISHAN AC') m.engineerCode = '8486222858';
+                  if (m.name === 'SANDEEP SHARMA') m.engineerCode = '8486099074';
+                  if (m.name === 'MOHD ASIF') m.engineerCode = '8486268069';
+                  if (m.name === 'Mohit') m.engineerCode = '8486268711';
+                  if (m.name === 'LALIT') m.engineerCode = '8486268408';
+                  if (m.name === 'UMA SHANKAR') m.engineerCode = '8486266015';
+                });
+
+                const hasNasim = cleaned.some(m => String(m.engineerCode || '').trim() === '8486272728' || String(m.telNo || '').trim() === '8486272728' || String(m.name || '').trim().toUpperCase() === 'NASIM RASHEED');
+                if (!hasNasim) {
+                  cleaned.push({
+                    branchCode: 'P103',
+                    branchName: 'GURGAON',
+                    no: cleaned.length + 1,
+                    engineerCode: '8486272728',
+                    engineerType: 'In-Home',
+                    name: 'NASIM RASHEED',
+                    telNo: '8486272728',
+                    status: 'Active',
+                    tlName: 'HARRY',
+                    trackerName: 'Pooja Sharma'
+                  });
+                }
+
+                if (cleaned.length > 0) {
+                  localList = deduplicateManpowerList(cleaned);
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('LocalStorage read error:', e);
+          }
+        }
+
+        // If user has saved data in browser storage, use it directly!
+        if (localList && localList.length > 0) {
+          manpowerList = localList;
+          if (storageBadgeText) storageBadgeText.textContent = `Saved (${manpowerList.length} records)`;
+          const savedTime = localStorage.getItem(STORAGE_TIMESTAMP_KEY) || 'Local';
+          if (storageTimestamp) storageTimestamp.textContent = `(${savedTime})`;
+          loaded = true;
+          syncUi();
+
+          // Sync to server disk in background so context/manpower.json matches
+          try {
+            fetch('/api/manpower', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(manpowerList)
+            }).catch(e => console.warn('Background server sync:', e));
+          } catch (e) {}
+
+          return;
+        }
+
+        // 2. If no local saved data (or forced reload), load from server / context/manpower.json
+        let remoteList = null;
+        let sourceLabel = 'Server';
+
         for (const url of candidateUrls) {
           try {
             const resp = await fetch(url, { cache: 'no-store' });
@@ -1520,68 +2533,37 @@
               const resJson = await resp.json();
               const list = Array.isArray(resJson) ? resJson : (resJson.data && Array.isArray(resJson.data) ? resJson.data : null);
               if (list && list.length > 0) {
-                remoteList = deduplicateManpowerList(list);
-                sourceLabel = url.includes('nakabposh.github.io') ? 'GitHub Pages' : (url.includes('api') ? 'Server' : 'Disk/Repo');
-                console.log(`[SVC Information] Loaded ${list.length} records from: ${url}`);
-                break;
+                const cleaned = list.filter(m =>
+                  !['Ramesh Kumar', 'Sandeep Verma', 'Amit Rawat', 'Mohit Joshi', 'Praveen Chauhan', 'Karan Malhotra', 'Sunil Sharma', 'Dinesh Yadav', 'Anil Kumar', 'Vikas Tyagi', 'Ajay Chauhan', 'Rajendra Meena'].includes(m.name) &&
+                  !['Vikram Singh', 'Rajesh Gupta', 'Anurag Mishra', 'Harish Chand', 'Sunil Rawat', 'Mahesh Sharma'].includes(m.tlName)
+                );
+                if (cleaned.length > 0) {
+                  remoteList = deduplicateManpowerList(cleaned);
+                  sourceLabel = url.includes('api') ? 'Server' : 'Disk File';
+                  console.log(`[SVC Information] Loaded ${remoteList.length} records from: ${url}`);
+                  break;
+                }
               }
             }
           } catch (e) {
-            // continue to next candidate
+            // continue
           }
         }
 
-        // 2. Check LocalStorage
-        let localList = null;
-        try {
-          const localData = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('gspn_manpower_roster');
-          if (localData) {
-            const parsed = JSON.parse(localData);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              localList = deduplicateManpowerList(parsed);
-            }
-          }
-        } catch (e) {
-          console.warn('LocalStorage read error:', e);
-        }
-
-        // 3. Resolve and Smart Merge: local edits replace remote matching records, NEVER append duplicates
-        if (remoteList && localList) {
-          // If localList only had the 12 dummy records from initial template, discard it for real remote records
-          const isDummy = localList.length <= 12 && localList.some(m => m.name === 'Ramesh Kumar' && m.tlName === 'Vikram Singh');
-          if (isDummy && remoteList.length > 12) {
-            manpowerList = remoteList;
-            saveToWebsiteDetails(false);
-            storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
-            storageTimestamp.textContent = `(${sourceLabel})`;
-          } else {
-            // Smart Merge: Updated local records replace remote matching records without creating duplicates
-            manpowerList = smartMergeLists(remoteList, localList);
-            saveToWebsiteDetails(false);
-            storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
-            storageTimestamp.textContent = `(Synced)`;
-          }
-          loaded = true;
-        } else if (remoteList) {
+        if (remoteList && remoteList.length > 0) {
           manpowerList = remoteList;
           saveToWebsiteDetails(false);
-          storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
-          storageTimestamp.textContent = `(${sourceLabel})`;
-          loaded = true;
-        } else if (localList) {
-          manpowerList = localList;
-          saveToWebsiteDetails(false);
-          storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
-          storageTimestamp.textContent = '(Local)';
+          if (storageBadgeText) storageBadgeText.textContent = `Auto-retrieved (${manpowerList.length} records)`;
+          if (storageTimestamp) storageTimestamp.textContent = `(${sourceLabel})`;
           loaded = true;
         }
 
-        // 4. Fallback to built-in sample data only if completely empty
+        // 3. Fallback to built-in 83 Gurgaon engineers if completely empty
         if (!loaded) {
           manpowerList = getDefaultSampleData();
           saveToWebsiteDetails(false);
-          storageBadgeText.textContent = `Initialized sample (${manpowerList.length} records)`;
-          storageTimestamp.textContent = '(Ready)';
+          if (storageBadgeText) storageBadgeText.textContent = `Initialized (${manpowerList.length} records)`;
+          if (storageTimestamp) storageTimestamp.textContent = '(Master Roster)';
         }
 
         syncUi();
@@ -1597,9 +2579,9 @@
         ];
 
         const sampleRows = [
-          ['P103', 'GURGAON', 1, 'ENG-GGN-101', 'In-Home', 'Ramesh Kumar', '9812345670', 'Active', 'Vikram Singh', 'Pooja Sharma'],
-          ['DEL01', 'DELHI', 2, 'ENG-DEL-201', 'Sr. Engineer', 'Mohit Joshi', '9871122330', 'Active', 'Rajesh Gupta', 'Neha Singhal'],
-          ['NOI01', 'NOIDA', 3, 'ENG-NOI-301', 'Installation Specialist', 'Sunil Sharma', '9911002233', 'Active', 'Anurag Mishra', 'Kavita Verma']
+          ['P103', 'GURGAON', 1, 'ENG-GGN-013', 'In-Home', 'PARVEEN THAKOOR', '9800000013', 'Active', 'Jitender', 'Pooja Sharma'],
+          ['P103', 'GURGAON', 2, 'ENG-GGN-014', 'In-Home', 'Mohit', '8486268711', 'Active', 'RAMJI', 'Pooja Sharma'],
+          ['P103', 'GURGAON', 3, 'ENG-GGN-038', 'In-Home', 'SOHAN LAL', '8486272728', 'Active', 'SUNIL', 'Pooja Sharma']
         ];
 
         const aoa = [headers, ...sampleRows];
@@ -1831,15 +2813,71 @@
         document.getElementById('engineerModal').classList.add('open');
       };
 
+      // ==========================================================
+      // IN-APP CONFIRMATION MODAL (Fixes blocked window.confirm in iframes)
+      // ==========================================================
+      let pendingDeleteAction = null;
+      const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+      const confirmDeleteTitle = document.getElementById('confirmDeleteTitle');
+      const confirmDeleteMessage = document.getElementById('confirmDeleteMessage');
+      const btnConfirmDeleteAction = document.getElementById('btnConfirmDeleteAction');
+      const btnCancelDeleteAction = document.getElementById('btnCancelDeleteAction');
+
+      function openDeleteConfirm(title, message, onConfirm) {
+        pendingDeleteAction = onConfirm;
+        if (confirmDeleteTitle) confirmDeleteTitle.textContent = title;
+        if (confirmDeleteMessage) confirmDeleteMessage.textContent = message;
+        if (confirmDeleteModal) confirmDeleteModal.classList.add('open');
+      }
+
+      function closeDeleteConfirm() {
+        pendingDeleteAction = null;
+        if (confirmDeleteModal) confirmDeleteModal.classList.remove('open');
+      }
+
+      if (btnCancelDeleteAction) {
+        btnCancelDeleteAction.addEventListener('click', closeDeleteConfirm);
+      }
+      if (confirmDeleteModal) {
+        confirmDeleteModal.addEventListener('click', (e) => {
+          if (e.target === confirmDeleteModal) closeDeleteConfirm();
+        });
+      }
+      if (btnConfirmDeleteAction) {
+        btnConfirmDeleteAction.addEventListener('click', () => {
+          if (typeof pendingDeleteAction === 'function') {
+            const action = pendingDeleteAction;
+            closeDeleteConfirm();
+            action();
+          } else {
+            closeDeleteConfirm();
+          }
+        });
+      }
+
+      // Single Row Delete (Called from Table)
       window.deleteEngineerRow = function (idx) {
         const item = manpowerList[idx];
         if (!item) return;
-        if (confirm(`Delete engineer record for "${item.name} (${item.engineerCode})"?`)) {
-          manpowerList.splice(idx, 1);
-          saveToWebsiteDetails(true);
-          syncUi();
-          showToast(`Deleted ${item.name}`);
-        }
+
+        openDeleteConfirm(
+          'Delete Engineer Record?',
+          `Are you sure you want to delete "${item.name || item.engineerCode}" from the manpower roster? This will remove the technician and update website storage.`,
+          () => {
+            manpowerList.splice(idx, 1);
+            saveToWebsiteDetails(true);
+            syncUi();
+            showToast(`Deleted ${item.name || 'engineer'}`);
+          }
+        );
+      };
+
+      // Restore Master Roster
+      window.restoreMasterRoster = function () {
+        manpowerList = getDefaultSampleData();
+        saveToWebsiteDetails(true);
+        syncUi();
+        showToast('Restored 83 Gurgaon master engineers!');
       };
 
       // ==========================================================
@@ -1889,18 +2927,27 @@
         document.getElementById('btnExportCsv').addEventListener('click', exportCurrentTableToCsv);
 
         // Refresh & Reset
-        document.getElementById('btnReloadStored').addEventListener('click', () => {
-          autoGetWebsiteDetails();
-          showToast('Reloaded website details!');
+        document.getElementById('btnReloadStored').addEventListener('click', async () => {
+          await autoGetWebsiteDetails(true);
+          showToast('Reloaded website details from server disk!');
         });
 
+        // Clear / Delete All Manpower Records
         document.getElementById('btnResetDefault').addEventListener('click', () => {
-          if (confirm('Reset to standard sample manpower dataset? Any unsaved edits will be replaced.')) {
-            manpowerList = getDefaultSampleData();
-            saveToWebsiteDetails(true);
-            syncUi();
-            showToast('Reset to default sample roster!');
+          if (manpowerList.length === 0) {
+            showToast('Roster is already empty.');
+            return;
           }
+          openDeleteConfirm(
+            'Clear / Delete All Manpower Records?',
+            `This will permanently remove all ${manpowerList.length} engineer records from website storage. Are you sure you want to delete the entire list?`,
+            () => {
+              manpowerList = [];
+              saveToWebsiteDetails(true);
+              syncUi();
+              showToast('All manpower records have been deleted!');
+            }
+          );
         });
 
         // Single Add Modal Controls
@@ -2212,6 +3259,20 @@
             ghStatusBox.innerHTML = `<strong>Commit Failed:</strong> ${err.message}<br><small style="color: #7f1d1d;">Tip: Check that your token has <code>repo</code> permissions and repository name is <code>${repo}</code>.</small>`;
           }
         });
+      });
+
+      // Handle Page Navigation / BFCache restoration when returning from another page
+      window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+          autoGetWebsiteDetails(false);
+        }
+      });
+
+      // Synchronize immediately if another tab or page updated manpower storage
+      window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_KEY || e.key === 'gspn_manpower_roster') {
+          autoGetWebsiteDetails(false);
+        }
       });
     })();
   </script>

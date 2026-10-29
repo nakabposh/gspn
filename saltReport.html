@@ -535,7 +535,7 @@
           </div>
           <div class="flex items-center justify-between text-xs text-slate-600 py-1">
             <span>Active Technicians:</span>
-            <span class="font-bold text-blue-700" id="manpowerCountLabel">95 Engineers Loaded</span>
+            <span class="font-bold text-blue-700" id="manpowerCountLabel">83 Engineers Loaded</span>
           </div>
           <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
             <span class="text-[11px] text-slate-400">Team Leaders: Sanjeev, Sandeep, Binod, Harry, Khushi, Ravi, Ramji, Sunil, Jitender, Vikash</span>
@@ -980,15 +980,65 @@
       try {
         const cached = localStorage.getItem('gspn_manpower_roster') || localStorage.getItem('GSPN_MANPOWER_DATA');
         if (cached) {
-          const parsed = JSON.parse(cached);
+          let parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            list = smartMergeLists(list, parsed);
+            // Purge any legacy sample records
+            parsed = parsed.filter(m => !['Ramesh Kumar', 'Sandeep Verma', 'Amit Rawat', 'Mohit Joshi', 'Praveen Chauhan', 'Karan Malhotra', 'Sunil Sharma', 'Dinesh Yadav', 'Anil Kumar', 'Vikas Tyagi', 'Ajay Chauhan', 'Rajendra Meena'].includes(m.name) && !['Vikram Singh', 'Rajesh Gupta', 'Anurag Mishra', 'Harish Chand', 'Sunil Rawat', 'Mahesh Sharma'].includes(m.tlName));
+            // Self-healing: decouple SOHAN LAL from 8486272728 and ensure accurate IDs
+            parsed.forEach(m => {
+              if (m.name === 'SOHAN LAL' && (m.telNo === '8486272728' || m.engineerCode === '8486272728')) {
+                m.telNo = '9800000038';
+                m.engineerCode = 'ENG-GGN-038';
+              }
+              if (m.name === 'KRISHAN AC') m.engineerCode = '8486222858';
+              if (m.name === 'SANDEEP SHARMA') m.engineerCode = '8486099074';
+              if (m.name === 'MOHD ASIF') m.engineerCode = '8486268069';
+              if (m.name === 'Mohit') m.engineerCode = '8486268711';
+              if (m.name === 'LALIT') m.engineerCode = '8486268408';
+              if (m.name === 'UMA SHANKAR') m.engineerCode = '8486266015';
+            });
+            const hasNasimInParsed = parsed.some(m => String(m.engineerCode || '').trim() === '8486272728' || String(m.telNo || '').trim() === '8486272728' || String(m.name || '').trim().toUpperCase() === 'NASIM RASHEED');
+            if (!hasNasimInParsed) {
+              parsed.push({
+                branchCode: 'P103',
+                branchName: 'GURGAON',
+                no: parsed.length + 1,
+                engineerCode: '8486272728',
+                engineerType: 'In-Home',
+                name: 'NASIM RASHEED',
+                telNo: '8486272728',
+                status: 'Active',
+                tlName: 'HARRY',
+                trackerName: 'Pooja Sharma'
+              });
+            }
+            if (parsed.length > 0) {
+              list = smartMergeLists(list, parsed);
+            }
           }
         }
       } catch (e3) {
         console.warn('Local cache merge error:', e3);
       }
 
+      // Purge any legacy sample records
+      list = list.filter(m => !['Ramesh Kumar', 'Sandeep Verma', 'Amit Rawat', 'Mohit Joshi', 'Praveen Chauhan', 'Karan Malhotra', 'Sunil Sharma', 'Dinesh Yadav', 'Anil Kumar', 'Vikas Tyagi', 'Ajay Chauhan', 'Rajendra Meena'].includes(m.name) && !['Vikram Singh', 'Rajesh Gupta', 'Anurag Mishra', 'Harish Chand', 'Sunil Rawat', 'Mahesh Sharma'].includes(m.tlName));
+      // Ensure NASIM RASHEED is always in the merged list
+      const hasNasimInList = list.some(m => String(m.engineerCode || '').trim() === '8486272728' || String(m.telNo || '').trim() === '8486272728' || String(m.name || '').trim().toUpperCase() === 'NASIM RASHEED');
+      if (!hasNasimInList) {
+        list.push({
+          branchCode: 'P103',
+          branchName: 'GURGAON',
+          no: list.length + 1,
+          engineerCode: '8486272728',
+          engineerType: 'In-Home',
+          name: 'NASIM RASHEED',
+          telNo: '8486272728',
+          status: 'Active',
+          tlName: 'HARRY',
+          trackerName: 'Pooja Sharma'
+        });
+      }
       list = deduplicateManpowerList(list);
 
       if (list.length > 0) {
@@ -1066,17 +1116,18 @@
       // BINOD (5)
       { name: 'GOVIND KUMAR', tlName: 'BINOD', telNo: '9800000015', engineerCode: 'ENG-GGN-015' },
       { name: 'PRINCE', tlName: 'BINOD', telNo: '9800000021', engineerCode: 'ENG-GGN-021' },
-      { name: 'SANDEEP SHARMA', tlName: 'BINOD', telNo: '8486099074', engineerCode: 'ENG-GGN-023' },
+      { name: 'SANDEEP SHARMA', tlName: 'BINOD', telNo: '8486099074', engineerCode: '8486099074' },
       { name: 'SATYENDER UPADHYAY', aliases: ['satyender'], tlName: 'BINOD', telNo: '9800000042', engineerCode: 'ENG-GGN-042' },
       { name: 'AMIT KUMAR IT', aliases: ['amit kumar it', 'amit kumar'], tlName: 'BINOD', telNo: '9800000050', engineerCode: 'ENG-GGN-050' },
 
-      // HARRY (9)
-      { name: 'MOHD ASIF', tlName: 'HARRY', telNo: '8486268069', engineerCode: 'ENG-GGN-017' },
+      // HARRY (10)
+      { name: 'MOHD ASIF', tlName: 'HARRY', telNo: '8486268069', engineerCode: '8486268069' },
       { name: 'ASHISH KUMAR VERMA', aliases: ['ashish kumar', 'ashish verma'], tlName: 'HARRY', telNo: '9800000029', engineerCode: 'ENG-GGN-029' },
       { name: 'ROOP KAMAL', tlName: 'HARRY', telNo: '9800000031', engineerCode: 'ENG-GGN-031' },
       { name: 'VIPUL', tlName: 'HARRY', telNo: '9800000034', engineerCode: 'ENG-GGN-034' },
       { name: 'DURGESH MAURYA', tlName: 'HARRY', telNo: '9800000064', engineerCode: 'ENG-GGN-064' },
-      { name: 'UMA SHANKAR', tlName: 'HARRY', telNo: '8486266015', engineerCode: 'ENG-GGN-067' },
+      { name: 'UMA SHANKAR', tlName: 'HARRY', telNo: '8486266015', engineerCode: '8486266015' },
+      { name: 'NASIM RASHEED', aliases: ['nasim', 'nasim rasheed', 'naseem rasheed'], tlName: 'HARRY', telNo: '8486272728', engineerCode: '8486272728' },
       { name: 'PRAMOD KUMAR', tlName: 'HARRY', telNo: '9800000078', engineerCode: 'ENG-GGN-078' },
       { name: 'SHIVAM KUMAR', tlName: 'HARRY', telNo: '9800000082', engineerCode: 'ENG-GGN-082' },
       { name: 'Rama Nand', tlName: 'HARRY', telNo: '9800000089', engineerCode: 'ENG-GGN-089' },
@@ -1104,13 +1155,13 @@
       { name: 'Vivek HA', aliases: ['vivek', 'vivek ha'], tlName: 'RAVI', telNo: '9800000095', engineerCode: 'ENG-GGN-095' },
 
       // RAMJI (3)
-      { name: 'Mohit', aliases: ['mohit'], tlName: 'RAMJI', telNo: '8486268711', engineerCode: 'ENG-GGN-014' },
+      { name: 'Mohit', aliases: ['mohit'], tlName: 'RAMJI', telNo: '8486268711', engineerCode: '8486268711' },
       { name: 'SERAJ', tlName: 'RAMJI', telNo: '9800000093', engineerCode: 'ENG-GGN-093' },
       { name: 'HARI PRAKASH', tlName: 'RAMJI', telNo: '9800000094', engineerCode: 'ENG-GGN-094' },
 
       // SUNIL (10)
       { name: 'TARUN', tlName: 'SUNIL', telNo: '9800000037', engineerCode: 'ENG-GGN-037' },
-      { name: 'SOHAN LAL', tlName: 'SUNIL', telNo: '8486272728', engineerCode: 'ENG-GGN-038' },
+      { name: 'SOHAN LAL', tlName: 'SUNIL', telNo: '9800000038', engineerCode: 'ENG-GGN-038' },
       { name: 'MANISH NISHAD', aliases: ['manish'], tlName: 'SUNIL', telNo: '9800000041', engineerCode: 'ENG-GGN-041' },
       { name: 'NEK MOHAMMAD', aliases: ['nek mohd'], tlName: 'SUNIL', telNo: '9800000045', engineerCode: 'ENG-GGN-045' },
       { name: 'SANGIT YADAV', aliases: ['sangeet yadav'], tlName: 'SUNIL', telNo: '9800000053', engineerCode: 'ENG-GGN-053' },
@@ -1123,7 +1174,7 @@
       // Jitender (9)
       { name: 'PARVEEN THAKOOR', aliases: ['parveen thakur'], tlName: 'Jitender', telNo: '9800000013', engineerCode: 'ENG-GGN-013' },
       { name: 'RAHUL KUMAR', tlName: 'Jitender', telNo: '9800000033', engineerCode: 'ENG-GGN-033' },
-      { name: 'LALIT', aliases: ['lalit'], tlName: 'Jitender', telNo: '8486268408', engineerCode: 'ENG-GGN-036' },
+      { name: 'LALIT', aliases: ['lalit'], tlName: 'Jitender', telNo: '8486268408', engineerCode: '8486268408' },
       { name: 'SURJAN SINGH', tlName: 'Jitender', telNo: '9800000040', engineerCode: 'ENG-GGN-040' },
       { name: 'OM PRAKASH', tlName: 'Jitender', telNo: '9800000059', engineerCode: 'ENG-GGN-059' },
       { name: 'MANOJ KUMAR IIDM', aliases: ['manoj kumar iidm'], tlName: 'Jitender', telNo: '9800000060', engineerCode: 'ENG-GGN-060' },
@@ -1134,7 +1185,7 @@
       // VIKASH (14)
       { name: 'VIVEK PATEL', tlName: 'VIKASH', telNo: '9800000016', engineerCode: 'ENG-GGN-016' },
       { name: 'AKHILESH KUMAR', tlName: 'VIKASH', telNo: '9800000024', engineerCode: 'ENG-GGN-024' },
-      { name: 'KRISHAN AC', aliases: ['krishan', 'krishan ac'], tlName: 'VIKASH', telNo: '8486222858', engineerCode: 'ENG-GGN-025' },
+      { name: 'KRISHAN AC', aliases: ['krishan', 'krishan ac'], tlName: 'VIKASH', telNo: '8486222858', engineerCode: '8486222858' },
       { name: 'RAJESH KUMAR', tlName: 'VIKASH', telNo: '9800000035', engineerCode: 'ENG-GGN-035' },
       { name: 'ANOOP KUMAR', tlName: 'VIKASH', telNo: '9800000063', engineerCode: 'ENG-GGN-063' },
       { name: 'SANTOSH CHAUHAN', tlName: 'VIKASH', telNo: '9800000068', engineerCode: 'ENG-GGN-068' },
@@ -1161,7 +1212,14 @@
         if (m.aliases) {
           m.aliases.forEach(a => state.manpowerMap.set(String(a).trim().toLowerCase(), record));
         }
-        if (m.engineerCode) state.manpowerCodeMap.set(String(m.engineerCode).trim().toLowerCase(), record);
+        if (m.engineerCode) {
+          const rawC = String(m.engineerCode).trim();
+          const c = rawC.toLowerCase();
+          state.manpowerCodeMap.set(c, record);
+          state.manpowerCodeMap.set(rawC, record);
+          const digitsC = rawC.replace(/[^0-9]/g, '');
+          if (digitsC) state.manpowerCodeMap.set(digitsC, record);
+        }
         if (m.telNo) {
           const rawTel = String(m.telNo).trim();
           state.manpowerIdMap.set(rawTel, record);
@@ -1170,7 +1228,7 @@
         }
       });
 
-      // Layer external manpower list from Context (takes precedence)
+      // Layer external manpower list from Context/svcInformation (takes precedence over master)
       state.manpowerList.forEach(m => {
         if (!m) return;
         const normalizedTL = normalizeTLName(m.tlName);
@@ -1185,8 +1243,12 @@
           }
         }
         if (m.engineerCode) {
-          const c = String(m.engineerCode).trim().toLowerCase();
+          const rawC = String(m.engineerCode).trim();
+          const c = rawC.toLowerCase();
           state.manpowerCodeMap.set(c, record);
+          state.manpowerCodeMap.set(rawC, record);
+          const digitsC = rawC.replace(/[^0-9]/g, '');
+          if (digitsC) state.manpowerCodeMap.set(digitsC, record);
         }
         if (m.telNo) {
           let rawTel = String(m.telNo).trim().replace(/\.0+$/, '');
@@ -1198,11 +1260,12 @@
     }
 
     // Exact Lookup by EngineerId or Eng Name from SVC Information from Context
+    // Matches SALT "EngineerId" against Manpower "Engineer Code" (engineerCode)
     function vlookupByEngineerId(engineerId, rawEngineerName = '') {
       let rawIdStr = String(engineerId || '').trim();
       let rawNameStr = String(rawEngineerName || '').trim();
 
-      // Deconstruct composite "Eng Name - EngineerId" (e.g. "Sohan Lal - 8486272728" or "8486272728 - Sohan Lal")
+      // Deconstruct composite "Eng Name - EngineerId" (e.g. "Nasim Rasheed - 8486272728" or "8486272728 - Nasim Rasheed")
       if (rawNameStr && (rawNameStr.includes('-') || rawNameStr.includes('/'))) {
         const parts = rawNameStr.split(/[-/]/).map(s => s.trim());
         const numPart = parts.find(p => /\d{6,}/.test(p));
@@ -1226,41 +1289,61 @@
 
       let matched = null;
 
-      // Priority 1: Match EngineerId against telNo in SVC Information (from Context)
-      if (cleanId && state.manpowerIdMap.has(cleanId)) {
-        matched = state.manpowerIdMap.get(cleanId);
-      } else if (digitsId && state.manpowerIdMap.has(digitsId)) {
-        matched = state.manpowerIdMap.get(digitsId);
-      }
-
-      // Priority 2: Match EngineerId against Engineer Code in SVC Information
-      if (!matched && cleanId && state.manpowerCodeMap.has(cleanId.toLowerCase())) {
+      // ─────────────────────────────────────────────────────────────────
+      // PRIORITY 1: Match SALT "EngineerId" against "Engineer Code" in Manpower Details
+      // (Explicit Requirement: ENG SEARCH BY "Engineer Code" INTO THE MANPOWER DETAILS AND "EngineerId" -- INTO THE SALT SAMPLE DATA)
+      // ─────────────────────────────────────────────────────────────────
+      if (cleanId && state.manpowerCodeMap.has(cleanId.toLowerCase())) {
         matched = state.manpowerCodeMap.get(cleanId.toLowerCase());
+      } else if (cleanId && state.manpowerCodeMap.has(cleanId)) {
+        matched = state.manpowerCodeMap.get(cleanId);
+      } else if (digitsId && state.manpowerCodeMap.has(digitsId)) {
+        matched = state.manpowerCodeMap.get(digitsId);
       }
 
-      // Priority 3: Match rawEngineerName in SVC Information (from Context)
+      // ─────────────────────────────────────────────────────────────────
+      // PRIORITY 2: Match rawEngineerName in Manpower Details (from Context)
+      // ─────────────────────────────────────────────────────────────────
       if (!matched && lowerName && state.manpowerMap.has(lowerName)) {
         matched = state.manpowerMap.get(lowerName);
       }
-
-      // Priority 4: Match tradeCleaned Name in SVC Information
       if (!matched && tradeClean && state.manpowerMap.has(tradeClean)) {
         matched = state.manpowerMap.get(tradeClean);
       }
 
-      // Priority 5: Match in MASTER_GURGAON_ENGINEERS
+      // ─────────────────────────────────────────────────────────────────
+      // PRIORITY 3: Match SALT "EngineerId" against Manpower telNo
+      // ─────────────────────────────────────────────────────────────────
+      if (!matched) {
+        if (cleanId && state.manpowerIdMap.has(cleanId)) {
+          matched = state.manpowerIdMap.get(cleanId);
+        } else if (digitsId && state.manpowerIdMap.has(digitsId)) {
+          matched = state.manpowerIdMap.get(digitsId);
+        }
+      }
+
+      // ─────────────────────────────────────────────────────────────────
+      // PRIORITY 4: Match in MASTER_GURGAON_ENGINEERS
+      // ─────────────────────────────────────────────────────────────────
       if (!matched) {
         const masterExact = MASTER_GURGAON_ENGINEERS.find(e => {
-          if (digitsId && e.telNo && e.telNo.replace(/[^0-9]/g, '') === digitsId) return true;
+          // Check engineerCode first
+          if (cleanId && e.engineerCode && String(e.engineerCode).trim().toLowerCase() === cleanId.toLowerCase()) return true;
+          if (digitsId && e.engineerCode && String(e.engineerCode).replace(/[^0-9]/g, '') === digitsId) return true;
+          // Check name
           const eLower = e.name.toLowerCase();
           if (lowerName && eLower === lowerName) return true;
           if (tradeClean && (cleanTradeName(e.name) === tradeClean || (e.aliases && e.aliases.some(a => a === tradeClean || a === lowerName)))) return true;
+          // Check telNo
+          if (digitsId && e.telNo && e.telNo.replace(/[^0-9]/g, '') === digitsId) return true;
           return false;
         });
         if (masterExact) matched = masterExact;
       }
 
-      // Priority 6: Word / token match strictly among Gurgaon technicians
+      // ─────────────────────────────────────────────────────────────────
+      // PRIORITY 5: Word / token match strictly among Gurgaon technicians
+      // ─────────────────────────────────────────────────────────────────
       if (!matched && tradeClean && tradeClean.length >= 3) {
         for (const e of MASTER_GURGAON_ENGINEERS) {
           const eClean = cleanTradeName(e.name);
@@ -1271,11 +1354,25 @@
         }
       }
 
+      // Resolve final engineer name:
+      // CRITICAL: If rawEngineerName is present in the raw SALT data (e.g. "NASIM RASHEED"),
+      // NEVER overwrite it with an incompatible name like "SOHAN LAL"!
+      let finalEngName = rawNameStr;
+      if (!finalEngName) {
+        finalEngName = matched ? (matched.name || 'Unassigned') : 'Unassigned';
+      } else if (matched && matched.name) {
+        // If matched name is similar or same person, standardize casing
+        const mClean = cleanTradeName(matched.name);
+        const rClean = cleanTradeName(rawNameStr);
+        if (mClean === rClean || mClean.includes(rClean) || rClean.includes(mClean)) {
+          finalEngName = matched.name;
+        }
+      }
+
       if (matched) {
-        // Dynamically learn / cache this EngineerId (e.g., 8486272728) with this matched engineer
+        // Dynamically learn / cache for subsequent calls
         if (digitsId && digitsId.length >= 6) {
-          state.manpowerIdMap.set(digitsId, matched);
-          state.manpowerIdMap.set(cleanId, matched);
+          state.manpowerCodeMap.set(digitsId, matched);
         }
         if (lowerName) {
           state.manpowerMap.set(lowerName, matched);
@@ -1283,8 +1380,8 @@
 
         return {
           tlName: normalizeTLName(matched.tlName),
-          engName: matched.name || rawNameStr || 'Unassigned',
-          engineerCode: matched.engineerCode || '',
+          engName: finalEngName,
+          engineerCode: matched.engineerCode || cleanId || '',
           branchName: matched.branchName || 'Gurgaon',
           found: true
         };
@@ -1292,9 +1389,9 @@
 
       return {
         tlName: 'General',
-        engName: rawNameStr || 'Unassigned',
-        engineerCode: '',
-        branchName: '',
+        engName: finalEngName,
+        engineerCode: cleanId || '',
+        branchName: 'Gurgaon',
         found: false
       };
     }
@@ -1578,18 +1675,30 @@
       const totB2BVisit010 = calls.filter(c => c.isHCYes && c.isB2B && c.visitTAT === '0~10').length;
       const totB2BServ020 = calls.filter(c => c.isHCYes && c.isB2B && c.serviceTAT === '0~20').length;
 
-      document.getElementById('statTotalJobs').textContent = totCalls;
-      document.getElementById('statHappyYes').textContent = totHC;
-      document.getElementById('statHappyRate').textContent = `${hcRate}% HC Verified`;
+      // Update Top KPIs with zero-awareness
+      const updateStatText = (elId, text, isZero) => {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        el.textContent = text;
+        if (isZero) {
+          el.classList.add('text-rose-600', 'font-black');
+        } else {
+          el.classList.remove('text-rose-600', 'font-black');
+        }
+      };
+
+      updateStatText('statTotalJobs', totCalls, totCalls === 0);
+      updateStatText('statHappyYes', totHC, totHC === 0);
+      updateStatText('statHappyRate', `${hcRate}% HC Verified`, totHC === 0 || hcRate === 0);
       
-      document.getElementById('statOverallVisit010').textContent = totOVisit010;
-      document.getElementById('statOverallVisitPct').textContent = totHC > 0 ? `${Math.round((totOVisit010 / totHC) * 100)}% of HC calls` : '0%';
+      updateStatText('statOverallVisit010', totOVisit010, totOVisit010 === 0);
+      updateStatText('statOverallVisitPct', totHC > 0 ? `${Math.round((totOVisit010 / totHC) * 100)}% of HC calls` : '0%', totOVisit010 === 0 || totHC === 0);
 
-      document.getElementById('statOverallService020').textContent = totOServ020;
-      document.getElementById('statOverallServicePct').textContent = totHC > 0 ? `${Math.round((totOServ020 / totHC) * 100)}% of HC calls` : '0%';
+      updateStatText('statOverallService020', totOServ020, totOServ020 === 0);
+      updateStatText('statOverallServicePct', totHC > 0 ? `${Math.round((totOServ020 / totHC) * 100)}% of HC calls` : '0%', totOServ020 === 0 || totHC === 0);
 
-      document.getElementById('statB2BCounts').textContent = `${totB2BVisit010} / ${totB2BServ020}`;
-      document.getElementById('statB2BRates').textContent = totHC > 0 ? `${Math.round((totB2BVisit010 / totHC) * 100)}% / ${Math.round((totB2BServ020 / totHC) * 100)}%` : '0%';
+      updateStatText('statB2BCounts', `${totB2BVisit010} / ${totB2BServ020}`, totB2BVisit010 === 0 && totB2BServ020 === 0);
+      updateStatText('statB2BRates', totHC > 0 ? `${Math.round((totB2BVisit010 / totHC) * 100)}% / ${Math.round((totB2BServ020 / totHC) * 100)}%` : '0% / 0%', totHC === 0 || (totB2BVisit010 === 0 && totB2BServ020 === 0));
 
       document.getElementById('statTLCount').textContent = tlArray.length;
       document.getElementById('statEngineerCount').textContent = `${engArray.length} Engineers`;
@@ -1600,21 +1709,34 @@
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    // CONDITIONAL HEATMAP COLORING
+    // CONDITIONAL HEATMAP COLORING & ZERO FORMATTING
     // ═════════════════════════════════════════════════════════════════════════
+    function getZeroCountClass(val) {
+      const num = Number(val) || 0;
+      if (num === 0) {
+        return 'text-rose-600 bg-rose-50/70 font-bold';
+      }
+      return 'font-semibold text-slate-800';
+    }
+
     function getHCPctColorClass(pct, total) {
-      if (total === 0) return 'heat-white';
+      if (!total || total === 0 || !pct || pct === 0 || isNaN(pct)) {
+        return 'heat-red'; // Zero or no calls is styled in RED
+      }
       const p = Math.round(pct * 100);
+      if (p === 0) return 'heat-red';
       if (p >= 95) return 'heat-green';
       if (p >= 85) return 'heat-yellow';
       if (p >= 50) return 'heat-orange';
       return 'heat-red';
     }
 
-    function getTAT010020ColorClass(pct, hcCount) {
-      if (hcCount === 0) return 'heat-green';
+    function getTAT010020ColorClass(pct, hcCount, count = 1) {
+      if (!hcCount || hcCount === 0 || !pct || pct === 0 || count === 0 || isNaN(pct)) {
+        return 'heat-red'; // Zero compliance is styled in RED
+      }
       const p = Math.round(pct * 100);
-      if (p === 0) return 'heat-green';
+      if (p === 0) return 'heat-red';
       if (p <= 10) return 'heat-green';
       if (p <= 25) return 'heat-yellow';
       if (p <= 50) return 'heat-orange';
@@ -1622,7 +1744,9 @@
     }
 
     function formatPct(pct, total) {
-      if (total === 0) return '#DIV/0!';
+      if (!total || total === 0 || !pct || pct === 0 || isNaN(pct) || !isFinite(pct)) {
+        return '0%'; // Always show 0% instead of #DIV/0!
+      }
       return `${Math.round(pct * 100)}%`;
     }
 
@@ -1660,28 +1784,28 @@
       let html = '';
       filtered.forEach(r => {
         const hcClass = getHCPctColorClass(r.hcPct, r.total);
-        const oVClass = getTAT010020ColorClass(r.oVisitPct, r.hc);
-        const oSClass = getTAT010020ColorClass(r.oServPct, r.hc);
-        const bVClass = getTAT010020ColorClass(r.bVisitPct, r.hc);
-        const bSClass = getTAT010020ColorClass(r.bServPct, r.hc);
+        const oVClass = getTAT010020ColorClass(r.oVisitPct, r.hc, r.overallVisit010);
+        const oSClass = getTAT010020ColorClass(r.oServPct, r.hc, r.overallService020);
+        const bVClass = getTAT010020ColorClass(r.bVisitPct, r.hc, r.b2bVisit010);
+        const bSClass = getTAT010020ColorClass(r.bServPct, r.hc, r.b2bService020);
 
         html += `
           <tr class="hover:bg-slate-50 transition border-b border-slate-200">
             <td class="py-2 px-3 border-r border-slate-300 font-bold text-slate-900 text-left bg-slate-50/60">${r.name}</td>
-            <td class="py-2 px-3 border-r border-slate-300 font-semibold">${r.total}</td>
-            <td class="py-2 px-3 border-r border-slate-300 font-semibold">${r.hc}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.total)}">${r.total}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.hc)}">${r.hc}</td>
             <td class="py-2 px-3 border-r border-slate-300 font-bold ${hcClass}">${formatPct(r.hcPct, r.total)}</td>
             <!-- Overall Visit -->
-            <td class="py-2 px-3 border-r border-slate-300 font-semibold">${r.overallVisit010}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallVisit010)}">${r.overallVisit010}</td>
             <td class="py-2 px-3 border-r border-slate-300 font-bold ${oVClass}">${formatPct(r.oVisitPct, r.hc)}</td>
             <!-- Overall Service -->
-            <td class="py-2 px-3 border-r border-slate-300 font-semibold">${r.overallService020}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallService020)}">${r.overallService020}</td>
             <td class="py-2 px-3 border-r border-slate-300 font-bold ${oSClass}">${formatPct(r.oServPct, r.hc)}</td>
             <!-- B2B Visit -->
-            <td class="py-2 px-3 border-r border-slate-300 font-semibold">${r.b2bVisit010}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bVisit010)}">${r.b2bVisit010}</td>
             <td class="py-2 px-3 border-r border-slate-300 font-bold ${bVClass}">${formatPct(r.bVisitPct, r.hc)}</td>
             <!-- B2B Service -->
-            <td class="py-2 px-3 border-r border-slate-300 font-semibold">${r.b2bService020}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bService020)}">${r.b2bService020}</td>
             <td class="py-2 px-3 border-r border-slate-300 font-bold ${bSClass}">${formatPct(r.bServPct, r.hc)}</td>
           </tr>
         `;
@@ -1702,20 +1826,28 @@
       const bvTotPct = totHC > 0 ? (totBV / totHC) : 0;
       const bsTotPct = totHC > 0 ? (totBS / totHC) : 0;
 
+      const fZero = (val, isPct = false) => {
+        const isZ = isPct ? (!val || val === 0) : (val === 0);
+        if (isZ) {
+          return `<span class="text-rose-400 font-black">${isPct ? '0%' : 0}</span>`;
+        }
+        return isPct ? `${Math.round(val * 100)}%` : val;
+      };
+
       tfoot.innerHTML = `
         <tr class="bg-slate-700 text-white font-black text-xs">
           <td class="py-2.5 px-3 border-r border-slate-600 text-left">Total</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totCalls}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totHC}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${Math.round(hcTotPct * 100)}%</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totOV}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${Math.round(ovTotPct * 100)}%</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totOS}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${Math.round(osTotPct * 100)}%</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totBV}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${Math.round(bvTotPct * 100)}%</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totBS}</td>
-          <td class="py-2.5 px-3">${Math.round(bsTotPct * 100)}%</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totCalls)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totHC)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(hcTotPct, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totOV)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(ovTotPct, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totOS)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(osTotPct, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totBV)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(bvTotPct, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totBS)}</td>
+          <td class="py-2.5 px-3">${fZero(bsTotPct, true)}</td>
         </tr>
       `;
     }
@@ -1744,29 +1876,29 @@
       let html = '';
       filtered.forEach(r => {
         const hcClass = getHCPctColorClass(r.hcPct, r.total);
-        const oVClass = getTAT010020ColorClass(r.oVisitPct, r.hc);
-        const oSClass = getTAT010020ColorClass(r.oServPct, r.hc);
-        const bVClass = getTAT010020ColorClass(r.bVisitPct, r.hc);
-        const bSClass = getTAT010020ColorClass(r.bServPct, r.hc);
+        const oVClass = getTAT010020ColorClass(r.oVisitPct, r.hc, r.overallVisit010);
+        const oSClass = getTAT010020ColorClass(r.oServPct, r.hc, r.overallService020);
+        const bVClass = getTAT010020ColorClass(r.bVisitPct, r.hc, r.b2bVisit010);
+        const bSClass = getTAT010020ColorClass(r.bServPct, r.hc, r.b2bService020);
 
         html += `
           <tr class="hover:bg-slate-50 transition border-b border-slate-200">
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold text-slate-900 text-left">${r.engName}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 text-slate-700 text-left">${r.tlName}</td>
-            <td class="py-1.5 px-3 border-r border-slate-300 font-semibold">${r.total}</td>
-            <td class="py-1.5 px-3 border-r border-slate-300 font-semibold">${r.hc}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.total)}">${r.total}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.hc)}">${r.hc}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold ${hcClass}">${formatPct(r.hcPct, r.total)}</td>
             <!-- Overall Visit -->
-            <td class="py-1.5 px-3 border-r border-slate-300 font-semibold">${r.overallVisit010}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallVisit010)}">${r.overallVisit010}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold ${oVClass}">${formatPct(r.oVisitPct, r.hc)}</td>
             <!-- Overall Service -->
-            <td class="py-1.5 px-3 border-r border-slate-300 font-semibold">${r.overallService020}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallService020)}">${r.overallService020}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold ${oSClass}">${formatPct(r.oServPct, r.hc)}</td>
             <!-- B2B Visit -->
-            <td class="py-1.5 px-3 border-r border-slate-300 font-semibold">${r.b2bVisit010}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bVisit010)}">${r.b2bVisit010}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold ${bVClass}">${formatPct(r.bVisitPct, r.hc)}</td>
             <!-- B2B Service -->
-            <td class="py-1.5 px-3 border-r border-slate-300 font-semibold">${r.b2bService020}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bService020)}">${r.b2bService020}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold ${bSClass}">${formatPct(r.bServPct, r.hc)}</td>
           </tr>
         `;
@@ -1787,20 +1919,28 @@
       const bvTotPct = totHC > 0 ? (totBV / totHC) : 0;
       const bsTotPct = totHC > 0 ? (totBS / totHC) : 0;
 
+      const fZero = (val, isPct = false) => {
+        const isZ = isPct ? (!val || val === 0) : (val === 0);
+        if (isZ) {
+          return `<span class="text-rose-400 font-black">${isPct ? '0%' : 0}</span>`;
+        }
+        return isPct ? `${Math.round(val * 100)}%` : val;
+      };
+
       tfoot.innerHTML = `
         <tr class="bg-slate-700 text-white font-black text-xs">
           <td colspan="2" class="py-2.5 px-3 border-r border-slate-600 text-left">Total</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totCalls}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totHC}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${Math.round(hcTotPct * 100)}%</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totOV}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${Math.round(ovTotPct * 100)}%</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totOS}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${Math.round(osTotPct * 100)}%</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totBV}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${Math.round(bvTotPct * 100)}%</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${totBS}</td>
-          <td class="py-2.5 px-3">${Math.round(bsTotPct * 100)}%</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totCalls)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totHC)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(hcTotPct, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totOV)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(ovTotPct, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totOS)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(osTotPct, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totBV)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(bvTotPct, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totBS)}</td>
+          <td class="py-2.5 px-3">${fZero(bsTotPct, true)}</td>
         </tr>
       `;
     }
@@ -2026,8 +2166,9 @@
 
       let rowIdx = 4;
       const getHexFill = (pct, isHC = false, count = 1) => {
-        if (count === 0) return '86EFAC';
+        if (!count || count === 0 || !pct || pct === 0 || isNaN(pct)) return 'FCA5A5'; // Red for 0
         const p = Math.round(pct * 100);
+        if (p === 0) return 'FCA5A5'; // Red for 0
         if (isHC) {
           if (p >= 95) return '86EFAC';
           if (p >= 85) return 'FEF08A';
@@ -2041,34 +2182,40 @@
         }
       };
 
+      const applyCountCell = (cell, val) => {
+        const num = Number(val) || 0;
+        if (num === 0) {
+          applyCell(cell, 0, 'FEE2E2', 'B91C1C', true);
+        } else {
+          applyCell(cell, num, 'FFFFFF', '000000', false);
+        }
+      };
+
+      const applyPctCell = (cell, pct, count, isHC = false) => {
+        const isZero = !count || count === 0 || !pct || pct === 0 || isNaN(pct);
+        const fill = getHexFill(pct, isHC, count);
+        const fontColor = isZero ? '7F1D1D' : '000000';
+        applyCell(cell, isZero ? 0 : pct, fill, fontColor, true);
+        cell.numFmt = '0%';
+      };
+
       state.tlSummary.forEach(r => {
         applyCell(wsTL.getCell(`A${rowIdx}`), r.name, 'F8FAFC', '000000', true, 'left');
-        applyCell(wsTL.getCell(`B${rowIdx}`), r.total, 'FFFFFF', '000000');
-        applyCell(wsTL.getCell(`C${rowIdx}`), r.hc, 'FFFFFF', '000000');
-        
-        const hcCell = wsTL.getCell(`D${rowIdx}`);
-        applyCell(hcCell, r.total > 0 ? r.hcPct : 0, getHexFill(r.hcPct, true, r.total), '000000', true);
-        hcCell.numFmt = '0%';
+        applyCountCell(wsTL.getCell(`B${rowIdx}`), r.total);
+        applyCountCell(wsTL.getCell(`C${rowIdx}`), r.hc);
+        applyPctCell(wsTL.getCell(`D${rowIdx}`), r.hcPct, r.total, true);
 
-        applyCell(wsTL.getCell(`E${rowIdx}`), r.overallVisit010, 'FFFFFF', '000000');
-        const ovCell = wsTL.getCell(`F${rowIdx}`);
-        applyCell(ovCell, r.hc > 0 ? r.oVisitPct : 0, getHexFill(r.oVisitPct, false, r.hc), '000000', true);
-        ovCell.numFmt = '0%';
+        applyCountCell(wsTL.getCell(`E${rowIdx}`), r.overallVisit010);
+        applyPctCell(wsTL.getCell(`F${rowIdx}`), r.oVisitPct, r.hc, false);
 
-        applyCell(wsTL.getCell(`G${rowIdx}`), r.overallService020, 'FFFFFF', '000000');
-        const osCell = wsTL.getCell(`H${rowIdx}`);
-        applyCell(osCell, r.hc > 0 ? r.oServPct : 0, getHexFill(r.oServPct, false, r.hc), '000000', true);
-        osCell.numFmt = '0%';
+        applyCountCell(wsTL.getCell(`G${rowIdx}`), r.overallService020);
+        applyPctCell(wsTL.getCell(`H${rowIdx}`), r.oServPct, r.hc, false);
 
-        applyCell(wsTL.getCell(`I${rowIdx}`), r.b2bVisit010, 'FFFFFF', '000000');
-        const bvCell = wsTL.getCell(`J${rowIdx}`);
-        applyCell(bvCell, r.hc > 0 ? r.bVisitPct : 0, getHexFill(r.bVisitPct, false, r.hc), '000000', true);
-        bvCell.numFmt = '0%';
+        applyCountCell(wsTL.getCell(`I${rowIdx}`), r.b2bVisit010);
+        applyPctCell(wsTL.getCell(`J${rowIdx}`), r.bVisitPct, r.hc, false);
 
-        applyCell(wsTL.getCell(`K${rowIdx}`), r.b2bService020, 'FFFFFF', '000000');
-        const bsCell = wsTL.getCell(`L${rowIdx}`);
-        applyCell(bsCell, r.hc > 0 ? r.bServPct : 0, getHexFill(r.bServPct, false, r.hc), '000000', true);
-        bsCell.numFmt = '0%';
+        applyCountCell(wsTL.getCell(`K${rowIdx}`), r.b2bService020);
+        applyPctCell(wsTL.getCell(`L${rowIdx}`), r.bServPct, r.hc, false);
 
         rowIdx++;
       });
@@ -2080,33 +2227,42 @@
       const totBV = state.tlSummary.reduce((a, b) => a + b.b2bVisit010, 0);
       const totBS = state.tlSummary.reduce((a, b) => a + b.b2bService020, 0);
 
+      const applyTotalCountCell = (cell, val) => {
+        const num = Number(val) || 0;
+        if (num === 0) {
+          applyCell(cell, 0, '991B1B', 'FFFFFF', true);
+        } else {
+          applyCell(cell, num, '475569', 'FFFFFF', true);
+        }
+      };
+
+      const applyTotalPctCell = (cell, val, denom) => {
+        const pct = denom > 0 ? (val / denom) : 0;
+        const isZero = denom === 0 || val === 0 || pct === 0;
+        if (isZero) {
+          applyCell(cell, 0, '991B1B', 'FFFFFF', true);
+        } else {
+          applyCell(cell, pct, '475569', 'FFFFFF', true);
+        }
+        cell.numFmt = '0%';
+      };
+
       applyCell(wsTL.getCell(`A${rowIdx}`), 'Total', '475569', 'FFFFFF', true, 'left');
-      applyCell(wsTL.getCell(`B${rowIdx}`), totCalls, '475569', 'FFFFFF', true);
-      applyCell(wsTL.getCell(`C${rowIdx}`), totHC, '475569', 'FFFFFF', true);
-      
-      const totHcCell = wsTL.getCell(`D${rowIdx}`);
-      applyCell(totHcCell, totCalls > 0 ? totHC / totCalls : 0, '475569', 'FFFFFF', true);
-      totHcCell.numFmt = '0%';
+      applyTotalCountCell(wsTL.getCell(`B${rowIdx}`), totCalls);
+      applyTotalCountCell(wsTL.getCell(`C${rowIdx}`), totHC);
+      applyTotalPctCell(wsTL.getCell(`D${rowIdx}`), totHC, totCalls);
 
-      applyCell(wsTL.getCell(`E${rowIdx}`), totOV, '475569', 'FFFFFF', true);
-      const totOvCell = wsTL.getCell(`F${rowIdx}`);
-      applyCell(totOvCell, totHC > 0 ? totOV / totHC : 0, '475569', 'FFFFFF', true);
-      totOvCell.numFmt = '0%';
+      applyTotalCountCell(wsTL.getCell(`E${rowIdx}`), totOV);
+      applyTotalPctCell(wsTL.getCell(`F${rowIdx}`), totOV, totHC);
 
-      applyCell(wsTL.getCell(`G${rowIdx}`), totOS, '475569', 'FFFFFF', true);
-      const totOsCell = wsTL.getCell(`H${rowIdx}`);
-      applyCell(totOsCell, totHC > 0 ? totOS / totHC : 0, '475569', 'FFFFFF', true);
-      totOsCell.numFmt = '0%';
+      applyTotalCountCell(wsTL.getCell(`G${rowIdx}`), totOS);
+      applyTotalPctCell(wsTL.getCell(`H${rowIdx}`), totOS, totHC);
 
-      applyCell(wsTL.getCell(`I${rowIdx}`), totBV, '475569', 'FFFFFF', true);
-      const totBvCell = wsTL.getCell(`J${rowIdx}`);
-      applyCell(totBvCell, totHC > 0 ? totBV / totHC : 0, '475569', 'FFFFFF', true);
-      totBvCell.numFmt = '0%';
+      applyTotalCountCell(wsTL.getCell(`I${rowIdx}`), totBV);
+      applyTotalPctCell(wsTL.getCell(`J${rowIdx}`), totBV, totHC);
 
-      applyCell(wsTL.getCell(`K${rowIdx}`), totBS, '475569', 'FFFFFF', true);
-      const totBsCell = wsTL.getCell(`L${rowIdx}`);
-      applyCell(totBsCell, totHC > 0 ? totBS / totHC : 0, '475569', 'FFFFFF', true);
-      totBsCell.numFmt = '0%';
+      applyTotalCountCell(wsTL.getCell(`K${rowIdx}`), totBS);
+      applyTotalPctCell(wsTL.getCell(`L${rowIdx}`), totBS, totHC);
 
       wsTL.columns = [
         { width: 16 }, { width: 10 }, { width: 10 }, { width: 11 },
@@ -2164,64 +2320,42 @@
       state.engSummary.forEach(r => {
         applyCell(wsEng.getCell(`A${eRowIdx}`), r.engName, 'F8FAFC', '000000', true, 'left');
         applyCell(wsEng.getCell(`B${eRowIdx}`), r.tlName, 'FFFFFF', '000000', false, 'left');
-        applyCell(wsEng.getCell(`C${eRowIdx}`), r.total, 'FFFFFF', '000000');
-        applyCell(wsEng.getCell(`D${eRowIdx}`), r.hc, 'FFFFFF', '000000');
-        
-        const hcCell = wsEng.getCell(`E${eRowIdx}`);
-        applyCell(hcCell, r.total > 0 ? r.hcPct : 0, getHexFill(r.hcPct, true, r.total), '000000', true);
-        hcCell.numFmt = '0%';
+        applyCountCell(wsEng.getCell(`C${eRowIdx}`), r.total);
+        applyCountCell(wsEng.getCell(`D${eRowIdx}`), r.hc);
+        applyPctCell(wsEng.getCell(`E${eRowIdx}`), r.hcPct, r.total, true);
 
-        applyCell(wsEng.getCell(`F${eRowIdx}`), r.overallVisit010, 'FFFFFF', '000000');
-        const ovCell = wsEng.getCell(`G${eRowIdx}`);
-        applyCell(ovCell, r.hc > 0 ? r.oVisitPct : 0, getHexFill(r.oVisitPct, false, r.hc), '000000', true);
-        ovCell.numFmt = '0%';
+        applyCountCell(wsEng.getCell(`F${eRowIdx}`), r.overallVisit010);
+        applyPctCell(wsEng.getCell(`G${eRowIdx}`), r.oVisitPct, r.hc, false);
 
-        applyCell(wsEng.getCell(`H${eRowIdx}`), r.overallService020, 'FFFFFF', '000000');
-        const osCell = wsEng.getCell(`I${eRowIdx}`);
-        applyCell(osCell, r.hc > 0 ? r.oServPct : 0, getHexFill(r.oServPct, false, r.hc), '000000', true);
-        osCell.numFmt = '0%';
+        applyCountCell(wsEng.getCell(`H${eRowIdx}`), r.overallService020);
+        applyPctCell(wsEng.getCell(`I${eRowIdx}`), r.oServPct, r.hc, false);
 
-        applyCell(wsEng.getCell(`J${eRowIdx}`), r.b2bVisit010, 'FFFFFF', '000000');
-        const bvCell = wsEng.getCell(`K${eRowIdx}`);
-        applyCell(bvCell, r.hc > 0 ? r.bVisitPct : 0, getHexFill(r.bVisitPct, false, r.hc), '000000', true);
-        bvCell.numFmt = '0%';
+        applyCountCell(wsEng.getCell(`J${eRowIdx}`), r.b2bVisit010);
+        applyPctCell(wsEng.getCell(`K${eRowIdx}`), r.bVisitPct, r.hc, false);
 
-        applyCell(wsEng.getCell(`L${eRowIdx}`), r.b2bService020, 'FFFFFF', '000000');
-        const bsCell = wsEng.getCell(`M${eRowIdx}`);
-        applyCell(bsCell, r.hc > 0 ? r.bServPct : 0, getHexFill(r.bServPct, false, r.hc), '000000', true);
-        bsCell.numFmt = '0%';
+        applyCountCell(wsEng.getCell(`L${eRowIdx}`), r.b2bService020);
+        applyPctCell(wsEng.getCell(`M${eRowIdx}`), r.bServPct, r.hc, false);
 
         eRowIdx++;
       });
 
       wsEng.mergeCells(`A${eRowIdx}:B${eRowIdx}`);
       applyCell(wsEng.getCell(`A${eRowIdx}`), 'Total', '475569', 'FFFFFF', true, 'left');
-      applyCell(wsEng.getCell(`C${eRowIdx}`), totCalls, '475569', 'FFFFFF', true);
-      applyCell(wsEng.getCell(`D${eRowIdx}`), totHC, '475569', 'FFFFFF', true);
-      
-      const totEngHcCell = wsEng.getCell(`E${eRowIdx}`);
-      applyCell(totEngHcCell, totCalls > 0 ? totHC / totCalls : 0, '475569', 'FFFFFF', true);
-      totEngHcCell.numFmt = '0%';
+      applyTotalCountCell(wsEng.getCell(`C${eRowIdx}`), totCalls);
+      applyTotalCountCell(wsEng.getCell(`D${eRowIdx}`), totHC);
+      applyTotalPctCell(wsEng.getCell(`E${eRowIdx}`), totHC, totCalls);
 
-      applyCell(wsEng.getCell(`F${eRowIdx}`), totOV, '475569', 'FFFFFF', true);
-      const totEngOvCell = wsEng.getCell(`G${eRowIdx}`);
-      applyCell(totEngOvCell, totHC > 0 ? totOV / totHC : 0, '475569', 'FFFFFF', true);
-      totEngOvCell.numFmt = '0%';
+      applyTotalCountCell(wsEng.getCell(`F${eRowIdx}`), totOV);
+      applyTotalPctCell(wsEng.getCell(`G${eRowIdx}`), totOV, totHC);
 
-      applyCell(wsEng.getCell(`H${eRowIdx}`), totOS, '475569', 'FFFFFF', true);
-      const totEngOsCell = wsEng.getCell(`I${eRowIdx}`);
-      applyCell(totEngOsCell, totHC > 0 ? totOS / totHC : 0, '475569', 'FFFFFF', true);
-      totEngOsCell.numFmt = '0%';
+      applyTotalCountCell(wsEng.getCell(`H${eRowIdx}`), totOS);
+      applyTotalPctCell(wsEng.getCell(`I${eRowIdx}`), totOS, totHC);
 
-      applyCell(wsEng.getCell(`J${eRowIdx}`), totBV, '475569', 'FFFFFF', true);
-      const totEngBvCell = wsEng.getCell(`K${eRowIdx}`);
-      applyCell(totEngBvCell, totHC > 0 ? totBV / totHC : 0, '475569', 'FFFFFF', true);
-      totEngBvCell.numFmt = '0%';
+      applyTotalCountCell(wsEng.getCell(`J${eRowIdx}`), totBV);
+      applyTotalPctCell(wsEng.getCell(`K${eRowIdx}`), totBV, totHC);
 
-      applyCell(wsEng.getCell(`L${eRowIdx}`), totBS, '475569', 'FFFFFF', true);
-      const totEngBsCell = wsEng.getCell(`M${eRowIdx}`);
-      applyCell(totEngBsCell, totHC > 0 ? totBS / totHC : 0, '475569', 'FFFFFF', true);
-      totEngBsCell.numFmt = '0%';
+      applyTotalCountCell(wsEng.getCell(`L${eRowIdx}`), totBS);
+      applyTotalPctCell(wsEng.getCell(`M${eRowIdx}`), totBS, totHC);
 
       wsEng.columns = [
         { width: 22 }, { width: 14 }, { width: 10 }, { width: 10 }, { width: 11 },
