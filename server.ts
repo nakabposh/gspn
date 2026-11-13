@@ -190,6 +190,21 @@ app.get(['/svc/closer', '/svc/closer.html', '/SVC/closer', '/SVC/closer.html'], 
   res.sendFile(path.join(__dirname, 'SVC', 'Closer.html'));
 });
 
+// Direct file handlers for SVC Cancellation (case-insensitive direct sendFile)
+app.get([
+  '/svc/cancellation',
+  '/svc/cancellation.html',
+  '/SVC/Cancellation',
+  '/SVC/Cancellation.html',
+  '/SVC/cancellation',
+  '/SVC/cancellation.html',
+  '/svcCancellation',
+  '/svccancellation',
+  '/svccancellation.html'
+], (req, res) => {
+  res.sendFile(path.join(__dirname, 'svcCancellation.html'));
+});
+
 app.get(['/closer', '/closer.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'closer.html'));
 });

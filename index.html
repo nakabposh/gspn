@@ -152,15 +152,35 @@
                 </div>
               </a>
             </div>
+          </div>
+        </div>
 
-            <div class="dropdown-divider"></div>
-
-            <!-- Option 2: SVC Reports (एसवीसी यानी सर्विस सेंटर) -->
+        <!-- Standalone SVC (Service Center) Dropdown -->
+        <div class="nav-dropdown" id="dropdownSVC">
+          <button type="button" class="nav-link nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+            <span>SVC</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu dropdown-menu-wide">
             <div class="dropdown-section">
               <div class="dropdown-section-header">
                 <span class="section-tag svc-tag">SVC (Service Center)</span>
                 <span class="section-sub">Center Analytics &amp; TAT</span>
               </div>
+              <a href="svcCancellation.html" class="dropdown-item">
+                <div class="dropdown-icon" style="background:#ffe4e6; color:#e11d48;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Cancellation</span>
+                    <span class="badge-mini-live" style="background:#ffe4e6; color:#be123c; border:1px solid #fecdd3;">Reconcile</span>
+                  </div>
+                  <span class="dropdown-desc">Confirmation vs Requested/Reviewing vs Approved</span>
+                </div>
+              </a>
               <a href="saltReport.html" class="dropdown-item">
                 <div class="dropdown-icon" style="background:#dbeafe; color:#1d4ed8;">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -175,17 +195,6 @@
                   <span class="dropdown-desc">Lead time, Happy Code YES &amp; Time Trimmer</span>
                 </div>
               </a>
-              <a href="reports.html" class="dropdown-item">
-                <div class="dropdown-icon icon-orange">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-                  </svg>
-                </div>
-                <div class="dropdown-text">
-                  <span class="dropdown-title">SVC Reports &amp; Analytics</span>
-                  <span class="dropdown-desc">TAT performance, aging distribution &amp; summaries</span>
-                </div>
-              </a>
               <a href="SVC/Closer.html" class="dropdown-item">
                 <div class="dropdown-icon" style="background:#fef3c7; color:#b45309;">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -198,6 +207,17 @@
                     <span class="badge-mini-live" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a;">Single MSC</span>
                   </div>
                   <span class="dropdown-desc">Closure tracking: IH/PS, IIDM &amp; CC</span>
+                </div>
+              </a>
+              <a href="reports.html" class="dropdown-item">
+                <div class="dropdown-icon icon-orange">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </div>
+                <div class="dropdown-text">
+                  <span class="dropdown-title">SVC Reports &amp; Analytics</span>
+                  <span class="dropdown-desc">TAT performance, aging distribution &amp; summaries</span>
                 </div>
               </a>
             </div>
@@ -403,6 +423,20 @@
             <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(185,28,28,0.1); color: #b91c1c; border: 1px solid rgba(185,28,28,0.25); padding: 2px 7px; border-radius: 9999px;">FDR / GD</span>
           </div>
           <p class="feature-desc">Multi-branch Cancellation % &amp; X09 % vs Total OW Volume, Reason Classification &amp; Excel RAW download.</p>
+        </div>
+
+        <!-- SVC: Cancellation Reconciliation -->
+        <div class="feature-card glass-card" onclick="location.href='svcCancellation.html'">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div class="feature-icon icon-rose" style="background: #ffe4e6; color: #e11d48;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #be123c; background: #ffe4e6; border: 1px solid #fecdd3; padding: 2px 7px; border-radius: 4px;">SVC</span>
+          </div>
+          <h3 class="feature-title">SVC Cancellation</h3>
+          <p class="feature-desc">Compare Confirmation for SO cancellation against Requested/Reviewing Excels and Approved list with Product mapping.</p>
         </div>
 
         <!-- SVC Reports: Analytics & TAT -->

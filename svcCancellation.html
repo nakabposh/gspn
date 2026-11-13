@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVC Cancellation Reconciliation — SVC — GSPN Tools</title>
+  <meta name="description" content="GSPN Service Center Cancellation reconciliation comparing Confirmation for SO cancellation against Requested, Reviewing, and Approved Excel files with Model Code Product mapping.">
+  <meta property="og:title" content="SVC Cancellation Reconciliation — SVC — GSPN Tools">
+  <meta property="og:description" content="Compare GSPN Confirmation for SO cancellation against S/O Cancellation Requested, Reviewing, and Approved lists.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+
+  <!-- SheetJS for versatile Excel / CSV / TSV / HTML ingestion -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- ExcelJS for pixel-perfect styled Excel export -->
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <!-- Universal Context & Master Branch Directory -->
+  <script src="assets/js/context.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            samsung: {
+              blue: '#0a56c2',
+              navy: '#0c2340',
+              accent: '#0070e0',
+              light: '#eff6ff'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            outfit: ['Outfit', 'sans-serif'],
+            mono: ['Fira Code', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .drop-card {
+      border: 2px dashed #cbd5e1;
+      transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .drop-card.dragover {
+      border-color: #2563eb !important;
+      background-color: #eff6ff !important;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+    .drop-subzone {
+      border: 1.5px dashed #cbd5e1;
+      transition: border-color 0.18s ease, background-color 0.18s ease;
+    }
+    .drop-subzone.dragover {
+      border-color: #d97706 !important;
+      background-color: #fffbeb !important;
+    }
+
+    /* Exact Excel Report Visual Styling matching User Screenshots */
+    .report-table-1 {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: Calibri, 'Inter', sans-serif;
+      font-size: 13px;
+    }
+    .report-table-1 th {
+      background-color: #facc15;
+      color: #000000;
+      font-weight: 700;
+      text-align: center;
+      padding: 6px 10px;
+      border: 1px solid #0f172a;
+      white-space: nowrap;
+    }
+    .report-table-1 td {
+      padding: 4px 10px;
+      border: 1px solid #0f172a;
+      text-align: center;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .report-row-approved td {
+      background-color: #2ecc57;
+      color: #000000;
+    }
+    .report-row-rejected td {
+      background-color: #ff2a00;
+      color: #ffffff;
+    }
+    .report-row-requested td {
+      background-color: #fef08a;
+      color: #713f12;
+    }
+    .report-row-reviewing td {
+      background-color: #fed7aa;
+      color: #7c2d12;
+    }
+
+    .report-table-unparked {
+      width: 100%;
+      max-width: 920px;
+      border-collapse: collapse;
+      font-family: Calibri, 'Inter', sans-serif;
+      font-size: 14px;
+      background-color: #ffffff;
+    }
+    .report-table-unparked th {
+      background-color: #ffffff;
+      color: #000000;
+      font-weight: 700;
+      text-align: center;
+      padding: 7px 12px;
+      border: 1.5px solid #000000;
+      font-size: 15px;
+    }
+    .report-table-unparked td {
+      background-color: #ffffff;
+      color: #000000;
+      text-align: center;
+      padding: 6px 12px;
+      border: 1.5px solid #000000;
+      font-family: 'Fira Code', Calibri, monospace;
+      font-size: 13px;
+      font-weight: 500;
+      min-width: 130px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-[#f0f4ff] text-slate-900 min-h-screen pb-24">
+
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-20 right-5 flex flex-col gap-2 pointer-events-none" style="z-index: 99999;"></div>
+
+  <!-- Paste Modal -->
+  <div id="pasteModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 id="pasteModalTitle" class="text-sm font-bold text-slate-900">Paste GSPN Table / SO List</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Paste copied rows from Excel or GSPN grid (tab-separated or comma-separated).</p>
+        </div>
+        <button type="button" id="btnClosePasteModal" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-5">
+        <textarea id="pasteTextarea" rows="10" placeholder="Paste Excel / GSPN rows here (including header row)..." class="w-full rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 p-3 text-xs font-mono text-slate-800 outline-none"></textarea>
+      </div>
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button type="button" id="btnCancelPaste" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200/70 transition">Cancel</button>
+        <button type="button" id="btnApplyPaste" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition">Parse &amp; Load Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP NAVBAR -->
+  <nav class="top-nav glass-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span class="brand-name">GSPN Tools</span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <div class="nav-links">
+        <a href="index.html" class="nav-link" id="navHome">Home</a>
+
+        <!-- Tools Dropdown -->
+        <div class="nav-dropdown" id="dropdownTools">
+          <button type="button" class="nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+            <span>Tools</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu">
+            <a href="tools.html" class="dropdown-item">
+              <div class="dropdown-icon icon-blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Data Extraction &amp; Combiner</span>
+                <span class="dropdown-desc">Print Command &amp; Management Lite extractor</span>
+              </div>
+            </a>
+            <a href="custom-template.html" class="dropdown-item">
+              <div class="dropdown-icon icon-cyan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Template Builder</span>
+                <span class="dropdown-desc">Custom column layout &amp; export profiles</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Master Reports Dropdown -->
+        <div class="nav-dropdown" id="dropdownReports">
+          <button type="button" class="nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+            <span>Reports</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu dropdown-menu-wide">
+            <div class="dropdown-section">
+              <div class="dropdown-section-header">
+                <span class="section-tag master-tag">Master Reports</span>
+                <span class="section-sub">Executive &amp; Operations</span>
+              </div>
+              <a href="openPending.html" class="dropdown-item">
+                <div class="dropdown-icon icon-rose">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Open Pending Report</span>
+                    <span class="badge-mini-live">Live Daily</span>
+                  </div>
+                  <span class="dropdown-desc">RC-GD daily tracking, aging matrix &amp; branches</span>
+                </div>
+              </a>
+              <a href="reportMaking.html" class="dropdown-item">
+                <div class="dropdown-icon icon-blue">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <span class="dropdown-title">Report Maker</span>
+                  <span class="dropdown-desc">Multi-SVC service reporter &amp; mail compiler</span>
+                </div>
+              </a>
+              <a href="masterCloser.html" class="dropdown-item">
+                <div class="dropdown-icon icon-green">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Master Closer</span>
+                    <span class="badge-mini-live" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0;">Closer %</span>
+                  </div>
+                  <span class="dropdown-desc">Morning vs Inflow vs Current Closer %</span>
+                </div>
+              </a>
+              <a href="multipleBranchesCloser.html" class="dropdown-item">
+                <div class="dropdown-icon" style="background:#eff6ff; color:#1d4ed8;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Multiple Branches Closer</span>
+                    <span class="badge-mini-live" style="background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;">Multi-SVC</span>
+                  </div>
+                  <span class="dropdown-desc">Consolidated branch rows &amp; quick-filter</span>
+                </div>
+              </a>
+              <a href="cancellationReport.html" class="dropdown-item">
+                <div class="dropdown-icon icon-rose" style="background:#ffe4e6; color:#e11d48;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">Cancellation Report</span>
+                    <span class="badge-mini-live" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;">FDR / GD</span>
+                  </div>
+                  <span class="dropdown-desc">Cancellation %, X09 % &amp; OW repair analysis</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Standalone SVC (Service Center) Dropdown -->
+        <div class="nav-dropdown active" id="dropdownSVC">
+          <button type="button" class="nav-dropdown-btn active" aria-haspopup="true" aria-expanded="false">
+            <span>SVC</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu dropdown-menu-wide">
+            <div class="dropdown-section">
+              <div class="dropdown-section-header">
+                <span class="section-tag svc-tag">SVC (Service Center)</span>
+                <span class="section-sub">Center Operations &amp; TAT</span>
+              </div>
+              <a href="svcCancellation.html" class="dropdown-item active" style="background:#fff1f2; border-left: 3px solid #e11d48;">
+                <div class="dropdown-icon" style="background:#ffe4e6; color:#e11d48;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title font-bold text-rose-700">Cancellation</span>
+                    <span class="badge-mini-live" style="background:#ffe4e6; color:#be123c; border:1px solid #fecdd3;">Reconcile</span>
+                  </div>
+                  <span class="dropdown-desc">Confirmation vs Requested/Reviewing vs Approved</span>
+                </div>
+              </a>
+              <a href="saltReport.html" class="dropdown-item">
+                <div class="dropdown-icon" style="background:#dbeafe; color:#1d4ed8;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">SALT Report</span>
+                    <span class="badge-mini-live" style="background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;">SALT / TAT</span>
+                  </div>
+                  <span class="dropdown-desc">Service Action Lead Time, Happy Code &amp; TAT</span>
+                </div>
+              </a>
+              <a href="SVC/Closer.html" class="dropdown-item">
+                <div class="dropdown-icon" style="background:#fef3c7; color:#b45309;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <div class="dropdown-title-row">
+                    <span class="dropdown-title">SVC Closer</span>
+                    <span class="badge-mini-live" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a;">Single MSC</span>
+                  </div>
+                  <span class="dropdown-desc">Closure tracking: IH/PS, IIDM &amp; CC</span>
+                </div>
+              </a>
+              <a href="reports.html" class="dropdown-item">
+                <div class="dropdown-icon icon-orange">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </div>
+                <div class="dropdown-text">
+                  <span class="dropdown-title">SVC Reports &amp; Analytics</span>
+                  <span class="dropdown-desc">TAT performance, aging distribution &amp; summaries</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Context Dropdown -->
+        <div class="nav-dropdown" id="dropdownContext">
+          <button type="button" class="nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">
+            <span>Context</span>
+            <svg class="dropdown-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu">
+            <a href="svcInformation.html" class="dropdown-item">
+              <div class="dropdown-icon" style="background:#dbeafe; color:#1e40af;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div class="dropdown-text">
+                <div class="dropdown-title-row">
+                  <span class="dropdown-title">SVC Information</span>
+                  <span class="badge-mini-live" style="background:#dbeafe; color:#1e40af; border:1px solid #93c5fd;">Manpower</span>
+                </div>
+                <span class="dropdown-desc">Service center roster &amp; engineer master directory</span>
+              </div>
+            </a>
+            <a href="Context.html" class="dropdown-item">
+              <div class="dropdown-icon icon-purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Context &amp; Column Dictionary</span>
+                <span class="dropdown-desc">28 Standard GGN fields &amp; SVC rules</span>
+              </div>
+            </a>
+            <a href="formats.html" class="dropdown-item">
+              <div class="dropdown-icon icon-green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div class="dropdown-text">
+                <span class="dropdown-title">Formats &amp; Templates</span>
+                <span class="dropdown-desc">Management Lite &amp; Print Command specs</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 space-y-6 relative z-10">
+
+    <!-- PAGE HEADER & ACTIONS -->
+    <section class="bg-white/95 backdrop-blur rounded-2xl border border-slate-200 shadow-sm p-5">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">SVC</span>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 font-outfit tracking-tight">S/O Cancellation Reconciliation</h1>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1">
+            Compare GSPN <strong class="text-slate-800">Confirmation for SO cancellation</strong> against clubbed <strong class="text-slate-800">Requested + Reviewing</strong> files and <strong class="text-slate-800">Approved</strong> list.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <label for="chkShowReqRev" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-300 cursor-pointer select-none transition">
+            <input type="checkbox" id="chkShowReqRev" class="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+            <span>Show requested/reviewing</span>
+          </label>
+          <button type="button" id="btnLoadSample" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 transition active:scale-95">
+            <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Load Sample Data
+          </button>
+          <button type="button" id="btnClearAll" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition active:scale-95">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Clear All
+          </button>
+          <button type="button" id="btnProcess" class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/25 transition active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Process Comparison
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 HORIZONTAL DRAG & DROP UPLOAD BOXES -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+
+      <!-- BOX 1: Confirmation for SO cancellation -->
+      <div id="dropBoxConfirm" class="drop-card bg-white/95 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+        <div>
+          <div class="flex items-start justify-between gap-2 mb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-blue-600 text-white text-xs font-extrabold flex items-center justify-center">1</span>
+                <h2 class="text-sm font-extrabold text-slate-900 font-outfit">Confirmation for SO cancellation</h2>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1">Base GSPN Excel calls parked in Confirmation status</p>
+            </div>
+            <span id="badgeConfirm" class="px-2 py-0.5 rounded-md text-[11px] font-bold font-mono bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">0 rows</span>
+          </div>
+
+          <div id="zoneConfirm" class="rounded-xl bg-slate-50/90 border border-slate-200/80 p-4 text-center cursor-pointer hover:bg-blue-50/60 hover:border-blue-300 transition">
+            <input type="file" id="inputConfirm" class="hidden" accept=".xlsx,.xls,.csv,.tsv,.txt,.htm,.html">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center mb-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            </div>
+            <p class="text-xs font-bold text-slate-800">Drop Excel / CSV here or click to browse</p>
+            <p id="fileConfirmName" class="text-[11px] text-slate-500 mt-1 truncate">No file loaded</p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-3 mt-3 border-t border-slate-100">
+          <button type="button" data-paste="confirm" class="btn-paste-open text-[11px] font-semibold text-blue-700 hover:text-blue-900 hover:underline">Paste Table / SOs</button>
+          <button type="button" id="btnClearConfirm" class="text-[11px] font-semibold text-slate-500 hover:text-rose-600 transition">Clear</button>
+        </div>
+      </div>
+
+      <!-- BOX 2: S/O Cancellation Requested & Reviewing (2 Separate Excels) -->
+      <div id="dropBoxReqRev" class="drop-card bg-white/95 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+        <div>
+          <div class="flex items-start justify-between gap-2 mb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white text-xs font-extrabold flex items-center justify-center">2</span>
+                <h2 class="text-sm font-extrabold text-slate-900 font-outfit">S/O Cancellation Requested / Reviewing</h2>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1">Upload 2 separate GSPN Excels (clubbed automatically by SO ID)</p>
+            </div>
+            <span id="badgeReqRevClubbed" class="px-2 py-0.5 rounded-md text-[11px] font-bold font-mono bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">0 clubbed</span>
+          </div>
+
+          <!-- Two Separate Upload Sub-Zones -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- 2A: Requested -->
+            <div id="zoneRequested" class="drop-subzone rounded-xl bg-slate-50/90 p-3 text-center cursor-pointer hover:bg-amber-50/60 hover:border-amber-300 transition flex flex-col justify-between">
+              <input type="file" id="inputRequested" class="hidden" accept=".xlsx,.xls,.csv,.tsv,.txt,.htm,.html">
+              <div>
+                <div class="flex items-center justify-between gap-1 mb-1.5">
+                  <span class="text-[10px] font-extrabold uppercase tracking-wide text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">2A Requested</span>
+                  <span id="badgeRequested" class="text-[10px] font-bold font-mono text-slate-600">0 SO</span>
+                </div>
+                <p class="text-[11px] font-bold text-slate-800 leading-snug">Drop Requested Excel</p>
+                <p id="fileRequestedName" class="text-[10px] text-slate-500 mt-1 truncate">No file</p>
+              </div>
+              <div class="flex items-center justify-between pt-2 mt-2 border-t border-slate-200/70">
+                <button type="button" data-paste="requested" class="btn-paste-open text-[10px] font-semibold text-amber-700 hover:underline">Paste</button>
+                <button type="button" id="btnClearRequested" class="text-[10px] font-semibold text-slate-500 hover:text-rose-600">Clear</button>
+              </div>
+            </div>
+
+            <!-- 2B: Reviewing -->
+            <div id="zoneReviewing" class="drop-subzone rounded-xl bg-slate-50/90 p-3 text-center cursor-pointer hover:bg-amber-50/60 hover:border-amber-300 transition flex flex-col justify-between">
+              <input type="file" id="inputReviewing" class="hidden" accept=".xlsx,.xls,.csv,.tsv,.txt,.htm,.html">
+              <div>
+                <div class="flex items-center justify-between gap-1 mb-1.5">
+                  <span class="text-[10px] font-extrabold uppercase tracking-wide text-orange-800 bg-orange-100 px-1.5 py-0.5 rounded">2B Reviewing</span>
+                  <span id="badgeReviewing" class="text-[10px] font-bold font-mono text-slate-600">0 SO</span>
+                </div>
+                <p class="text-[11px] font-bold text-slate-800 leading-snug">Drop Reviewing Excel</p>
+                <p id="fileReviewingName" class="text-[10px] text-slate-500 mt-1 truncate">No file</p>
+              </div>
+              <div class="flex items-center justify-between pt-2 mt-2 border-t border-slate-200/70">
+                <button type="button" data-paste="reviewing" class="btn-paste-open text-[10px] font-semibold text-orange-700 hover:underline">Paste</button>
+                <button type="button" id="btnClearReviewing" class="text-[10px] font-semibold text-slate-500 hover:text-rose-600">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-3 mt-3 border-t border-slate-100">
+          <span class="text-[11px] text-slate-500">Checks overlap &amp; unparked calls</span>
+          <button type="button" id="btnClearReqRev" class="text-[11px] font-semibold text-slate-500 hover:text-rose-600 transition">Clear Both</button>
+        </div>
+      </div>
+
+      <!-- BOX 3: S/O Cancellation Approved -->
+      <div id="dropBoxApproved" class="drop-card bg-white/95 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+        <div>
+          <div class="flex items-start justify-between gap-2 mb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white text-xs font-extrabold flex items-center justify-center">3</span>
+                <h2 class="text-sm font-extrabold text-slate-900 font-outfit">S/O Cancellation Approved</h2>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1">GSPN Excel containing Approved cancellation SO numbers</p>
+            </div>
+            <span id="badgeApproved" class="px-2 py-0.5 rounded-md text-[11px] font-bold font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">0 SO</span>
+          </div>
+
+          <div id="zoneApproved" class="rounded-xl bg-slate-50/90 border border-slate-200/80 p-4 text-center cursor-pointer hover:bg-emerald-50/60 hover:border-emerald-300 transition">
+            <input type="file" id="inputApproved" class="hidden" accept=".xlsx,.xls,.csv,.tsv,.txt,.htm,.html">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <p class="text-xs font-bold text-slate-800">Drop Approved Excel / CSV here</p>
+            <p id="fileApprovedName" class="text-[11px] text-slate-500 mt-1 truncate">No file loaded</p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-3 mt-3 border-t border-slate-100">
+          <button type="button" data-paste="approved" class="btn-paste-open text-[11px] font-semibold text-emerald-700 hover:text-emerald-900 hover:underline">Paste Table / SOs</button>
+          <button type="button" id="btnClearApproved" class="text-[11px] font-semibold text-slate-500 hover:text-rose-600 transition">Clear</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- SUMMARY METRICS & EXPORT TOOLBAR -->
+    <section id="resultsSummaryBar" class="hidden bg-white/95 rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4">
+      <div class="grid grid-cols-2 sm:grid-cols-6 gap-3">
+        <div class="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5">
+          <p class="text-[11px] font-semibold text-slate-500">Confirmation Calls</p>
+          <p id="statTotal" class="text-xl font-extrabold font-mono text-slate-900 mt-0.5 tabular-nums">0</p>
+        </div>
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2.5">
+          <p class="text-[11px] font-semibold text-emerald-800">Approved</p>
+          <p id="statApproved" class="text-xl font-extrabold font-mono text-emerald-700 mt-0.5 tabular-nums">0</p>
+        </div>
+        <div class="rounded-xl border border-rose-200 bg-rose-50/70 px-3.5 py-2.5">
+          <p class="text-[11px] font-semibold text-rose-800">Rejected</p>
+          <p id="statRejected" class="text-xl font-extrabold font-mono text-rose-700 mt-0.5 tabular-nums">0</p>
+        </div>
+        <div class="rounded-xl border border-yellow-300 bg-yellow-50/80 px-3.5 py-2.5">
+          <p class="text-[11px] font-semibold text-yellow-900">Requested</p>
+          <p id="statRequested" class="text-xl font-extrabold font-mono text-yellow-800 mt-0.5 tabular-nums">0</p>
+        </div>
+        <div class="rounded-xl border border-orange-200 bg-orange-50/80 px-3.5 py-2.5">
+          <p class="text-[11px] font-semibold text-orange-900">Reviewing</p>
+          <p id="statReviewing" class="text-xl font-extrabold font-mono text-orange-800 mt-0.5 tabular-nums">0</p>
+        </div>
+        <div class="rounded-xl border border-indigo-200 bg-indigo-50/70 px-3.5 py-2.5">
+          <p class="text-[11px] font-semibold text-indigo-800">Wrongly Parked</p>
+          <p id="statUnparked" class="text-xl font-extrabold font-mono text-indigo-700 mt-0.5 tabular-nums">0</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+        <!-- Filters -->
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative">
+            <input type="text" id="filterSearch" placeholder="Search SO, Model, Customer..." class="pl-8 pr-3 py-1.5 rounded-lg border border-slate-300 text-xs bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none w-56">
+            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <select id="filterStatus" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 bg-white outline-none focus:border-blue-500">
+            <option value="ALL">All Statuses</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Requested">Requested</option>
+            <option value="Reviewing">Reviewing</option>
+          </select>
+          <select id="filterProduct" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 bg-white outline-none focus:border-blue-500">
+            <option value="ALL">All Products</option>
+          </select>
+        </div>
+
+        <!-- Export Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="btnCopyTable1" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition active:scale-95">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            Copy Report Table
+          </button>
+          <button type="button" id="btnCopyUnparked" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition active:scale-95">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
+            Copy Unparked Grid
+          </button>
+          <button type="button" id="btnExportReqRevExcel" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition active:scale-95">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Requested/Review Excel
+          </button>
+          <button type="button" id="btnExportExcel" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Download Styled Excel
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMPTY / READY PLACEHOLDER -->
+    <section id="emptyStateSection" class="bg-white/90 rounded-2xl border border-slate-200 p-10 text-center shadow-sm">
+      <div class="max-w-lg mx-auto">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center mb-3">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <h3 class="text-base font-extrabold text-slate-900 font-outfit">Upload GSPN Excels Above &amp; Click Process Comparison</h3>
+        <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+          1) Drop <strong class="text-slate-700">Confirmation for SO cancellation</strong> in Box 1.<br>
+          2) Drop both <strong class="text-slate-700">S/O Cancellation Requested</strong> &amp; <strong class="text-slate-700">Reviewing</strong> Excels in Box 2.<br>
+          3) Drop <strong class="text-slate-700">S/O Cancellation Approved</strong> in Box 3, then press <strong class="text-blue-700">Process Comparison</strong>.
+        </p>
+      </div>
+    </section>
+
+    <!-- OUTPUT 1: CANCELLATION STATUS REPORT (Matches Image 1) -->
+    <section id="output1Section" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-sm font-extrabold text-slate-900 font-outfit">Output 1 — Confirmation for SO Cancellation Status</h2>
+          <p class="text-[11px] text-slate-500">Checked against clubbed Requested/Reviewing SOs first, then Approved (remaining marked Rejected). Product derived from Model Code.</p>
+        </div>
+        <span id="filteredCountBadge" class="text-xs font-mono font-bold text-slate-600 bg-white border border-slate-200 px-2.5 py-1 rounded-lg">Showing 0 rows</span>
+      </div>
+
+      <div class="overflow-x-auto custom-scrollbar p-4">
+        <table id="output1Table" class="report-table-1">
+          <thead>
+            <tr>
+              <th>So Number</th>
+              <th>Status</th>
+              <th>Requested Date</th>
+              <th>Service Type</th>
+              <th>Model Code</th>
+              <th>Product</th>
+              <th>Customer Name</th>
+            </tr>
+          </thead>
+          <tbody id="output1Body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- OUTPUT 2: SO CANCELLATION REQUESTED AND IN REVIEW - UNPARKED IN CONFIRMATION (Matches Image 2) -->
+    <section id="output2Section" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-sm font-extrabold text-slate-900 font-outfit">Output 2 — So Cancellation Requested and In Review (Not Parked in Confirmation)</h2>
+          <p class="text-[11px] text-slate-500">SO numbers present in Box 2 (Requested / Reviewing) that are missing from Box 1 (Confirmation for SO cancellation).</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="unparkedCountBadge" class="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">0 SOs</span>
+          <button type="button" id="btnToggleUnparkedDetails" class="text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 px-2.5 py-1 rounded-lg transition">Show Source Details</button>
+        </div>
+      </div>
+
+      <div class="p-5 overflow-x-auto custom-scrollbar flex flex-col items-center">
+        <table id="output2Table" class="report-table-unparked">
+          <thead>
+            <tr>
+              <th colspan="5">So Cancellation Requested and In Review</th>
+            </tr>
+          </thead>
+          <tbody id="output2Body"></tbody>
+        </table>
+
+        <p id="noUnparkedMessage" class="hidden text-sm font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-5 py-3 rounded-xl mt-3">
+          Cheers No Calls parked incorrectly
+        </p>
+
+        <!-- Optional Source Detail Breakdown -->
+        <div id="unparkedDetailsDrawer" class="hidden w-full max-w-[920px] mt-5 border border-slate-200 rounded-xl overflow-hidden">
+          <div class="px-4 py-2 bg-slate-100 text-xs font-bold text-slate-700 border-b border-slate-200">
+            Unparked SO Source Breakdown (Requested vs Reviewing)
+          </div>
+          <table class="w-full text-xs text-left border-collapse">
+            <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+              <tr>
+                <th class="px-3 py-2 font-semibold">#</th>
+                <th class="px-3 py-2 font-semibold">So Number</th>
+                <th class="px-3 py-2 font-semibold">Bucket</th>
+                <th class="px-3 py-2 font-semibold">Requested Date</th>
+                <th class="px-3 py-2 font-semibold">Model Code</th>
+                <th class="px-3 py-2 font-semibold">Product</th>
+                <th class="px-3 py-2 font-semibold">Customer Name</th>
+              </tr>
+            </thead>
+            <tbody id="unparkedDetailsBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      // ── State ────────────────────────────────────────────────────────────────
+      const state = {
+        confirm: { rows: [], fileName: '' },     // Box 1: Confirmation for SO cancellation
+        requested: { rows: [], fileName: '' },   // Box 2A: S/O Cancellation Requested
+        reviewing: { rows: [], fileName: '' },   // Box 2B: S/O Cancellation Reviewing
+        approved: { rows: [], fileName: '' },    // Box 3: S/O Cancellation Approved
+        results: {
+          output1: [],       // { so, status, subStatus, requestedDate, serviceType, modelCode, product, customerName }
+          unparked: [],      // { so, bucket, requestedDate, serviceType, modelCode, product, customerName }
+          hasProcessed: false
+        }
+      };
+
+      let activePasteTarget = null;
+
+      // ── Exact Model Code -> Product Formula (matching openPending.html) ──────
+      function getProductCategory(model) {
+        if (!model) return 'Other';
+        const m = String(model).toUpperCase().trim();
+        if (!m) return 'Other';
+
+        const first1 = m.substring(0, 1);
+        const first2 = m.substring(0, 2);
+
+        if (first1 === 'S') return 'HHP';
+        if (first1 === 'A') return 'AC';
+        if (first2 === 'HT' || first2 === 'HW') return 'AUD';
+        if (first1 === 'Q' || first1 === 'U') return 'AV';
+        if (first1 === 'N' || first2 === 'LH' || first2 === 'LC' || first2 === 'LS') return 'IT';
+        if (first1 === 'M' || first2 === 'CE') return 'MW';
+        if (first1 === 'R') return 'REF';
+        if (first1 === 'W') return 'WM';
+        if (first1 === 'D') return 'DW';
+
+        return 'Other';
+      }
+
+      // ── Helpers ──────────────────────────────────────────────────────────────
+      function showToast(message, type) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const colors = {
+          success: 'bg-emerald-600 text-white border-emerald-700',
+          error: 'bg-rose-600 text-white border-rose-700',
+          warning: 'bg-amber-500 text-white border-amber-600',
+          info: 'bg-slate-900 text-white border-slate-800'
+        };
+        const toast = document.createElement('div');
+        toast.className = 'pointer-events-auto px-4 py-2.5 rounded-xl border shadow-lg text-xs font-bold flex items-center gap-2 transition-all duration-200 ' + (colors[type] || colors.info);
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-6px)';
+          setTimeout(() => toast.remove(), 220);
+        }, 3200);
+      }
+
+      function escapeHtml(str) {
+        return String(str == null ? '' : str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function normalizeHeaderKey(h) {
+        return String(h || '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '');
+      }
+
+      function isLikelyPhoneNumber(digits) {
+        const s = String(digits || '').trim();
+        // Indian 10-digit mobile numbers start with 6-9, or 91+10-digit mobile
+        if (/^[6-9]\d{9}$/.test(s)) return true;
+        if (/^91[6-9]\d{9}$/.test(s)) return true;
+        if (/^0[6-9]\d{9}$/.test(s)) return true;
+        return false;
+      }
+
+      function isPhoneHeader(normHeader) {
+        return /(phone|mobile|mobno|tel|contact|whatsapp|landline|fax|hpno)/.test(normHeader);
+      }
+
+      function isSOHeader(normHeader) {
+        if (!normHeader || isPhoneHeader(normHeader)) return false;
+        // Reject long title/banner strings like "confirmationforserviceordercancellationreport"
+        if (normHeader.length > 28) return false;
+        if (/(cancellation|report|summary|export|filter|title)/.test(normHeader)) return false;
+        const exact = [
+          'sonumber', 'sono', 'soid', 'so', 'serviceorderno', 'serviceorder',
+          'serviceordernumber', 'serviceorderid', 'trackingno', 'trackingnumber',
+          'ascjobno', 'ascjobid', 'ascjob', 'orderno', 'ordernumber', 'orderid',
+          'callno', 'callid', 'jobno', 'jobid', 'requestno', 'reqno', 'ticketno'
+        ];
+        if (exact.includes(normHeader)) return true;
+        return (
+          normHeader.includes('sonum') ||
+          normHeader.includes('serviceorder') ||
+          normHeader.includes('ascjob') ||
+          normHeader.includes('trackingno')
+        );
+      }
+
+      function normalizeSO(val, allowNon4Prefix) {
+        if (val == null) return '';
+        let s = String(val).trim();
+        // Handle Excel numeric scientific or float `.0`
+        if (/^\d+\.0+$/.test(s)) s = s.replace(/\.0+$/, '');
+        // Strip GSPN "Edit" button text appended on copy
+        s = s.replace(/\bedit\b/gi, '').trim();
+        // Extract 9-11 digit numeric order ID if present
+        const matches = s.match(/\b(\d{9,11})\b/g);
+        if (matches && matches.length > 0) {
+          // Prefer Samsung 4xxxxxxxxx SO format; strictly reject Indian mobile numbers [6-9]xxxxxxxxx
+          const samsungSO = matches.find(m => /^4\d{8,10}$/.test(m));
+          if (samsungSO) return samsungSO;
+          const nonPhone = matches.find(m => !isLikelyPhoneNumber(m) && (allowNon4Prefix || /^[1-5]\d{8,10}$/.test(m)));
+          return nonPhone || '';
+        }
+        const cleaned = s.replace(/\s+/g, '');
+        if (/^\d{8,12}$/.test(cleaned)) {
+          if (isLikelyPhoneNumber(cleaned)) return '';
+          if (!allowNon4Prefix && !/^[1-5]\d{7,11}$/.test(cleaned)) return '';
+          return cleaned;
+        }
+        return cleaned;
+      }
+
+      function formatExcelDateValue(val) {
+        if (val == null || val === '') return '';
+        if (val instanceof Date && !isNaN(val.getTime())) {
+          const dd = String(val.getDate()).padStart(2, '0');
+          const mm = String(val.getMonth() + 1).padStart(2, '0');
+          const yyyy = val.getFullYear();
+          return dd + '.' + mm + '.' + yyyy;
+        }
+        // Excel serial date (between ~year 2000 and 2050)
+        if (typeof val === 'number' && val > 36526 && val < 55000) {
+          const utcDays = Math.floor(val - 25569);
+          const date = new Date(utcDays * 86400 * 1000);
+          const dd = String(date.getUTCDate()).padStart(2, '0');
+          const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+          const yyyy = date.getUTCFullYear();
+          return dd + '.' + mm + '.' + yyyy;
+        }
+        let s = String(val).trim();
+        // Convert YYYY-MM-DD or YYYY/MM/DD to DD.MM.YYYY
+        const isoMatch = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (isoMatch) {
+          return isoMatch[3].padStart(2, '0') + '.' + isoMatch[2].padStart(2, '0') + '.' + isoMatch[1];
+        }
+        // Normalize DD/MM/YYYY or DD-MM-YYYY -> DD.MM.YYYY
+        const dmyMatch = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+        if (dmyMatch) {
+          const yr = dmyMatch[3].length === 2 ? '20' + dmyMatch[3] : dmyMatch[3];
+          return dmyMatch[1].padStart(2, '0') + '.' + dmyMatch[2].padStart(2, '0') + '.' + yr;
+        }
+        return s;
+      }
+
+      // ── Detect SO Column by Content (Fallback when no explicit header) ───────
+      function detectBestSOColumnIndex(matrix, startRow) {
+        let maxCols = 0;
+        for (let r = startRow; r < Math.min(matrix.length, startRow + 50); r++) {
+          if (matrix[r] && matrix[r].length > maxCols) maxCols = matrix[r].length;
+        }
+        let bestCol = -1;
+        let bestScore = -1;
+        for (let c = 0; c < maxCols; c++) {
+          let samsungCount = 0;
+          let otherIdCount = 0;
+          let phoneCount = 0;
+          for (let r = startRow; r < matrix.length; r++) {
+            const raw = String((matrix[r] && matrix[r][c]) != null ? matrix[r][c] : '').trim().replace(/\.0+$/, '');
+            if (/^4\d{8,10}$/.test(raw)) samsungCount++;
+            else if (isLikelyPhoneNumber(raw)) phoneCount++;
+            else if (/^[1-5]\d{8,10}$/.test(raw)) otherIdCount++;
+          }
+          const score = samsungCount * 10 + otherIdCount * 3 - phoneCount * 15;
+          if ((samsungCount > 0 || otherIdCount > 0) && score > bestScore) {
+            bestScore = score;
+            bestCol = c;
+          }
+        }
+        return bestCol;
+      }
+
+      // ── Intelligent GSPN Table / AOAs Parser ─────────────────────────────────
+      function extractRecordsFromMatrix(matrix) {
+        if (!Array.isArray(matrix) || matrix.length === 0) return [];
+
+        // Scan up to first 50 rows in case GSPN title/filter banner rows precede the header
+        // Score candidate header rows so single-cell banner rows don't mask the real header row
+        let headerRowIdx = -1;
+        let bestHeaderScore = 0;
+        for (let r = 0; r < Math.min(matrix.length, 50); r++) {
+          const row = matrix[r] || [];
+          const normalizedCells = row.map(normalizeHeaderKey);
+          const nonEmptyCount = normalizedCells.filter(Boolean).length;
+          const hasSO = normalizedCells.some(isSOHeader);
+          if (!hasSO) continue;
+          let score = 10 + Math.min(nonEmptyCount, 12);
+          if (normalizedCells.some(h => h.includes('model') || h.includes('customer') || h.includes('service') || h.includes('date') || h.includes('status'))) {
+            score += 8;
+          }
+          if (nonEmptyCount <= 1 && normalizedCells.some(h => h.length > 20)) {
+            score -= 10;
+          }
+          if (score > bestHeaderScore) {
+            bestHeaderScore = score;
+            headerRowIdx = r;
+          }
+        }
+
+        const findColIndex = (headers, patterns, exactPreferred) => {
+          if (exactPreferred) {
+            for (const p of exactPreferred) {
+              const idx = headers.findIndex(h => h === p && !isPhoneHeader(h));
+              if (idx !== -1) return idx;
+            }
+          }
+          for (const p of patterns) {
+            const idx = headers.findIndex(h => h.includes(p) && !isPhoneHeader(h));
+            if (idx !== -1) return idx;
+          }
+          return -1;
+        };
+
+        // Fallback: Raw list of SO numbers without explicit header row
+        // Score columns instead of scanning across every column so mobile numbers are NEVER captured!
+        if (headerRowIdx === -1) {
+          const colCount = Math.max(...matrix.slice(0, 20).map(r => (r || []).length), 1);
+          const targetCol = colCount === 1 ? 0 : detectBestSOColumnIndex(matrix, 0);
+          const fallbackRecords = [];
+          const seen = new Set();
+
+          for (let r = 0; r < matrix.length; r++) {
+            const row = matrix[r] || [];
+            if (targetCol !== -1) {
+              const so = normalizeSO(row[targetCol], colCount === 1);
+              if (so && /^[0-9]{8,12}$/.test(so) && !isLikelyPhoneNumber(so) && !seen.has(so)) {
+                seen.add(so);
+                fallbackRecords.push({
+                  so,
+                  requestedDate: '',
+                  serviceType: '',
+                  modelCode: '',
+                  product: '',
+                  customerName: ''
+                });
+              }
+            } else {
+              // Multi-column paste without header where SO column wasn't column-aligned: strictly accept 4xxxxxxxxx SO IDs only
+              for (let c = 0; c < row.length; c++) {
+                const cellStr = String(row[c] == null ? '' : row[c]).trim().replace(/\.0+$/, '');
+                const matches = cellStr.match(/\b(4\d{8,10})\b/g);
+                if (matches) {
+                  for (const m of matches) {
+                    if (!seen.has(m)) {
+                      seen.add(m);
+                      fallbackRecords.push({
+                        so: m,
+                        requestedDate: '',
+                        serviceType: '',
+                        modelCode: '',
+                        product: '',
+                        customerName: ''
+                      });
+                    }
+                  }
+                }
+              }
+            }
+          }
+          return fallbackRecords;
+        }
+
+        const headers = (matrix[headerRowIdx] || []).map(normalizeHeaderKey);
+
+        let idxSO = findColIndex(
+          headers,
+          ['serviceorder', 'sonum', 'sono', 'trackingno', 'ascjob', 'orderno', 'jobno', 'requestno'],
+          ['sonumber', 'sono', 'serviceorderno', 'serviceordernumber', 'serviceorderid', 'serviceorder', 'soid', 'so', 'trackingno', 'ascjobno', 'orderno', 'requestno']
+        );
+        if (idxSO === -1) {
+          idxSO = detectBestSOColumnIndex(matrix, headerRowIdx + 1);
+        }
+
+        const idxReqDate = findColIndex(
+          headers,
+          ['requesteddate', 'reqdate', 'requestdate', 'cancelreqdate', 'createddate', 'date'],
+          ['requesteddate', 'requestdate', 'reqdate', 'cancelrequesteddate']
+        );
+        const idxServiceType = findColIndex(
+          headers,
+          ['servicetype', 'svctype', 'calltype', 'ordertype'],
+          ['servicetype', 'svctype', 'servicetypedesc']
+        );
+        const idxModel = findColIndex(
+          headers,
+          ['modelcode', 'modelname', 'model', 'itemcode'],
+          ['modelcode', 'model', 'modelname']
+        );
+        const idxProduct = findColIndex(
+          headers,
+          ['productgroup', 'productcategory', 'product'],
+          ['product', 'productgroup', 'productcategory']
+        );
+        const idxCustomer = findColIndex(
+          headers,
+          ['customername', 'custname', 'consumername', 'customer', 'consumer'],
+          ['customername', 'custname', 'consumername', 'customer']
+        );
+
+        const records = [];
+        for (let r = headerRowIdx + 1; r < matrix.length; r++) {
+          const row = matrix[r] || [];
+          const rawSO = idxSO !== -1 ? row[idxSO] : '';
+          const so = normalizeSO(rawSO, true);
+          if (!so || normalizeHeaderKey(so) === 'sonumber' || normalizeHeaderKey(so) === 'total') continue;
+          if (!/[0-9]{5,}/.test(so) || isLikelyPhoneNumber(so)) continue;
+
+          const modelCode = idxModel !== -1 ? String(row[idxModel] == null ? '' : row[idxModel]).trim() : '';
+          const derivedProduct = modelCode ? getProductCategory(modelCode) : (idxProduct !== -1 ? String(row[idxProduct] == null ? '' : row[idxProduct]).trim() : '');
+          const requestedDate = idxReqDate !== -1 ? formatExcelDateValue(row[idxReqDate]) : '';
+          const serviceType = idxServiceType !== -1 ? String(row[idxServiceType] == null ? '' : row[idxServiceType]).trim() : '';
+          const customerName = idxCustomer !== -1 ? String(row[idxCustomer] == null ? '' : row[idxCustomer]).trim() : '';
+
+          records.push({
+            so,
+            requestedDate,
+            serviceType,
+            modelCode,
+            product: derivedProduct || 'Other',
+            customerName
+          });
+        }
+
+        return records;
+      }
+
+      async function parseUploadedFile(file) {
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        if (ext === 'csv' || ext === 'tsv' || ext === 'txt' || ext === 'htm' || ext === 'html') {
+          const text = await file.text();
+          return parseDelimitedText(text);
+        }
+        const buf = await file.arrayBuffer();
+
+        // Check if file is UTF-16LE or HTML text saved with a .xls extension (common in GSPN exports)
+        const bytes = new Uint8Array(buf);
+        const isUtf16LE = bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE;
+        const isUtf16BE = bytes.length >= 2 && bytes[0] === 0xFE && bytes[1] === 0xFF;
+        if (isUtf16LE || isUtf16BE) {
+          const dec = new TextDecoder(isUtf16LE ? 'utf-16le' : 'utf-16be');
+          const decoded = dec.decode(buf);
+          const recs = parseDelimitedText(decoded);
+          if (recs.length > 0) return recs;
+        }
+
+        const headText = new TextDecoder('utf-8').decode(bytes.slice(0, 4096)).toLowerCase();
+        if (headText.includes('<html') || headText.includes('<table') || headText.includes('<!doctype')) {
+          const htmlText = new TextDecoder('utf-8').decode(buf);
+          const htmlRecs = parseDelimitedText(htmlText);
+          if (htmlRecs.length > 0) return htmlRecs;
+        }
+
+        const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+        let bestRecords = [];
+        for (const sheetName of wb.SheetNames) {
+          const sheet = wb.Sheets[sheetName];
+          const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true });
+          const recs = extractRecordsFromMatrix(matrix);
+          if (recs.length > bestRecords.length) {
+            bestRecords = recs;
+          }
+        }
+        return bestRecords;
+      }
+
+      function parseDelimitedText(text) {
+        const clean = String(text || '').trim();
+        if (!clean) return [];
+
+        // Check HTML table paste / GSPN HTML .xls export (pick cleanest inner data tables)
+        if (clean.includes('<table') || clean.includes('<tr')) {
+          const doc = new DOMParser().parseFromString(clean, 'text/html');
+          const tables = Array.from(doc.querySelectorAll('table'));
+          let bestRecords = [];
+          const candidateTables = tables.length > 0 ? tables : [doc.body];
+          for (const tbl of candidateTables) {
+            // Only extract direct/leaf rows when nested tables exist
+            const trs = Array.from(tbl.querySelectorAll('tr')).filter(tr => tr.closest('table') === tbl || tables.length === 0);
+            const matrix = trs.map(tr =>
+              Array.from(tr.children).filter(el => el.tagName === 'TD' || el.tagName === 'TH').map(td => td.textContent.trim())
+            );
+            const recs = extractRecordsFromMatrix(matrix);
+            if (recs.length > bestRecords.length) bestRecords = recs;
+          }
+          if (bestRecords.length > 0) return bestRecords;
+        }
+
+        const lines = clean.split(/\r?\n/).filter(l => l.trim().length > 0);
+        const delimiter = lines.some(l => l.includes('\t')) ? '\t' : (lines.some(l => l.includes(',')) ? ',' : null);
+        const matrix = lines.map(line => {
+          if (!delimiter) return [line.trim()];
+          if (delimiter === '\t') return line.split('\t').map(c => c.trim());
+          // CSV split handling quotes
+          const out = [];
+          let cur = '';
+          let inQ = false;
+          for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') { inQ = !inQ; }
+            else if (ch === ',' && !inQ) { out.push(cur.trim()); cur = ''; }
+            else { cur += ch; }
+          }
+          out.push(cur.trim());
+          return out;
+        });
+        return extractRecordsFromMatrix(matrix);
+      }
+
+      // ── Bucket State Updaters ────────────────────────────────────────────────
+      function updateBadges() {
+        document.getElementById('badgeConfirm').textContent = state.confirm.rows.length + ' rows';
+        document.getElementById('fileConfirmName').textContent = state.confirm.fileName || 'No file loaded';
+
+        const uniqueReq = new Set(state.requested.rows.map(r => r.so));
+        const uniqueRev = new Set(state.reviewing.rows.map(r => r.so));
+        const clubbed = new Set([...uniqueReq, ...uniqueRev]);
+
+        document.getElementById('badgeRequested').textContent = uniqueReq.size + ' SO';
+        document.getElementById('fileRequestedName').textContent = state.requested.fileName || 'No file';
+
+        document.getElementById('badgeReviewing').textContent = uniqueRev.size + ' SO';
+        document.getElementById('fileReviewingName').textContent = state.reviewing.fileName || 'No file';
+
+        document.getElementById('badgeReqRevClubbed').textContent = clubbed.size + ' clubbed';
+
+        const uniqueApp = new Set(state.approved.rows.map(r => r.so));
+        document.getElementById('badgeApproved').textContent = uniqueApp.size + ' SO';
+        document.getElementById('fileApprovedName').textContent = state.approved.fileName || 'No file loaded';
+      }
+
+      function setBucketData(target, rows, sourceLabel) {
+        state[target] = { rows, fileName: sourceLabel };
+        updateBadges();
+      }
+
+      // ── Core Comparison & Reconciliation Logic ───────────────────────────────
+      const STATUS_COLOR_ORDER = {
+        'Approved': 1,
+        'Rejected': 2,
+        'Requested': 3,
+        'Reviewing': 4
+      };
+
+      function processComparison() {
+        if (state.confirm.rows.length === 0 && state.requested.rows.length === 0 && state.reviewing.rows.length === 0) {
+          showToast('Please upload at least Confirmation for SO cancellation (Box 1) before processing.', 'warning');
+          return;
+        }
+
+        // 1. Separate maps for Requested (Box 2A) and Reviewing (Box 2B) + Clubbed Union
+        const reqMap = new Map();
+        const revMap = new Map();
+        state.requested.rows.forEach(r => {
+          if (r.so && !reqMap.has(r.so)) reqMap.set(r.so, r);
+        });
+        state.reviewing.rows.forEach(r => {
+          if (r.so && !revMap.has(r.so)) revMap.set(r.so, r);
+        });
+
+        const clubbedBox2Map = new Map();
+        reqMap.forEach((rec, so) => {
+          clubbedBox2Map.set(so, { ...rec, bucket: revMap.has(so) ? 'Reviewing (also Requested)' : 'Requested' });
+        });
+        revMap.forEach((rec, so) => {
+          if (!clubbedBox2Map.has(so)) {
+            clubbedBox2Map.set(so, { ...rec, bucket: 'Reviewing' });
+          }
+        });
+
+        // 2. Approved Set from Box 3
+        const approvedSet = new Set(state.approved.rows.map(r => r.so).filter(Boolean));
+
+        // 3. Reconcile Box 1 -> Check Reviewing / Requested separately -> else Approved -> else Rejected
+        const confirmSOSet = new Set();
+        const output1 = [];
+
+        state.confirm.rows.forEach(row => {
+          const so = row.so;
+          if (!so) return;
+          confirmSOSet.add(so);
+
+          const product = row.modelCode ? getProductCategory(row.modelCode) : (row.product || 'Other');
+
+          let status = 'Rejected';
+          let subStatus = 'Not in Requested / Reviewing / Approved';
+
+          if (revMap.has(so)) {
+            status = 'Reviewing';
+            subStatus = reqMap.has(so) ? 'Present in Reviewing & Requested' : 'Present in S/O Cancellation Reviewing';
+          } else if (reqMap.has(so)) {
+            status = 'Requested';
+            subStatus = 'Present in S/O Cancellation Requested';
+          } else if (approvedSet.has(so)) {
+            status = 'Approved';
+            subStatus = 'Approved';
+          }
+
+          output1.push({
+            so,
+            status,
+            subStatus,
+            requestedDate: row.requestedDate || '',
+            serviceType: row.serviceType || '',
+            modelCode: row.modelCode || '',
+            product,
+            customerName: row.customerName || ''
+          });
+        });
+
+        // Sort Output 1 by Colors (Approved -> Rejected -> Requested -> Reviewing), then SO ascending
+        output1.sort((a, b) => {
+          const diff = (STATUS_COLOR_ORDER[a.status] || 99) - (STATUS_COLOR_ORDER[b.status] || 99);
+          if (diff !== 0) return diff;
+          return String(a.so).localeCompare(String(b.so), undefined, { numeric: true });
+        });
+
+        // 4. Reverse Diff: In Box 2 (Requested / Reviewing), MISSING from Box 1 (Confirmation for SO cancellation)
+        const unparked = [];
+        clubbedBox2Map.forEach((rec, so) => {
+          if (!confirmSOSet.has(so)) {
+            unparked.push({
+              so,
+              bucket: rec.bucket,
+              requestedDate: rec.requestedDate || '',
+              serviceType: rec.serviceType || '',
+              modelCode: rec.modelCode || '',
+              product: rec.modelCode ? getProductCategory(rec.modelCode) : (rec.product || ''),
+              customerName: rec.customerName || ''
+            });
+          }
+        });
+
+        state.results = {
+          output1,
+          unparked,
+          hasProcessed: true
+        };
+
+        populateProductFilter(output1);
+        renderResults();
+        showToast(`Processed ${output1.length} Confirmation calls (${unparked.length} wrongly parked).`, 'success');
+      }
+
+      function populateProductFilter(output1) {
+        const select = document.getElementById('filterProduct');
+        const current = select.value;
+        const products = Array.from(new Set(output1.map(r => r.product).filter(Boolean))).sort();
+        select.innerHTML = '<option value="ALL">All Products</option>' +
+          products.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+        if (products.includes(current)) select.value = current;
+      }
+
+      function getFilteredOutput1() {
+        const q = (document.getElementById('filterSearch').value || '').trim().toLowerCase();
+        const st = document.getElementById('filterStatus').value;
+        const pr = document.getElementById('filterProduct').value;
+        const showReqRev = document.getElementById('chkShowReqRev').checked;
+
+        return state.results.output1.filter(r => {
+          if (!showReqRev && (r.status === 'Requested' || r.status === 'Reviewing')) return false;
+          if (st !== 'ALL' && r.status !== st) return false;
+          if (pr !== 'ALL' && r.product !== pr) return false;
+          if (q) {
+            const hay = `${r.so} ${r.status} ${r.requestedDate} ${r.serviceType} ${r.modelCode} ${r.product} ${r.customerName}`.toLowerCase();
+            if (!hay.includes(q)) return false;
+          }
+          return true;
+        });
+      }
+
+      function getRowClass(status) {
+        if (status === 'Approved') return 'report-row-approved';
+        if (status === 'Requested') return 'report-row-requested';
+        if (status === 'Reviewing') return 'report-row-reviewing';
+        return 'report-row-rejected';
+      }
+
+      function renderResults() {
+        if (!state.results.hasProcessed) return;
+
+        document.getElementById('emptyStateSection').classList.add('hidden');
+        document.getElementById('resultsSummaryBar').classList.remove('hidden');
+        document.getElementById('output1Section').classList.remove('hidden');
+        document.getElementById('output2Section').classList.remove('hidden');
+
+        const { output1, unparked } = state.results;
+
+        const approvedCount = output1.filter(r => r.status === 'Approved').length;
+        const rejectedCount = output1.filter(r => r.status === 'Rejected').length;
+        const requestedCount = output1.filter(r => r.status === 'Requested').length;
+        const reviewingCount = output1.filter(r => r.status === 'Reviewing').length;
+
+        document.getElementById('statTotal').textContent = output1.length;
+        document.getElementById('statApproved').textContent = approvedCount;
+        document.getElementById('statRejected').textContent = rejectedCount;
+        document.getElementById('statRequested').textContent = requestedCount;
+        document.getElementById('statReviewing').textContent = reviewingCount;
+        document.getElementById('statUnparked').textContent = unparked.length;
+
+        // Render Output 1 Table (filtered + checkbox controlled)
+        const filtered = getFilteredOutput1();
+        const showReqRev = document.getElementById('chkShowReqRev').checked;
+        document.getElementById('filteredCountBadge').textContent =
+          `Showing ${filtered.length} of ${output1.length} rows` + (showReqRev ? '' : ' (Requested/Reviewing hidden in view)');
+
+        const tbody1 = document.getElementById('output1Body');
+        if (filtered.length === 0) {
+          tbody1.innerHTML = '<tr><td colspan="7" class="py-8 text-slate-500 bg-white font-semibold">No matching records for the selected view / filters.</td></tr>';
+        } else {
+          tbody1.innerHTML = filtered.map(r => {
+            const rowClass = getRowClass(r.status);
+            const titleAttr = r.subStatus ? ` title="${escapeHtml(r.subStatus)}"` : '';
+            return `<tr class="${rowClass}">
+              <td class="font-mono">${escapeHtml(r.so)}</td>
+              <td${titleAttr}>${escapeHtml(r.status)}</td>
+              <td>${escapeHtml(r.requestedDate)}</td>
+              <td>${escapeHtml(r.serviceType)}</td>
+              <td class="font-mono">${escapeHtml(r.modelCode)}</td>
+              <td class="font-bold">${escapeHtml(r.product)}</td>
+              <td>${escapeHtml(r.customerName)}</td>
+            </tr>`;
+          }).join('');
+        }
+
+        // Render Output 2 (5-Column Grid)
+        document.getElementById('unparkedCountBadge').textContent = unparked.length + ' SOs';
+        const tbody2 = document.getElementById('output2Body');
+        const noMsg = document.getElementById('noUnparkedMessage');
+
+        if (unparked.length === 0) {
+          tbody2.innerHTML = '';
+          noMsg.classList.remove('hidden');
+        } else {
+          noMsg.classList.add('hidden');
+          const rowsHtml = [];
+          for (let i = 0; i < unparked.length; i += 5) {
+            const cells = [];
+            for (let c = 0; c < 5; c++) {
+              const item = unparked[i + c];
+              if (item) {
+                cells.push(`<td title="${escapeHtml(item.bucket)}${item.modelCode ? ' • ' + escapeHtml(item.modelCode) : ''}">${escapeHtml(item.so)}</td>`);
+              } else {
+                cells.push('<td>&nbsp;</td>');
+              }
+            }
+            rowsHtml.push(`<tr>${cells.join('')}</tr>`);
+          }
+          tbody2.innerHTML = rowsHtml.join('');
+        }
+
+        // Render Unparked Detail Drawer
+        const detailsBody = document.getElementById('unparkedDetailsBody');
+        if (unparked.length === 0) {
+          detailsBody.innerHTML = '<tr><td colspan="7" class="px-3 py-4 text-center text-emerald-700 font-semibold">Cheers No Calls parked incorrectly</td></tr>';
+        } else {
+          detailsBody.innerHTML = unparked.map((u, idx) => `
+            <tr class="hover:bg-slate-50">
+              <td class="px-3 py-2 text-slate-500 font-mono">${idx + 1}</td>
+              <td class="px-3 py-2 font-mono font-bold text-slate-900">${escapeHtml(u.so)}</td>
+              <td class="px-3 py-2"><span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">${escapeHtml(u.bucket)}</span></td>
+              <td class="px-3 py-2">${escapeHtml(u.requestedDate || '-')}</td>
+              <td class="px-3 py-2 font-mono">${escapeHtml(u.modelCode || '-')}</td>
+              <td class="px-3 py-2 font-bold">${escapeHtml(u.product || '-')}</td>
+              <td class="px-3 py-2">${escapeHtml(u.customerName || '-')}</td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      // ── Styled Excel Export Helper ───────────────────────────────────────────
+      function addStyledStatusSheet(wb, sheetName, rows, emptyText) {
+        const thinBorder = {
+          top: { style: 'thin', color: { argb: 'FF000000' } },
+          left: { style: 'thin', color: { argb: 'FF000000' } },
+          bottom: { style: 'thin', color: { argb: 'FF000000' } },
+          right: { style: 'thin', color: { argb: 'FF000000' } }
+        };
+
+        const ws = wb.addWorksheet(sheetName);
+        const headers = ['So Number', 'Status', 'Requested Date', 'Service Type', 'Model Code', 'Product', 'Customer Name'];
+        const headerRow = ws.addRow(headers);
+        headerRow.height = 22;
+        headerRow.eachCell(cell => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFACC15' } };
+          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF000000' } };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.border = thinBorder;
+        });
+
+        if (rows.length === 0) {
+          ws.mergeCells('A2:G2');
+          const emptyCell = ws.getCell('A2');
+          emptyCell.value = emptyText;
+          emptyCell.font = { name: 'Calibri', size: 11, italic: true, color: { argb: 'FF475569' } };
+          emptyCell.alignment = { vertical: 'middle', horizontal: 'center' };
+          for (let col = 1; col <= 7; col++) {
+            ws.getRow(2).getCell(col).border = thinBorder;
+          }
+          ws.getRow(2).height = 22;
+        } else {
+          rows.forEach(r => {
+            const row = ws.addRow([
+              r.so,
+              r.status,
+              r.requestedDate,
+              r.serviceType,
+              r.modelCode,
+              r.product,
+              r.customerName
+            ]);
+            row.height = 19;
+
+            let bgArgb = 'FFFF2A00';
+            let fgArgb = 'FFFFFFFF';
+            if (r.status === 'Approved') {
+              bgArgb = 'FF2ECC57';
+              fgArgb = 'FF000000';
+            } else if (r.status === 'Requested') {
+              bgArgb = 'FFFEF08A';
+              fgArgb = 'FF713F12';
+            } else if (r.status === 'Reviewing') {
+              bgArgb = 'FFFED7AA';
+              fgArgb = 'FF7C2D12';
+            }
+
+            row.eachCell({ includeEmpty: true }, cell => {
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
+              cell.font = { name: 'Calibri', size: 10.5, bold: false, color: { argb: fgArgb } };
+              cell.alignment = { vertical: 'middle', horizontal: 'center' };
+              cell.border = thinBorder;
+            });
+          });
+        }
+
+        ws.columns = [
+          { width: 15 },
+          { width: 16 },
+          { width: 16 },
+          { width: 18 },
+          { width: 20 },
+          { width: 11 },
+          { width: 38 }
+        ];
+        return ws;
+      }
+
+      // ── Download 3-Sheet Workbook: (Approved & Rejected), (Requested & Review), (Wrongly Parked)
+      async function exportStyledExcel() {
+        if (!state.results.hasProcessed || (state.results.output1.length === 0 && state.results.unparked.length === 0)) {
+          showToast('Please process data before exporting.', 'warning');
+          return;
+        }
+
+        try {
+          const wb = new ExcelJS.Workbook();
+          wb.creator = 'GSPN Tools — SVC Cancellation';
+          wb.created = new Date();
+
+          const thinBorder = {
+            top: { style: 'thin', color: { argb: 'FF000000' } },
+            left: { style: 'thin', color: { argb: 'FF000000' } },
+            bottom: { style: 'thin', color: { argb: 'FF000000' } },
+            right: { style: 'thin', color: { argb: 'FF000000' } }
+          };
+
+          const approvedRejectedRows = state.results.output1.filter(
+            r => r.status === 'Approved' || r.status === 'Rejected'
+          );
+          const reqReviewRows = state.results.output1.filter(
+            r => r.status === 'Requested' || r.status === 'Reviewing'
+          );
+
+          // Sheet 1: Approved & Rejected
+          addStyledStatusSheet(
+            wb,
+            'Approved & Rejected',
+            approvedRejectedRows,
+            'No Approved or Rejected records'
+          );
+
+          // Sheet 2: Requested & Review
+          addStyledStatusSheet(
+            wb,
+            'Requested & Review',
+            reqReviewRows,
+            'No Requested or Reviewing calls in Confirmation for SO cancellation'
+          );
+
+          // Sheet 3: Wrongly Parked (Unparked SOs 5-Column Grid)
+          const ws3 = wb.addWorksheet('Wrongly Parked');
+          ws3.mergeCells('A1:E1');
+          const titleCell = ws3.getCell('A1');
+          titleCell.value = 'So Cancellation Requested and In Review';
+          titleCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
+          titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+          for (let col = 1; col <= 5; col++) {
+            ws3.getRow(1).getCell(col).border = thinBorder;
+          }
+          ws3.getRow(1).height = 24;
+
+          const unparked = state.results.unparked;
+          if (unparked.length === 0) {
+            ws3.mergeCells('A2:E2');
+            const okCell = ws3.getCell('A2');
+            okCell.value = 'Cheers No Calls parked incorrectly';
+            okCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF15803D' } };
+            okCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
+            okCell.alignment = { vertical: 'middle', horizontal: 'center' };
+            for (let col = 1; col <= 5; col++) {
+              ws3.getRow(2).getCell(col).border = thinBorder;
+            }
+            ws3.getRow(2).height = 24;
+          } else {
+            for (let i = 0; i < unparked.length; i += 5) {
+              const vals = [];
+              for (let c = 0; c < 5; c++) {
+                vals.push(unparked[i + c] ? unparked[i + c].so : '');
+              }
+              const row = ws3.addRow(vals);
+              row.height = 21;
+              row.eachCell({ includeEmpty: true }, cell => {
+                cell.font = { name: 'Calibri', size: 11, color: { argb: 'FF000000' } };
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.border = thinBorder;
+              });
+            }
+          }
+
+          ws3.columns = [
+            { width: 18 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 18 }
+          ];
+
+          const buf = await wb.xlsx.writeBuffer();
+          const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const stamp = new Date().toISOString().slice(0, 10);
+          a.href = url;
+          a.download = `SVC_Cancellation_Report_${stamp}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          showToast('Downloaded 3-sheet Excel workbook (Approved & Rejected, Requested & Review, Wrongly Parked).', 'success');
+        } catch (err) {
+          console.error('Excel export failed:', err);
+          showToast('Excel export failed: ' + err.message, 'error');
+        }
+      }
+
+      // ── Separate Downloadable Excel File for Requested & Reviewing ───────────
+      async function exportSeparateReqRevExcel() {
+        if (!state.results.hasProcessed) {
+          showToast('Please process data before exporting.', 'warning');
+          return;
+        }
+        try {
+          const wb = new ExcelJS.Workbook();
+          wb.creator = 'GSPN Tools — SVC Cancellation';
+          wb.created = new Date();
+
+          const reqRows = state.results.output1.filter(r => r.status === 'Requested');
+          const revRows = state.results.output1.filter(r => r.status === 'Reviewing');
+          const combinedRows = state.results.output1.filter(r => r.status === 'Requested' || r.status === 'Reviewing');
+
+          addStyledStatusSheet(wb, 'Requested & Review', combinedRows, 'No Requested or Reviewing calls matched in Confirmation');
+          addStyledStatusSheet(wb, 'Requested Only', reqRows, 'No Requested calls matched in Confirmation');
+          addStyledStatusSheet(wb, 'Reviewing Only', revRows, 'No Reviewing calls matched in Confirmation');
+
+          const buf = await wb.xlsx.writeBuffer();
+          const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const stamp = new Date().toISOString().slice(0, 10);
+          a.href = url;
+          a.download = `SVC_Requested_Reviewing_${stamp}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          showToast('Downloaded separate Requested & Reviewing Excel file.', 'success');
+        } catch (err) {
+          console.error('Separate Requested/Reviewing export failed:', err);
+          showToast('Export failed: ' + err.message, 'error');
+        }
+      }
+
+      // ── Copy HTML / Mail Tables ──────────────────────────────────────────────
+      async function copyRichHtmlTable(htmlString, plainFallback, label) {
+        try {
+          if (navigator.clipboard && window.ClipboardItem) {
+            const htmlBlob = new Blob([htmlString], { type: 'text/html' });
+            const textBlob = new Blob([plainFallback], { type: 'text/plain' });
+            await navigator.clipboard.write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })]);
+          } else {
+            await navigator.clipboard.writeText(plainFallback);
+          }
+          showToast(label + ' copied to clipboard!', 'success');
+        } catch (err) {
+          console.error(err);
+          showToast('Could not access clipboard. Please allow clipboard permissions.', 'error');
+        }
+      }
+
+      function buildOutput1CopyHtml() {
+        const rows = getFilteredOutput1();
+        const thStyle = 'background:#facc15;color:#000000;font-weight:bold;border:1px solid #000000;padding:5px 9px;text-align:center;font-family:Calibri,Arial,sans-serif;font-size:12px;';
+        const trs = rows.map(r => {
+          let bg = '#ff2a00';
+          let fg = '#ffffff';
+          if (r.status === 'Approved') { bg = '#2ecc57'; fg = '#000000'; }
+          else if (r.status === 'Requested') { bg = '#fef08a'; fg = '#713f12'; }
+          else if (r.status === 'Reviewing') { bg = '#fed7aa'; fg = '#7c2d12'; }
+          const tdStyle = `background:${bg};color:${fg};border:1px solid #000000;padding:4px 9px;text-align:center;font-family:Calibri,Arial,sans-serif;font-size:12px;`;
+          return `<tr>
+            <td style="${tdStyle}">${escapeHtml(r.so)}</td>
+            <td style="${tdStyle}">${escapeHtml(r.status)}</td>
+            <td style="${tdStyle}">${escapeHtml(r.requestedDate)}</td>
+            <td style="${tdStyle}">${escapeHtml(r.serviceType)}</td>
+            <td style="${tdStyle}">${escapeHtml(r.modelCode)}</td>
+            <td style="${tdStyle}">${escapeHtml(r.product)}</td>
+            <td style="${tdStyle}">${escapeHtml(r.customerName)}</td>
+          </tr>`;
+        }).join('');
+
+        return `<table style="border-collapse:collapse;">
+          <thead><tr>
+            <th style="${thStyle}">So Number</th>
+            <th style="${thStyle}">Status</th>
+            <th style="${thStyle}">Requested Date</th>
+            <th style="${thStyle}">Service Type</th>
+            <th style="${thStyle}">Model Code</th>
+            <th style="${thStyle}">Product</th>
+            <th style="${thStyle}">Customer Name</th>
+          </tr></thead>
+          <tbody>${trs}</tbody>
+        </table>`;
+      }
+
+      function buildOutput2CopyHtml() {
+        const unparked = state.results.unparked;
+        const thStyle = 'background:#ffffff;color:#000000;font-weight:bold;border:1.5px solid #000000;padding:6px 12px;text-align:center;font-family:Calibri,Arial,sans-serif;font-size:13px;';
+        const tdStyle = 'background:#ffffff;color:#000000;border:1.5px solid #000000;padding:5px 12px;text-align:center;font-family:Calibri,Arial,sans-serif;font-size:12px;min-width:120px;';
+        if (unparked.length === 0) {
+          return `<table style="border-collapse:collapse;">
+            <thead><tr><th colspan="5" style="${thStyle}">So Cancellation Requested and In Review</th></tr></thead>
+            <tbody><tr><td colspan="5" style="${tdStyle}color:#15803d;font-weight:bold;">Cheers No Calls parked incorrectly</td></tr></tbody>
+          </table>`;
+        }
+        const rows = [];
+        for (let i = 0; i < unparked.length; i += 5) {
+          const tds = [];
+          for (let c = 0; c < 5; c++) {
+            tds.push(`<td style="${tdStyle}">${unparked[i + c] ? escapeHtml(unparked[i + c].so) : '&nbsp;'}</td>`);
+          }
+          rows.push(`<tr>${tds.join('')}</tr>`);
+        }
+        return `<table style="border-collapse:collapse;">
+          <thead><tr><th colspan="5" style="${thStyle}">So Cancellation Requested and In Review</th></tr></thead>
+          <tbody>${rows.join('')}</tbody>
+        </table>`;
+      }
+
+      // ── Sample Data Loader ───────────────────────────────────────────────────
+      function loadSampleData() {
+        const confirmSample = [
+          { so: '4431107708', requestedDate: '04.03.2026', serviceType: 'Return Handling', modelCode: 'RF50K5910B1/TL', customerName: 'BABU T K' },
+          { so: '4444874207', requestedDate: '25.10.2026', serviceType: 'IN-HOME', modelCode: 'RT40H28W3KHL', customerName: 'KURIACHAN K K' },
+          { so: '4445212076', requestedDate: '30.10.2026', serviceType: 'IN-HOME', modelCode: 'RT28CB732C7/HL', customerName: 'Albin p Joseph Albin' },
+          { so: '4445586366', requestedDate: '05.11.2026', serviceType: 'Customer Care', modelCode: 'AR18BY3ARWKNNA', customerName: 'DRSARAS DENTAL CLINIC' },
+          { so: '4445664639', requestedDate: '06.11.2026', serviceType: 'IN-HOME', modelCode: 'RT28K3043S8/HL', customerName: 'Reeni Mathew' },
+          { so: '4445716334', requestedDate: '07.11.2026', serviceType: 'IN-HOME', modelCode: 'AR12AX4ZAWKXNA', customerName: 'Bablu Aa' },
+          { so: '4445721047', requestedDate: '07.11.2026', serviceType: 'IN-HOME', modelCode: 'AR18AY4ZAPGXNA', customerName: 'RAJANARAYANAN VM' },
+          { so: '4445758646', requestedDate: '07.11.2026', serviceType: 'IN-HOME', modelCode: 'UA55MU7350KXZN', customerName: 'RAMANATHAN -' },
+          { so: '4445786991', requestedDate: '08.11.2026', serviceType: 'IN-HOME', modelCode: 'RR20R272ZCB/NL', customerName: 'Giyasudeen Vm' },
+          { so: '4445832097', requestedDate: '09.11.2026', serviceType: 'IN-HOME', modelCode: 'UA43AU7600KXXL', customerName: 'Antony Antony' },
+          { so: '4445836495', requestedDate: '09.11.2026', serviceType: 'IN-HOME', modelCode: 'WW70R22EK0X/TL', customerName: 'USMAN POOVIL' },
+          { so: '4445854888', requestedDate: '09.11.2026', serviceType: 'IN-HOME', modelCode: 'RT28C3042S8/HL', customerName: 'Ajins Ajins' },
+          { so: '4445868269', requestedDate: '09.11.2026', serviceType: 'Initial Installation', modelCode: 'WW70FG4S02ABTL', customerName: 'SURESH KUMAR' },
+          { so: '4445868393', requestedDate: '09.11.2026', serviceType: 'Initial Installation', modelCode: 'AR50H12D1XHNNA', customerName: 'Vishnu Raveendran' },
+          { so: '4445868396', requestedDate: '09.11.2026', serviceType: 'Initial Installation', modelCode: 'AR50F24D1XHNNA', customerName: 'SAJEEVPV -' },
+          { so: '4445878704', requestedDate: '09.11.2026', serviceType: 'Customer Care', modelCode: 'AR12BY4AMWKNNA', customerName: 'Shaji Shaji' },
+          { so: '4445883551', requestedDate: '09.11.2026', serviceType: 'IN-HOME', modelCode: 'MC285TCTCSQ', customerName: 'Preetha Abi' },
+          { so: '4445904491', requestedDate: '10.11.2026', serviceType: 'IN-HOME', modelCode: 'RT80F51C3BHL', customerName: 'SIVAKUMAR S -' },
+          { so: '4445907984', requestedDate: '10.11.2026', serviceType: 'IN-HOME', modelCode: 'LC27A550US/XF', customerName: 'Jino .' },
+          { so: '4445912157', requestedDate: '10.11.2026', serviceType: 'IN-HOME', modelCode: 'WA65A4022FS/TL', customerName: 'Shince Karunan' },
+          { so: '4445929116', requestedDate: '10.11.2026', serviceType: 'IN-HOME', modelCode: 'UA50DU7660K', customerName: 'RATHEESH S' },
+          { so: '4445947176', requestedDate: '10.11.2026', serviceType: 'IN-HOME', modelCode: 'WA60M4100HY', customerName: 'Sadhas Hg' },
+          { so: '4445947524', requestedDate: '10.11.2026', serviceType: 'Initial Installation', modelCode: 'AR50H12D1ZHNNA', customerName: 'SREELAKSHMI .' },
+          { so: '4445974802', requestedDate: '11.11.2026', serviceType: 'IN-HOME', modelCode: 'WA65M4000HA/TL', customerName: 'K. I. Abraham .' },
+          { so: '4445979790', requestedDate: '11.11.2026', serviceType: 'IN-HOME', modelCode: 'UA55AU7600K', customerName: 'MANORANJAN SAHU' },
+          { so: '4446027916', requestedDate: '11.11.2026', serviceType: 'Initial Installation', modelCode: 'UA43U8600HULXL', customerName: 'VINITHATT -' },
+          { so: '4446027980', requestedDate: '11.11.2026', serviceType: 'Initial Installation', modelCode: 'UA43U8600HU', customerName: 'ANWARNH -' },
+          { so: '4446028814', requestedDate: '11.11.2026', serviceType: 'Initial Installation', modelCode: 'UA75M80HAULXL', customerName: 'SeyaSacaria NA' },
+          { so: '4446049983', requestedDate: '12.11.2026', serviceType: 'Initial Installation', modelCode: 'UA43U8400HULXL', customerName: 'Abinthamby NA' },
+          { so: '4446059005', requestedDate: '12.11.2026', serviceType: 'IN-HOME', modelCode: 'UA43AU7000G', customerName: 'Shiuly MV' },
+          { so: '4446061099', requestedDate: '12.11.2026', serviceType: 'Initial Installation', modelCode: 'WA40F10H2BTL', customerName: 'Sreeja Kailas' },
+          { so: '4446070067', requestedDate: '12.11.2026', serviceType: 'IN-HOME', modelCode: 'RS554NRUA1J/TL', customerName: 'MINI PAUL' },
+          { so: '4446081756', requestedDate: '12.11.2026', serviceType: 'Initial Installation', modelCode: 'LS32FM500EWXXL', customerName: 'Gintu .' },
+          { so: '4446085009', requestedDate: '12.11.2026', serviceType: 'Initial Installation', modelCode: 'UA43F5600FU', customerName: 'KT PAUL' },
+          { so: '4446093380', requestedDate: '12.11.2026', serviceType: 'Demonstration', modelCode: 'RT40H30W2PHL', customerName: 'Jinsa Mary' },
+          { so: '4446096172', requestedDate: '12.11.2026', serviceType: 'Initial Installation', modelCode: 'AR50H18D13HNNA', customerName: 'John.P.F -' },
+          { so: '4446098548', requestedDate: '12.11.2026', serviceType: 'Initial Installation', modelCode: 'QA65S85HAELXL', customerName: 'ASWATHY ANNABABY' },
+          { so: '4446109759', requestedDate: '13.11.2026', serviceType: 'Initial Installation', modelCode: 'QA55Q7FAAULXL', customerName: 'THE ASSISTANT CONSER' },
+          { so: '4446118879', requestedDate: '13.11.2026', serviceType: 'Initial Installation', modelCode: 'QA55QN80HAULXL', customerName: 'ANAND NA' },
+          { so: '4446121101', requestedDate: '13.11.2026', serviceType: 'IN-HOME', modelCode: 'WW80T4040CE/TL', customerName: 'RAHUL K' },
+          { so: '4446122202', requestedDate: '13.11.2026', serviceType: 'Initial Installation', modelCode: 'AR18CY3AAGB', customerName: 'DEEPAK S' }
+        ].map(r => ({ ...r, product: getProductCategory(r.modelCode) }));
+
+        const approvedSample = confirmSample.slice(0, 20).map(r => ({ ...r }));
+
+        // Includes 1 match in Confirm (4446121101 -> Requested) + unparked SOs
+        const requestedSample = [
+          { so: '4446121101', requestedDate: '13.11.2026', modelCode: 'WW80T4040CE/TL', customerName: 'RAHUL K' },
+          { so: '4445516647', requestedDate: '10.11.2026', modelCode: 'RT28K3043S8', customerName: 'UNNIKRISHNAN' },
+          { so: '4446096123', requestedDate: '12.11.2026', modelCode: 'AR18BY3ARWK', customerName: 'SURESH BABU' },
+          { so: '4445983916', requestedDate: '11.11.2026', modelCode: 'UA43AU7600K', customerName: 'MANOJ P' }
+        ];
+        // Includes 1 match in Confirm (4446122202 -> Reviewing) + unparked SOs
+        const reviewingSample = [
+          { so: '4446122202', requestedDate: '13.11.2026', modelCode: 'AR18CY3AAGB', customerName: 'DEEPAK S' },
+          { so: '4446013079', requestedDate: '11.11.2026', modelCode: 'WA65A4022FS', customerName: 'VINOD M' },
+          { so: '4446112027', requestedDate: '13.11.2026', modelCode: 'QA55Q7FAAUL', customerName: 'ARJUN K' },
+          { so: '4446082320', requestedDate: '12.11.2026', modelCode: 'LS32FM500EW', customerName: 'NAVEEN R' }
+        ];
+
+        setBucketData('confirm', confirmSample, 'Sample: Confirmation_for_SO_cancellation.xlsx');
+        setBucketData('requested', requestedSample, 'Sample: SO_Cancellation_Requested.xlsx');
+        setBucketData('reviewing', reviewingSample, 'Sample: SO_Cancellation_Reviewing.xlsx');
+        setBucketData('approved', approvedSample, 'Sample: SO_Cancellation_Approved.xlsx');
+
+        processComparison();
+      }
+
+      // ── Wire Upload Zones (Drag/Drop + Browse) ───────────────────────────────
+      function bindDropZone(zoneId, inputId, targetBucket, highlightBoxId) {
+        const zone = document.getElementById(zoneId);
+        const input = document.getElementById(inputId);
+        const box = highlightBoxId ? document.getElementById(highlightBoxId) : zone;
+
+        zone.addEventListener('click', (e) => {
+          if (e.target.closest('button')) return;
+          input.click();
+        });
+
+        input.addEventListener('change', async (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          try {
+            const rows = await parseUploadedFile(file);
+            if (rows.length === 0) {
+              showToast(`No valid SO rows detected in ${file.name}.`, 'warning');
+              return;
+            }
+            setBucketData(targetBucket, rows, file.name);
+            showToast(`Loaded ${rows.length} rows from ${file.name}.`, 'success');
+          } catch (err) {
+            console.error(err);
+            showToast(`Error parsing ${file.name}: ${err.message}`, 'error');
+          } finally {
+            input.value = '';
+          }
+        });
+
+        ['dragenter', 'dragover'].forEach(evtName => {
+          zone.addEventListener(evtName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            box.classList.add('dragover');
+          });
+        });
+        ['dragleave', 'drop'].forEach(evtName => {
+          zone.addEventListener(evtName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            box.classList.remove('dragover');
+          });
+        });
+        zone.addEventListener('drop', async (e) => {
+          const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (!file) return;
+          try {
+            const rows = await parseUploadedFile(file);
+            if (rows.length === 0) {
+              showToast(`No valid SO rows detected in ${file.name}.`, 'warning');
+              return;
+            }
+            setBucketData(targetBucket, rows, file.name);
+            showToast(`Loaded ${rows.length} rows from ${file.name}.`, 'success');
+          } catch (err) {
+            console.error(err);
+            showToast(`Error parsing ${file.name}: ${err.message}`, 'error');
+          }
+        });
+      }
+
+      bindDropZone('zoneConfirm', 'inputConfirm', 'confirm', 'dropBoxConfirm');
+      bindDropZone('zoneRequested', 'inputRequested', 'requested', 'zoneRequested');
+      bindDropZone('zoneReviewing', 'inputReviewing', 'reviewing', 'zoneReviewing');
+      bindDropZone('zoneApproved', 'inputApproved', 'approved', 'dropBoxApproved');
+
+      // ── Clear Buttons ────────────────────────────────────────────────────────
+      document.getElementById('btnClearConfirm').addEventListener('click', (e) => {
+        e.stopPropagation();
+        setBucketData('confirm', [], '');
+      });
+      document.getElementById('btnClearRequested').addEventListener('click', (e) => {
+        e.stopPropagation();
+        setBucketData('requested', [], '');
+      });
+      document.getElementById('btnClearReviewing').addEventListener('click', (e) => {
+        e.stopPropagation();
+        setBucketData('reviewing', [], '');
+      });
+      document.getElementById('btnClearReqRev').addEventListener('click', (e) => {
+        e.stopPropagation();
+        setBucketData('requested', [], '');
+        setBucketData('reviewing', [], '');
+      });
+      document.getElementById('btnClearApproved').addEventListener('click', (e) => {
+        e.stopPropagation();
+        setBucketData('approved', [], '');
+      });
+
+      document.getElementById('btnClearAll').addEventListener('click', () => {
+        setBucketData('confirm', [], '');
+        setBucketData('requested', [], '');
+        setBucketData('reviewing', [], '');
+        setBucketData('approved', [], '');
+        state.results = { output1: [], unparked: [], hasProcessed: false };
+        document.getElementById('resultsSummaryBar').classList.add('hidden');
+        document.getElementById('output1Section').classList.add('hidden');
+        document.getElementById('output2Section').classList.add('hidden');
+        document.getElementById('emptyStateSection').classList.remove('hidden');
+        showToast('Cleared all uploaded datasets and outputs.', 'info');
+      });
+
+      // ── Paste Modal ──────────────────────────────────────────────────────────
+      const pasteTitles = {
+        confirm: 'Paste: Confirmation for SO cancellation',
+        requested: 'Paste: S/O Cancellation Requested',
+        reviewing: 'Paste: S/O Cancellation Reviewing',
+        approved: 'Paste: S/O Cancellation Approved'
+      };
+
+      document.querySelectorAll('.btn-paste-open').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          activePasteTarget = btn.getAttribute('data-paste');
+          document.getElementById('pasteModalTitle').textContent = pasteTitles[activePasteTarget] || 'Paste Data';
+          document.getElementById('pasteTextarea').value = '';
+          document.getElementById('pasteModal').classList.remove('hidden');
+          document.getElementById('pasteTextarea').focus();
+        });
+      });
+
+      function closePasteModal() {
+        document.getElementById('pasteModal').classList.add('hidden');
+        activePasteTarget = null;
+      }
+      document.getElementById('btnClosePasteModal').addEventListener('click', closePasteModal);
+      document.getElementById('btnCancelPaste').addEventListener('click', closePasteModal);
+
+      document.getElementById('btnApplyPaste').addEventListener('click', () => {
+        const raw = document.getElementById('pasteTextarea').value;
+        if (!raw.trim() || !activePasteTarget) {
+          closePasteModal();
+          return;
+        }
+        const rows = parseDelimitedText(raw);
+        if (rows.length === 0) {
+          showToast('No valid SO records found in pasted text.', 'warning');
+          return;
+        }
+        setBucketData(activePasteTarget, rows, `Pasted (${rows.length} rows)`);
+        showToast(`Loaded ${rows.length} pasted rows.`, 'success');
+        closePasteModal();
+      });
+
+      // ── Main Action & Filter Listeners ───────────────────────────────────────
+      document.getElementById('btnProcess').addEventListener('click', processComparison);
+      document.getElementById('btnLoadSample').addEventListener('click', loadSampleData);
+      document.getElementById('btnExportExcel').addEventListener('click', exportStyledExcel);
+      document.getElementById('btnExportReqRevExcel').addEventListener('click', exportSeparateReqRevExcel);
+
+      document.getElementById('chkShowReqRev').addEventListener('change', renderResults);
+
+      document.getElementById('btnCopyTable1').addEventListener('click', () => {
+        const html = buildOutput1CopyHtml();
+        const plain = getFilteredOutput1().map(r => [r.so, r.status, r.requestedDate, r.serviceType, r.modelCode, r.product, r.customerName].join('\t')).join('\n');
+        copyRichHtmlTable(html, plain, 'Cancellation Status Table');
+      });
+
+      document.getElementById('btnCopyUnparked').addEventListener('click', () => {
+        const html = buildOutput2CopyHtml();
+        const plain = state.results.unparked.length === 0
+          ? 'Cheers No Calls parked incorrectly'
+          : state.results.unparked.map(u => u.so).join('\n');
+        copyRichHtmlTable(html, plain, 'Requested & In Review Grid');
+      });
+
+      document.getElementById('filterSearch').addEventListener('input', renderResults);
+      document.getElementById('filterStatus').addEventListener('change', function () {
+        if (this.value === 'Requested' || this.value === 'Reviewing') {
+          document.getElementById('chkShowReqRev').checked = true;
+        }
+        renderResults();
+      });
+      document.getElementById('filterProduct').addEventListener('change', renderResults);
+
+      document.getElementById('btnToggleUnparkedDetails').addEventListener('click', function () {
+        const drawer = document.getElementById('unparkedDetailsDrawer');
+        const hidden = drawer.classList.toggle('hidden');
+        this.textContent = hidden ? 'Show Source Details' : 'Hide Source Details';
+      });
+
+      updateBadges();
+    })();
+  </script>
+</body>
+</html>

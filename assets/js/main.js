@@ -103,8 +103,9 @@
   // Define route-to-group mappings
   var routeMap = {
     'tools': ['tools.html', 'custom-template.html'],
-    'reports': ['openPending.html', 'reportMaking.html', 'masterCloser.html', 'cancellationReport.html', 'reports.html', 'closer.html', 'Closer.html'],
-    'context': ['Context.html', 'formats.html', 'context/formats.html', 'context/index.html']
+    'reports': ['openPending.html', 'reportMaking.html', 'masterCloser.html', 'multipleBranchesCloser.html', 'multiBranchCloser.html', 'cancellationReport.html'],
+    'svc': ['svcCancellation.html', 'saltReport.html', 'reports.html', 'closer.html', 'Closer.html', 'cancellation.html', 'Cancellation.html'],
+    'context': ['Context.html', 'formats.html', 'svcInformation.html', 'context/formats.html', 'context/index.html']
   };
 
   // 1. Highlight Top Nav links
@@ -122,6 +123,7 @@
   // 2. Highlight Top Nav Dropdowns
   var toolsDd = document.getElementById('dropdownTools');
   var reportsDd = document.getElementById('dropdownReports');
+  var svcDd = document.getElementById('dropdownSVC');
   var contextDd = document.getElementById('dropdownContext');
 
   if (toolsDd && routeMap.tools.indexOf(plainPage) !== -1) {
@@ -134,6 +136,12 @@
     var b = reportsDd.querySelector('.nav-dropdown-btn');
     if (b) b.classList.add('active');
     reportsDd.classList.add('active');
+  }
+
+  if (svcDd && routeMap.svc.indexOf(plainPage) !== -1) {
+    var b = svcDd.querySelector('.nav-dropdown-btn');
+    if (b) b.classList.add('active');
+    svcDd.classList.add('active');
   }
 
   if (contextDd && (routeMap.context.indexOf(currentPage) !== -1 || routeMap.context.indexOf(plainPage) !== -1)) {
@@ -163,11 +171,11 @@
 
     if (itemPage === plainPage || (plainPage === 'index.html' && itemPage === 'index.html')) {
       item.classList.add('active');
-    } else if (item.id === 'navMaster' && (plainPage === 'openPending.html' || plainPage === 'reportMaking.html' || plainPage === 'masterCloser.html' || plainPage === 'cancellationReport.html')) {
+    } else if (item.id === 'navMaster' && (plainPage === 'openPending.html' || plainPage === 'reportMaking.html' || plainPage === 'masterCloser.html' || plainPage === 'multipleBranchesCloser.html' || plainPage === 'cancellationReport.html')) {
       item.classList.add('active');
-    } else if (item.id === 'navSvcReports' && plainPage === 'reports.html') {
+    } else if (item.id === 'navSvcReports' && routeMap.svc.indexOf(plainPage) !== -1) {
       item.classList.add('active');
-    } else if (item.id === 'navContext' && (plainPage === 'Context.html' || plainPage === 'formats.html')) {
+    } else if (item.id === 'navContext' && (plainPage === 'Context.html' || plainPage === 'formats.html' || plainPage === 'svcInformation.html')) {
       item.classList.add('active');
     }
   });

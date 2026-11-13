@@ -1,6 +1,0 @@
-{
-  "summary":  "Fix #DIV/0! error by replacing with 0% and highlight zero values for Happy Code (HC), Visit Time, Service Time, and Overall Calls in red across SALT Report tables, totals, KPIs, and Excel export.",
-  "updatedAt":  "2026-10-29T07:45:26.275090710Z",
-  "requestFeedback":  true,
-  "userFacing":  true
-}
