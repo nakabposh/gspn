@@ -565,7 +565,7 @@
           <p id="statApproved" class="text-xl font-extrabold font-mono text-emerald-700 mt-0.5 tabular-nums">0</p>
         </div>
         <div class="rounded-xl border border-rose-200 bg-rose-50/70 px-3.5 py-2.5">
-          <p class="text-[11px] font-semibold text-rose-800">Rejected</p>
+          <p class="text-[11px] font-semibold text-rose-800">Rejected / SNR</p>
           <p id="statRejected" class="text-xl font-extrabold font-mono text-rose-700 mt-0.5 tabular-nums">0</p>
         </div>
         <div class="rounded-xl border border-yellow-300 bg-yellow-50/80 px-3.5 py-2.5">
@@ -592,7 +592,7 @@
           <select id="filterStatus" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 bg-white outline-none focus:border-blue-500">
             <option value="ALL">All Statuses</option>
             <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
+            <option value="Rejected / SNR">Rejected / SNR</option>
             <option value="Requested">Requested</option>
             <option value="Reviewing">Reviewing</option>
           </select>
@@ -643,7 +643,7 @@
       <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h2 class="text-sm font-extrabold text-slate-900 font-outfit">Output 1 — Confirmation for SO Cancellation Status</h2>
-          <p class="text-[11px] text-slate-500">Checked against clubbed Requested/Reviewing SOs first, then Approved (remaining marked Rejected). Product derived from Model Code.</p>
+          <p class="text-[11px] text-slate-500">Checked against clubbed Requested/Reviewing SOs first, then Approved (remaining marked Rejected / SNR). Product derived from Model Code.</p>
         </div>
         <span id="filteredCountBadge" class="text-xs font-mono font-bold text-slate-600 bg-white border border-slate-200 px-2.5 py-1 rounded-lg">Showing 0 rows</span>
       </div>
@@ -666,11 +666,11 @@
       </div>
     </section>
 
-    <!-- OUTPUT 2: SO CANCELLATION REQUESTED AND IN REVIEW - UNPARKED IN CONFIRMATION (Matches Image 2) -->
+    <!-- OUTPUT 2: CANCELLATION REQUESTED BUT NOT PARKED TO STATUS OF SO CANCELLATION -->
     <section id="output2Section" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h2 class="text-sm font-extrabold text-slate-900 font-outfit">Output 2 — So Cancellation Requested and In Review (Not Parked in Confirmation)</h2>
+          <h2 class="text-sm font-extrabold text-slate-900 font-outfit">Output 2 — Cancellation Requested but not Parked to Status of SO Cancellation</h2>
           <p class="text-[11px] text-slate-500">SO numbers present in Box 2 (Requested / Reviewing) that are missing from Box 1 (Confirmation for SO cancellation).</p>
         </div>
         <div class="flex items-center gap-2">
@@ -683,7 +683,7 @@
         <table id="output2Table" class="report-table-unparked">
           <thead>
             <tr>
-              <th colspan="5">So Cancellation Requested and In Review</th>
+              <th colspan="5">Cancellation Requested but not Parked to Status of SO Cancellation</th>
             </tr>
           </thead>
           <tbody id="output2Body"></tbody>
@@ -696,7 +696,7 @@
         <!-- Optional Source Detail Breakdown -->
         <div id="unparkedDetailsDrawer" class="hidden w-full max-w-[920px] mt-5 border border-slate-200 rounded-xl overflow-hidden">
           <div class="px-4 py-2 bg-slate-100 text-xs font-bold text-slate-700 border-b border-slate-200">
-            Unparked SO Source Breakdown (Requested vs Reviewing)
+            Unparked SO Source Breakdown (Requested/Reviewing)
           </div>
           <table class="w-full text-xs text-left border-collapse">
             <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
@@ -1179,7 +1179,7 @@
       // ── Core Comparison & Reconciliation Logic ───────────────────────────────
       const STATUS_COLOR_ORDER = {
         'Approved': 1,
-        'Rejected': 2,
+        'Rejected / SNR': 2,
         'Requested': 3,
         'Reviewing': 4
       };
@@ -1213,7 +1213,7 @@
         // 2. Approved Set from Box 3
         const approvedSet = new Set(state.approved.rows.map(r => r.so).filter(Boolean));
 
-        // 3. Reconcile Box 1 -> Check Reviewing / Requested separately -> else Approved -> else Rejected
+        // 3. Reconcile Box 1 -> Check Reviewing / Requested separately -> else Approved -> else Rejected / SNR
         const confirmSOSet = new Set();
         const output1 = [];
 
@@ -1224,7 +1224,7 @@
 
           const product = row.modelCode ? getProductCategory(row.modelCode) : (row.product || 'Other');
 
-          let status = 'Rejected';
+          let status = 'Rejected / SNR';
           let subStatus = 'Not in Requested / Reviewing / Approved';
 
           if (revMap.has(so)) {
@@ -1329,7 +1329,7 @@
         const { output1, unparked } = state.results;
 
         const approvedCount = output1.filter(r => r.status === 'Approved').length;
-        const rejectedCount = output1.filter(r => r.status === 'Rejected').length;
+        const rejectedCount = output1.filter(r => r.status === 'Rejected / SNR').length;
         const requestedCount = output1.filter(r => r.status === 'Requested').length;
         const reviewingCount = output1.filter(r => r.status === 'Reviewing').length;
 
@@ -1507,7 +1507,7 @@
           };
 
           const approvedRejectedRows = state.results.output1.filter(
-            r => r.status === 'Approved' || r.status === 'Rejected'
+            r => r.status === 'Approved' || r.status === 'Rejected / SNR'
           );
           const reqReviewRows = state.results.output1.filter(
             r => r.status === 'Requested' || r.status === 'Reviewing'
@@ -1518,7 +1518,7 @@
             wb,
             'Approved & Rejected',
             approvedRejectedRows,
-            'No Approved or Rejected records'
+            'No Approved or Rejected / SNR records'
           );
 
           // Sheet 2: Requested & Review
@@ -1533,7 +1533,7 @@
           const ws3 = wb.addWorksheet('Wrongly Parked');
           ws3.mergeCells('A1:E1');
           const titleCell = ws3.getCell('A1');
-          titleCell.value = 'So Cancellation Requested and In Review';
+          titleCell.value = 'Cancellation Requested but not Parked to Status of SO Cancellation';
           titleCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
           titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
           for (let col = 1; col <= 5; col++) {
@@ -1686,7 +1686,7 @@
         const tdStyle = 'background:#ffffff;color:#000000;border:1.5px solid #000000;padding:5px 12px;text-align:center;font-family:Calibri,Arial,sans-serif;font-size:12px;min-width:120px;';
         if (unparked.length === 0) {
           return `<table style="border-collapse:collapse;">
-            <thead><tr><th colspan="5" style="${thStyle}">So Cancellation Requested and In Review</th></tr></thead>
+            <thead><tr><th colspan="5" style="${thStyle}">Cancellation Requested but not Parked to Status of SO Cancellation</th></tr></thead>
             <tbody><tr><td colspan="5" style="${tdStyle}color:#15803d;font-weight:bold;">Cheers No Calls parked incorrectly</td></tr></tbody>
           </table>`;
         }
@@ -1699,7 +1699,7 @@
           rows.push(`<tr>${tds.join('')}</tr>`);
         }
         return `<table style="border-collapse:collapse;">
-          <thead><tr><th colspan="5" style="${thStyle}">So Cancellation Requested and In Review</th></tr></thead>
+          <thead><tr><th colspan="5" style="${thStyle}">Cancellation Requested but not Parked to Status of SO Cancellation</th></tr></thead>
           <tbody>${rows.join('')}</tbody>
         </table>`;
       }

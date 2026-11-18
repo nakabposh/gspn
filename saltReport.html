@@ -531,7 +531,7 @@
                 <span class="font-mono bg-purple-200/80 text-purple-950 px-2 py-0.5 rounded text-[11px]">Commercial &amp; LFD</span>
               </div>
               <p class="text-slate-600 text-[11px]">
-                Identified via B2B flag, Monitor models (LH/QM/QB/QH), Commercial displays, or IIDM. Tracked separately in B2B Visit Time &amp; Service Time.
+                Identified via B2B flag or Model prefixes (<code class="font-mono font-bold text-purple-900">LH, HG, LS, BE, QM, QB, QH, QE</code>) &amp; Commercial displays. Tracked separately in B2B Visit &amp; Service Time.
               </p>
             </div>
           </div>
@@ -584,6 +584,9 @@
           <button id="tabBtnRawCalls" class="tab-btn px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition">
             📋 Raw &amp; Cleaned Calls (<span id="tabCountCalls">0</span>)
           </button>
+          <button id="tabBtnUnknownCalls" class="tab-btn px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition">
+            ❓ Unknown Calls (<span id="tabCountUnknown">0</span>)
+          </button>
           <button id="tabBtnMinuteAudit" class="tab-btn px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition">
             🔍 Minute Trim Audit
           </button>
@@ -591,10 +594,16 @@
 
         <!-- Export Buttons Toolbar -->
         <div class="flex flex-wrap items-center gap-2">
-          <!-- Download Styled Excel with Same Theme (ExcelJS) -->
+          <!-- Download Styled Excel (Full Workbook) -->
           <button id="btnExportStyledExcel" class="px-4 py-2 bg-[#0A4D68] hover:bg-[#083b50] text-white rounded-xl text-xs font-bold shadow-md shadow-cyan-950/20 transition active:scale-95 flex items-center gap-1.5">
             <svg class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             <span>Download Excel</span>
+          </button>
+
+          <!-- Download Summary Only Excel -->
+          <button id="btnExportSummaryOnly" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-950/20 transition active:scale-95 flex items-center gap-1.5" title="Add/Download Excel with TL Summary &amp; Eng Summary sheets only">
+            <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Summary Only Excel</span>
           </button>
 
           <!-- Copy TSV to clipboard -->
@@ -615,24 +624,51 @@
             <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </div>
 
-          <!-- TL Dropdown Filter -->
-          <select id="tlFilter" class="text-xs py-2 px-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-            <option value="ALL">All Team Leaders (TL)</option>
-          </select>
+          <!-- Multi-Select TL Dropdown Filter -->
+          <div class="relative" id="tlMultiDropdown">
+            <button type="button" id="tlFilterBtn" class="text-xs py-2 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2 font-semibold text-slate-700">
+              <span id="tlFilterLabel">All Team Leaders (TL)</span>
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div id="tlFilterMenu" class="hidden absolute left-0 mt-1.5 w-60 bg-white border border-slate-200 rounded-xl shadow-xl z-40 p-2">
+              <div class="flex items-center justify-between px-2 py-1.5 border-b border-slate-100 mb-1">
+                <button type="button" id="btnSelectAllTL" class="text-[11px] font-bold text-blue-600 hover:underline">Select All</button>
+                <button type="button" id="btnClearAllTL" class="text-[11px] font-bold text-slate-500 hover:text-rose-600">Clear</button>
+              </div>
+              <div id="tlCheckboxList" class="max-h-56 overflow-y-auto custom-scrollbar space-y-0.5 text-xs"></div>
+            </div>
+          </div>
 
-          <!-- B2B Filter -->
-          <select id="b2bFilter" class="text-xs py-2 px-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-            <option value="ALL">All Types (B2B + B2C)</option>
-            <option value="B2B">B2B Calls Only</option>
-            <option value="B2C">B2C (Standard) Only</option>
-          </select>
+          <!-- Multi-Select B2B / B2C Filter -->
+          <div class="relative" id="b2bMultiDropdown">
+            <button type="button" id="b2bFilterBtn" class="text-xs py-2 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2 font-semibold text-slate-700">
+              <span id="b2bFilterLabel">All Types (B2B + B2C)</span>
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div id="b2bFilterMenu" class="hidden absolute left-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-40 p-2 text-xs space-y-1">
+              <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer font-semibold text-slate-800">
+                <input type="checkbox" class="b2b-type-chk rounded text-blue-600 focus:ring-blue-500" value="B2B" checked>
+                <span>B2B Calls</span>
+              </label>
+              <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer font-semibold text-slate-800">
+                <input type="checkbox" class="b2b-type-chk rounded text-blue-600 focus:ring-blue-500" value="B2C" checked>
+                <span>B2C (Standard) Calls</span>
+              </label>
+            </div>
+          </div>
 
           <!-- Happy Code Filter -->
-          <select id="happyFilter" class="text-xs py-2 px-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+          <select id="happyFilter" class="text-xs py-2 px-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-semibold text-slate-700">
             <option value="ALL">Happy Code: All</option>
             <option value="YES">Happy Code: YES Only</option>
             <option value="NOT_YES">Happy Code: NO / Pending</option>
           </select>
+
+          <!-- Clear Clutter Checkbox -->
+          <label for="chkClearClutter" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer text-xs font-bold text-slate-800 select-none transition" title="Hide Unknown, Unassigned, and Missing TL details from Summary, Raw Calls, and Excel">
+            <input type="checkbox" id="chkClearClutter" class="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+            <span>Clear Clutter</span>
+          </label>
         </div>
 
         <div class="text-xs text-slate-500 flex items-center gap-2">
@@ -656,9 +692,9 @@
               </tr>
               <!-- Sub-header Group Row -->
               <tr class="font-bold text-[11px]">
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">Total</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">HC</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">HC %</th>
+                <th rowspan="2" class="th-sub-hc py-1.5 px-3 border border-slate-300 align-middle">Total</th>
+                <th rowspan="2" class="th-sub-hc py-1.5 px-3 border border-slate-300 align-middle">HC</th>
+                <th rowspan="2" class="th-sub-hc py-1.5 px-3 border border-slate-300 align-middle">HC %</th>
                 <!-- Overall Visit & Service -->
                 <th colspan="2" class="th-visit py-1.5 px-3 border border-slate-300">Visit Time</th>
                 <th colspan="2" class="th-service py-1.5 px-3 border border-slate-300">Service Time</th>
@@ -669,9 +705,6 @@
               <!-- Column Name Row -->
               <tr class="font-bold text-[11px] text-slate-900">
                 <th class="th-sub-tl py-1.5 px-4 border border-slate-300 text-left">TL NAME</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">Total</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">HC</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">HC %</th>
                 <!-- Overall Visit -->
                 <th class="th-sub-visit py-1.5 px-3 border border-slate-300">0~10</th>
                 <th class="th-sub-visit py-1.5 px-3 border border-slate-300">0~10 %</th>
@@ -708,11 +741,11 @@
               </tr>
               <!-- Sub-header Group Row -->
               <tr class="font-bold text-[11px]">
-                <th class="th-sub-tl py-1.5 px-3 border border-slate-300 text-left">ENG NAME</th>
-                <th class="th-sub-tl py-1.5 px-3 border border-slate-300 text-left">TL NAME</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">Total</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">HC</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">HC %</th>
+                <th rowspan="2" class="th-sub-tl py-1.5 px-3 border border-slate-300 text-left align-middle">ENG NAME</th>
+                <th rowspan="2" class="th-sub-tl py-1.5 px-3 border border-slate-300 text-left align-middle">TL NAME</th>
+                <th rowspan="2" class="th-sub-hc py-1.5 px-3 border border-slate-300 align-middle">Total</th>
+                <th rowspan="2" class="th-sub-hc py-1.5 px-3 border border-slate-300 align-middle">HC</th>
+                <th rowspan="2" class="th-sub-hc py-1.5 px-3 border border-slate-300 align-middle">HC %</th>
                 <!-- Overall -->
                 <th colspan="2" class="th-visit py-1.5 px-3 border border-slate-300">Visit Time</th>
                 <th colspan="2" class="th-service py-1.5 px-3 border border-slate-300">Service Time</th>
@@ -722,11 +755,6 @@
               </tr>
               <!-- Column Name Row -->
               <tr class="font-bold text-[11px] text-slate-900">
-                <th class="th-sub-tl py-1.5 px-3 border border-slate-300 text-left">ENG NAME</th>
-                <th class="th-sub-tl py-1.5 px-3 border border-slate-300 text-left">TL NAME</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">Total</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">HC</th>
-                <th class="th-sub-hc py-1.5 px-3 border border-slate-300">HC %</th>
                 <!-- Overall Visit -->
                 <th class="th-sub-visit py-1.5 px-3 border border-slate-300">0~10</th>
                 <th class="th-sub-visit py-1.5 px-3 border border-slate-300">0~10 %</th>
@@ -785,6 +813,24 @@
           </table>
         </div>
 
+        <!-- VIEW 3B: UNKNOWN CALLS (Missing TL or Missing Eng ID - Full RAW Data) -->
+        <div id="viewUnknownCalls" class="hidden">
+          <div class="px-4 py-2.5 bg-amber-50 border-b border-amber-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="font-bold text-amber-950">
+              Unknown / Unmapped Calls — Missing TL Name or Missing EngineerId (Showing full RAW row data for manual verification)
+            </div>
+            <span id="unknownCallsCountBadge" class="px-2 py-0.5 rounded bg-amber-200 text-amber-950 font-mono font-bold">0 Calls</span>
+          </div>
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left text-xs whitespace-nowrap border-collapse" id="tableUnknownCalls">
+              <thead id="theadUnknownCalls" class="bg-slate-100 text-slate-700 uppercase font-black tracking-wider text-[11px] sticky top-0 border-b border-slate-300">
+              </thead>
+              <tbody id="tbodyUnknownCalls" class="divide-y divide-slate-200 text-slate-800">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- VIEW 4: MINUTE TRIM AUDIT -->
         <div id="viewMinuteAudit" class="hidden">
           <table class="w-full text-left text-xs whitespace-nowrap border-collapse" id="tableAudit">
@@ -827,6 +873,8 @@
       rawHeaders: [],
       rawRows: [],
       cleanedCalls: [],
+      filteredCalls: [],
+      unknownCalls: [],
       tlSummary: [],
       engSummary: [],
       manpowerList: [],
@@ -836,9 +884,10 @@
       activeTab: 'tlSummary',
       filters: {
         search: '',
-        tl: 'ALL',
-        b2b: 'ALL',
-        happyStatus: 'ALL'
+        tls: null, // null = All TLs selected; Set = specific selected TLs
+        types: new Set(['B2B', 'B2C']),
+        happyStatus: 'ALL',
+        clearClutter: false
       }
     };
 
@@ -860,57 +909,154 @@
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    // PRODUCT CATEGORY CLASSIFIER
+    // SAMSUNG MODEL PREFIXES & PRODUCT CATEGORY / B2B CLASSIFIER
     // ═════════════════════════════════════════════════════════════════════════
+    const B2B_MODEL_PREFIXES = ['LH', 'HG', 'LS', 'BE', 'QM', 'QB', 'QH', 'QE', 'OH', 'IE'];
+    const CONSUMER_TV_PREFIXES = ['UA', 'UE', 'UN', 'QA', 'QN', 'KQ'];
+    const MX_MOBILE_PREFIXES = ['SM-S', 'SM-F', 'SM-A', 'SM-M', 'SM-E', 'SM-X', 'SM-T', 'SM-P', 'SM-R', 'SM-'];
+
+    function hasModelPrefix(model, prefixes) {
+      const m = String(model || '').trim().toUpperCase();
+      if (!m) return false;
+      return prefixes.some(pref => m.startsWith(pref));
+    }
+
     function getProductCategory(product, model, sType) {
       const p = String(product || '').toLowerCase();
-      const m = String(model || '').toUpperCase();
+      const m = String(model || '').trim().toUpperCase();
       const s = String(sType || '').toLowerCase();
 
-      // TV / AV
-      if (p.includes('television') || p.includes('tv') || p.includes('audio') || p.includes('soundbar') || p.includes('home theater')) {
-        return 'TV / AV';
-      }
-      // HA / DA (Home Appliances / Digital Appliances)
-      if (p.includes('refrig') || p.includes('washing') || p.includes('dryer') || p.includes('air cond') || p.includes('ac') || p.includes('microwave') || p.includes('mwo') || p.includes('dishwasher') || p.includes('vacuum') || p.includes('purifier') || p.includes('ha') || p.includes('da')) {
-        return 'HA / DA';
-      }
-      // Display / B2B
-      if (p.includes('monitor') || p.includes('lfd') || p.includes('display') || p.includes('commercial') || p.includes('signage') || m.startsWith('LH') || m.startsWith('QM') || m.startsWith('QB') || m.startsWith('QH') || m.startsWith('OH') || m.startsWith('IE') || s.includes('b2b')) {
+      // 1. B2B Commercial Display (LFD, Hospitality/Hotel TV, Business TV, Monitors, Signage)
+      if (
+        hasModelPrefix(m, B2B_MODEL_PREFIXES) ||
+        p.includes('monitor') ||
+        p.includes('lfd') ||
+        p.includes('display') ||
+        p.includes('commercial') ||
+        p.includes('signage') ||
+        p.includes('hospitality') ||
+        p.includes('hotel tv') ||
+        p.includes('business tv') ||
+        s.includes('b2b') ||
+        s.includes('commercial')
+      ) {
         return 'Display / B2B';
       }
-      // HHP / Mobile
-      if (p.includes('mobile') || p.includes('phone') || p.includes('tablet') || p.includes('watch') || p.includes('buds') || p.includes('hhp')) {
+      // 2. MX Mobile eXperience (SM-S/F/A/M/E/X/T/P/R)
+      if (
+        hasModelPrefix(m, MX_MOBILE_PREFIXES) ||
+        p.includes('mobile') ||
+        p.includes('phone') ||
+        p.includes('tablet') ||
+        p.includes('watch') ||
+        p.includes('buds') ||
+        p.includes('ring') ||
+        p.includes('hhp')
+      ) {
         return 'HHP / Mobile';
       }
-      // IT / PC
+      // 3. Domestic Consumer TV / AV (UA/UE/UN/QA/QN/KQ)
+      if (
+        hasModelPrefix(m, CONSUMER_TV_PREFIXES) ||
+        p.includes('television') ||
+        p.includes('tv') ||
+        p.includes('audio') ||
+        p.includes('soundbar') ||
+        p.includes('home theater')
+      ) {
+        return 'TV / AV';
+      }
+      // 4. HA / DA (Home Appliances / Digital Appliances)
+      if (
+        p.includes('refrig') ||
+        p.includes('washing') ||
+        p.includes('dryer') ||
+        p.includes('air cond') ||
+        p.includes('ac') ||
+        p.includes('microwave') ||
+        p.includes('mwo') ||
+        p.includes('dishwasher') ||
+        p.includes('vacuum') ||
+        p.includes('purifier') ||
+        p.includes('ha') ||
+        p.includes('da')
+      ) {
+        return 'HA / DA';
+      }
+      // 5. IT / PC
       if (p.includes('pc') || p.includes('laptop') || p.includes('printer') || p.includes('computer')) {
         return 'IT / PC';
       }
       return p ? p.charAt(0).toUpperCase() + p.slice(1) : 'General';
     }
 
-    // Check if call is B2B
+    // Check if call is B2B strictly via B2B flag, Model Code prefixes, Commercial Product, or B2B ServiceType
     function isB2BCall(row) {
       if (!row) return false;
       const b2bField = String(row.B2B || row.b2b || row['Is B2B'] || '').trim().toUpperCase();
       if (b2bField === 'Y' || b2bField === 'YES' || b2bField === 'TRUE' || b2bField === '1') return true;
+      if (b2bField === 'N' || b2bField === 'NO' || b2bField === 'FALSE' || b2bField === '0') {
+        // Explicit B2B flag override unless model is B2B signage prefix
+        const modelExplicit = String(row.MODEL || row.model || '').trim().toUpperCase();
+        if (hasModelPrefix(modelExplicit, B2B_MODEL_PREFIXES)) return true;
+      }
+
+      const model = String(row.MODEL || row.model || '').trim().toUpperCase();
+      if (hasModelPrefix(model, B2B_MODEL_PREFIXES)) return true;
 
       const prod = String(row.Product || row.product || '').toLowerCase();
-      if (prod.includes('monitor') || prod.includes('lfd') || prod.includes('commercial') || prod.includes('signage') || prod.includes('b2b')) return true;
-
-      const model = String(row.MODEL || row.model || '').toUpperCase();
-      if (model.startsWith('LH') || model.startsWith('QM') || model.startsWith('QB') || model.startsWith('QH') || model.startsWith('OH') || model.startsWith('IE')) return true;
+      if (
+        prod.includes('monitor') ||
+        prod.includes('lfd') ||
+        prod.includes('commercial') ||
+        prod.includes('signage') ||
+        prod.includes('hospitality') ||
+        prod.includes('hotel tv') ||
+        prod.includes('business tv') ||
+        prod.includes('b2b')
+      ) {
+        return true;
+      }
 
       const sType = String(row.ServiceType || row.serviceType || '').toLowerCase();
       if (sType.includes('b2b') || sType.includes('commercial')) return true;
 
-      const engName = String(row.EngineerName || row.engineerName || '').toUpperCase();
-      if (engName.includes('IIDM') || engName.includes('IT')) return true;
-
       const cust = String(row.CustomerName || row.customerName || '').toLowerCase();
-      if (cust.includes('enterprise') || cust.includes('hotel') || cust.includes('pvt ltd') || cust.includes('ltd') || cust.includes('corp')) return true;
+      if (cust.includes('enterprise') || cust.includes('hotel') || cust.includes('pvt ltd') || cust.includes('corp')) return true;
 
+      return false;
+    }
+
+    function getUnknownReasons(callObj) {
+      const reasons = [];
+      const tl = String(callObj.tlName || '').trim().toLowerCase();
+      const engName = String(callObj.engineerName || '').trim().toLowerCase();
+      const engId = String(callObj.engineerId || '').trim().toLowerCase();
+      const missingMarkers = ['', '-', 'null', 'undefined', 'n/a', 'na', 'missing', 'unknown', 'unassigned', 'general'];
+
+      if (!engId || ['-', 'null', 'undefined', 'n/a', 'na', 'missing', 'unknown'].includes(engId)) {
+        reasons.push('Missing Eng ID');
+      }
+      if (!tl || missingMarkers.includes(tl)) {
+        reasons.push('Missing TL');
+      }
+      if (!engName || ['-', 'null', 'undefined', 'n/a', 'na', 'missing', 'unknown', 'unassigned'].includes(engName)) {
+        reasons.push('Missing Eng Name');
+      }
+      if (reasons.length === 0 && callObj.vlookupFound === false && !callObj.hasExplicitTL) {
+        reasons.push('Unmapped Engineer');
+      }
+      return reasons;
+    }
+
+    function isClutterCall(c) {
+      if (!c) return true;
+      const tl = String(c.tlName || '').trim().toLowerCase();
+      const engName = String(c.engineerName || '').trim().toLowerCase();
+      const engId = String(c.engineerId || '').trim().toLowerCase();
+      if (!tl || ['general', 'unknown', 'unassigned', 'missing', 'na', 'n/a', '-', 'null', 'undefined'].includes(tl)) return true;
+      if (!engName || ['unknown', 'unassigned', 'missing', 'na', 'n/a', '-', 'null', 'undefined'].includes(engName)) return true;
+      if (!engId || ['unknown', 'unassigned', 'missing', 'na', 'n/a', '-', 'null', 'undefined'].includes(engId)) return true;
       return false;
     }
 
@@ -1492,10 +1638,12 @@
         // VLOOKUP TL Name and Eng Name by EngineerId from SVC List
         const vlookup = vlookupByEngineerId(engId, rawEngName);
         let tlName = vlookup.tlName;
+        let hasExplicitTL = false;
         if (cTL !== -1 && row[cTL]) {
           const rawTL = String(row[cTL]).trim();
           if (rawTL && rawTL.toLowerCase() !== 'null' && rawTL.toLowerCase() !== 'undefined') {
             tlName = normalizeTLName(rawTL);
+            hasExplicitTL = true;
           }
         }
         const engName = vlookup.engName;
@@ -1527,12 +1675,14 @@
           reason = status;
         }
 
-        cleaned.push({
+        const callEntry = {
           so,
           engineerName: engName,
           rawEngineerName: rawEngName,
           engineerId: engId,
           tlName,
+          vlookupFound: vlookup.found,
+          hasExplicitTL,
           productCategory: prodCategory,
           product: prod,
           serviceType: sType,
@@ -1551,21 +1701,65 @@
           branchName: branch,
           reason,
           rawRowIndex: r
-        });
+        };
+        callEntry.unknownReasons = getUnknownReasons(callEntry);
+        callEntry.isUnknownCall = callEntry.unknownReasons.length > 0;
+        cleaned.push(callEntry);
       }
 
       state.cleanedCalls = cleaned;
+      state.filters.tls = null; // Reset TL filter on fresh import
       document.getElementById('rawFileBadge').textContent = `${cleaned.length} calls imported`;
-      calculateSummaries();
       populateDropdowns();
+      calculateSummaries();
       renderCurrentView();
     }
 
     // ═════════════════════════════════════════════════════════════════════════
     // AGGREGATION & SUMMARY CALCULATION
     // ═════════════════════════════════════════════════════════════════════════
+    function escapeHtml(val) {
+      return String(val ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function getFilteredCalls(includeSearch = false) {
+      const q = state.filters.search.toLowerCase().trim();
+      const tls = state.filters.tls;
+      const types = state.filters.types;
+      const hc = state.filters.happyStatus;
+      const clearClutter = state.filters.clearClutter;
+
+      return state.cleanedCalls.filter(c => {
+        if (clearClutter && isClutterCall(c)) return false;
+        if (tls !== null && !tls.has(c.tlName || 'General')) return false;
+        const callType = c.isB2B ? 'B2B' : 'B2C';
+        if (types && !types.has(callType)) return false;
+        if (hc === 'YES' && !c.isHCYes) return false;
+        if (hc === 'NOT_YES' && c.isHCYes) return false;
+
+        if (includeSearch && q) {
+          const match = (c.so && c.so.toLowerCase().includes(q)) ||
+                        (c.engineerName && c.engineerName.toLowerCase().includes(q)) ||
+                        (c.rawEngineerName && c.rawEngineerName.toLowerCase().includes(q)) ||
+                        (c.engineerId && c.engineerId.toLowerCase().includes(q)) ||
+                        (c.tlName && c.tlName.toLowerCase().includes(q)) ||
+                        (c.productCategory && c.productCategory.toLowerCase().includes(q)) ||
+                        (c.model && c.model.toLowerCase().includes(q)) ||
+                        (c.customerName && c.customerName.toLowerCase().includes(q));
+          if (!match) return false;
+        }
+        return true;
+      });
+    }
+
     function calculateSummaries() {
-      const calls = state.cleanedCalls;
+      const calls = getFilteredCalls(false);
+      state.filteredCalls = calls;
+      state.unknownCalls = state.cleanedCalls.filter(c => c.isUnknownCall);
 
       // 1. TL Summary Map
       const tlMap = new Map();
@@ -1627,9 +1821,9 @@
         }
       });
 
-      // Preferred TL ordering matching user's Image 2
+      // Preferred TL ordering
       const preferredTLOrder = ['SANJEEV', 'SANDEEP', 'BINOD', 'HARRY', 'KHUSHI', 'RAVI', 'RAMJI', 'SUNIL', 'Jitender', 'VIKASH'];
-      
+
       const tlArray = Array.from(tlMap.values()).map(r => {
         const hcPct = r.total > 0 ? (r.hc / r.total) : 0;
         const oVisitPct = r.hc > 0 ? (r.overallVisit010 / r.hc) : 0;
@@ -1659,7 +1853,6 @@
 
       state.tlSummary = tlArray;
 
-      // Engineer list sorted by HC% or total
       const engArray = Array.from(engMap.values()).map(r => {
         const hcPct = r.total > 0 ? (r.hc / r.total) : 0;
         const oVisitPct = r.hc > 0 ? (r.overallVisit010 / r.hc) : 0;
@@ -1676,7 +1869,6 @@
         };
       });
 
-      // Sort engineers like Image 3 (HC % ascending or descending)
       engArray.sort((a, b) => {
         if (a.total === 0 && b.total > 0) return 1;
         if (b.total === 0 && a.total > 0) return -1;
@@ -1689,18 +1881,17 @@
       const totCalls = calls.length;
       const totHC = calls.filter(c => c.isHCYes).length;
       const hcRate = totCalls > 0 ? Math.round((totHC / totCalls) * 100) : 0;
-      
+
       const totOVisit010 = calls.filter(c => c.isHCYes && c.visitTAT === '0~10').length;
       const totOServ020 = calls.filter(c => c.isHCYes && c.serviceTAT === '0~20').length;
       const totB2BVisit010 = calls.filter(c => c.isHCYes && c.isB2B && c.visitTAT === '0~10').length;
       const totB2BServ020 = calls.filter(c => c.isHCYes && c.isB2B && c.serviceTAT === '0~20').length;
 
-      // Update Top KPIs with zero-awareness
-      const updateStatText = (elId, text, isZero) => {
+      const updateStatText = (elId, text, highlightRed = false) => {
         const el = document.getElementById(elId);
         if (!el) return;
         el.textContent = text;
-        if (isZero) {
+        if (highlightRed) {
           el.classList.add('text-rose-600', 'font-black');
         } else {
           el.classList.remove('text-rose-600', 'font-black');
@@ -1710,15 +1901,16 @@
       updateStatText('statTotalJobs', totCalls, totCalls === 0);
       updateStatText('statHappyYes', totHC, totHC === 0);
       updateStatText('statHappyRate', `${hcRate}% HC Verified`, totHC === 0 || hcRate === 0);
-      
-      updateStatText('statOverallVisit010', totOVisit010, totOVisit010 === 0);
-      updateStatText('statOverallVisitPct', totHC > 0 ? `${Math.round((totOVisit010 / totHC) * 100)}% of HC calls` : '0%', totOVisit010 === 0 || totHC === 0);
 
-      updateStatText('statOverallService020', totOServ020, totOServ020 === 0);
-      updateStatText('statOverallServicePct', totHC > 0 ? `${Math.round((totOServ020 / totHC) * 100)}% of HC calls` : '0%', totOServ020 === 0 || totHC === 0);
+      // Visit Time & Service Time: Lower is good, do not mark 0 as bad/red
+      updateStatText('statOverallVisit010', totOVisit010, false);
+      updateStatText('statOverallVisitPct', totHC > 0 ? `${Math.round((totOVisit010 / totHC) * 100)}% of HC calls` : '0%', false);
 
-      updateStatText('statB2BCounts', `${totB2BVisit010} / ${totB2BServ020}`, totB2BVisit010 === 0 && totB2BServ020 === 0);
-      updateStatText('statB2BRates', totHC > 0 ? `${Math.round((totB2BVisit010 / totHC) * 100)}% / ${Math.round((totB2BServ020 / totHC) * 100)}%` : '0% / 0%', totHC === 0 || (totB2BVisit010 === 0 && totB2BServ020 === 0));
+      updateStatText('statOverallService020', totOServ020, false);
+      updateStatText('statOverallServicePct', totHC > 0 ? `${Math.round((totOServ020 / totHC) * 100)}% of HC calls` : '0%', false);
+
+      updateStatText('statB2BCounts', `${totB2BVisit010} / ${totB2BServ020}`, false);
+      updateStatText('statB2BRates', totHC > 0 ? `${Math.round((totB2BVisit010 / totHC) * 100)}% / ${Math.round((totB2BServ020 / totHC) * 100)}%` : '0% / 0%', false);
 
       document.getElementById('statTLCount').textContent = tlArray.length;
       document.getElementById('statEngineerCount').textContent = `${engArray.length} Engineers`;
@@ -1726,22 +1918,25 @@
       document.getElementById('tabCountTL').textContent = tlArray.length;
       document.getElementById('tabCountEng').textContent = engArray.length;
       document.getElementById('tabCountCalls').textContent = calls.length;
+      const unkEl = document.getElementById('tabCountUnknown');
+      if (unkEl) unkEl.textContent = state.unknownCalls.length;
     }
 
     // ═════════════════════════════════════════════════════════════════════════
     // CONDITIONAL HEATMAP COLORING & ZERO FORMATTING
     // ═════════════════════════════════════════════════════════════════════════
-    function getZeroCountClass(val) {
+    function getZeroCountClass(val, highlightZeroRed = true) {
       const num = Number(val) || 0;
-      if (num === 0) {
+      if (num === 0 && highlightZeroRed) {
         return 'text-rose-600 bg-rose-50/70 font-bold';
       }
       return 'font-semibold text-slate-800';
     }
 
+    // HC %: Higher is good, Lower is bad
     function getHCPctColorClass(pct, total) {
       if (!total || total === 0 || !pct || pct === 0 || isNaN(pct)) {
-        return 'heat-red'; // Zero or no calls is styled in RED
+        return 'heat-red';
       }
       const p = Math.round(pct * 100);
       if (p === 0) return 'heat-red';
@@ -1751,12 +1946,12 @@
       return 'heat-red';
     }
 
-    function getTAT010020ColorClass(pct, hcCount, count = 1) {
-      if (!hcCount || hcCount === 0 || !pct || pct === 0 || count === 0 || isNaN(pct)) {
-        return 'heat-red'; // Zero compliance is styled in RED
+    // Visit Time & Service Time %: Lower is good, Higher is bad
+    function getTAT010020ColorClass(pct, hcCount) {
+      if (!hcCount || hcCount === 0 || isNaN(pct)) {
+        return 'bg-slate-50 text-slate-400'; // Neutral when no HC denominator
       }
-      const p = Math.round(pct * 100);
-      if (p === 0) return 'heat-red';
+      const p = Math.round((pct || 0) * 100);
       if (p <= 10) return 'heat-green';
       if (p <= 25) return 'heat-yellow';
       if (p <= 50) return 'heat-orange';
@@ -1780,6 +1975,8 @@
         renderEngineerSummary();
       } else if (state.activeTab === 'rawCalls') {
         renderRawCalls();
+      } else if (state.activeTab === 'unknownCalls') {
+        renderUnknownCalls();
       } else if (state.activeTab === 'minuteAudit') {
         renderMinuteAudit();
       }
@@ -1796,7 +1993,7 @@
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="py-8 text-center text-slate-400">No TL summary data available. Load demo data or upload raw calls.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" class="py-8 text-center text-slate-400">No TL summary data matching active filters.</td></tr>`;
         tfoot.innerHTML = '';
         return;
       }
@@ -1804,28 +2001,28 @@
       let html = '';
       filtered.forEach(r => {
         const hcClass = getHCPctColorClass(r.hcPct, r.total);
-        const oVClass = getTAT010020ColorClass(r.oVisitPct, r.hc, r.overallVisit010);
-        const oSClass = getTAT010020ColorClass(r.oServPct, r.hc, r.overallService020);
-        const bVClass = getTAT010020ColorClass(r.bVisitPct, r.hc, r.b2bVisit010);
-        const bSClass = getTAT010020ColorClass(r.bServPct, r.hc, r.b2bService020);
+        const oVClass = getTAT010020ColorClass(r.oVisitPct, r.hc);
+        const oSClass = getTAT010020ColorClass(r.oServPct, r.hc);
+        const bVClass = getTAT010020ColorClass(r.bVisitPct, r.hc);
+        const bSClass = getTAT010020ColorClass(r.bServPct, r.hc);
 
         html += `
           <tr class="hover:bg-slate-50 transition border-b border-slate-200">
-            <td class="py-2 px-3 border-r border-slate-300 font-bold text-slate-900 text-left bg-slate-50/60">${r.name}</td>
-            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.total)}">${r.total}</td>
-            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.hc)}">${r.hc}</td>
+            <td class="py-2 px-3 border-r border-slate-300 font-bold text-slate-900 text-left bg-slate-50/60">${escapeHtml(r.name)}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.total, true)}">${r.total}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.hc, true)}">${r.hc}</td>
             <td class="py-2 px-3 border-r border-slate-300 font-bold ${hcClass}">${formatPct(r.hcPct, r.total)}</td>
             <!-- Overall Visit -->
-            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallVisit010)}">${r.overallVisit010}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallVisit010, false)}">${r.overallVisit010}</td>
             <td class="py-2 px-3 border-r border-slate-300 font-bold ${oVClass}">${formatPct(r.oVisitPct, r.hc)}</td>
             <!-- Overall Service -->
-            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallService020)}">${r.overallService020}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallService020, false)}">${r.overallService020}</td>
             <td class="py-2 px-3 border-r border-slate-300 font-bold ${oSClass}">${formatPct(r.oServPct, r.hc)}</td>
             <!-- B2B Visit -->
-            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bVisit010)}">${r.b2bVisit010}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bVisit010, false)}">${r.b2bVisit010}</td>
             <td class="py-2 px-3 border-r border-slate-300 font-bold ${bVClass}">${formatPct(r.bVisitPct, r.hc)}</td>
             <!-- B2B Service -->
-            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bService020)}">${r.b2bService020}</td>
+            <td class="py-2 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bService020, false)}">${r.b2bService020}</td>
             <td class="py-2 px-3 border-r border-slate-300 font-bold ${bSClass}">${formatPct(r.bServPct, r.hc)}</td>
           </tr>
         `;
@@ -1846,28 +2043,28 @@
       const bvTotPct = totHC > 0 ? (totBV / totHC) : 0;
       const bsTotPct = totHC > 0 ? (totBS / totHC) : 0;
 
-      const fZero = (val, isPct = false) => {
+      const fTot = (val, isPct = false, redIfZero = false) => {
         const isZ = isPct ? (!val || val === 0) : (val === 0);
-        if (isZ) {
+        if (isZ && redIfZero) {
           return `<span class="text-rose-400 font-black">${isPct ? '0%' : 0}</span>`;
         }
-        return isPct ? `${Math.round(val * 100)}%` : val;
+        return isPct ? `${Math.round((val || 0) * 100)}%` : val;
       };
 
       tfoot.innerHTML = `
         <tr class="bg-slate-700 text-white font-black text-xs">
           <td class="py-2.5 px-3 border-r border-slate-600 text-left">Total</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totCalls)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totHC)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(hcTotPct, true)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totOV)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(ovTotPct, true)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totOS)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(osTotPct, true)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totBV)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(bvTotPct, true)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totBS)}</td>
-          <td class="py-2.5 px-3">${fZero(bsTotPct, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totCalls, false, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totHC, false, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(hcTotPct, true, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totOV, false, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(ovTotPct, true, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totOS, false, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(osTotPct, true, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totBV, false, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(bvTotPct, true, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totBS, false, false)}</td>
+          <td class="py-2.5 px-3">${fTot(bsTotPct, true, false)}</td>
         </tr>
       `;
     }
@@ -1876,10 +2073,8 @@
       const tbody = document.getElementById('tbodyEngineerSummary');
       const tfoot = document.getElementById('tfootEngineerSummary');
       const q = state.filters.search.toLowerCase().trim();
-      const tlFilter = state.filters.tl;
 
       const filtered = state.engSummary.filter(r => {
-        if (tlFilter !== 'ALL' && r.tlName !== tlFilter) return false;
         if (q) {
           const match = r.engName.toLowerCase().includes(q) || r.tlName.toLowerCase().includes(q);
           if (!match) return false;
@@ -1888,7 +2083,7 @@
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="13" class="py-8 text-center text-slate-400">No engineer summary data available</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13" class="py-8 text-center text-slate-400">No engineer summary data matching active filters</td></tr>`;
         tfoot.innerHTML = '';
         return;
       }
@@ -1896,29 +2091,29 @@
       let html = '';
       filtered.forEach(r => {
         const hcClass = getHCPctColorClass(r.hcPct, r.total);
-        const oVClass = getTAT010020ColorClass(r.oVisitPct, r.hc, r.overallVisit010);
-        const oSClass = getTAT010020ColorClass(r.oServPct, r.hc, r.overallService020);
-        const bVClass = getTAT010020ColorClass(r.bVisitPct, r.hc, r.b2bVisit010);
-        const bSClass = getTAT010020ColorClass(r.bServPct, r.hc, r.b2bService020);
+        const oVClass = getTAT010020ColorClass(r.oVisitPct, r.hc);
+        const oSClass = getTAT010020ColorClass(r.oServPct, r.hc);
+        const bVClass = getTAT010020ColorClass(r.bVisitPct, r.hc);
+        const bSClass = getTAT010020ColorClass(r.bServPct, r.hc);
 
         html += `
           <tr class="hover:bg-slate-50 transition border-b border-slate-200">
-            <td class="py-1.5 px-3 border-r border-slate-300 font-bold text-slate-900 text-left">${r.engName}</td>
-            <td class="py-1.5 px-3 border-r border-slate-300 text-slate-700 text-left">${r.tlName}</td>
-            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.total)}">${r.total}</td>
-            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.hc)}">${r.hc}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 font-bold text-slate-900 text-left">${escapeHtml(r.engName)}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 text-slate-700 text-left">${escapeHtml(r.tlName)}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.total, true)}">${r.total}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.hc, true)}">${r.hc}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold ${hcClass}">${formatPct(r.hcPct, r.total)}</td>
             <!-- Overall Visit -->
-            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallVisit010)}">${r.overallVisit010}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallVisit010, false)}">${r.overallVisit010}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold ${oVClass}">${formatPct(r.oVisitPct, r.hc)}</td>
             <!-- Overall Service -->
-            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallService020)}">${r.overallService020}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.overallService020, false)}">${r.overallService020}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold ${oSClass}">${formatPct(r.oServPct, r.hc)}</td>
             <!-- B2B Visit -->
-            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bVisit010)}">${r.b2bVisit010}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bVisit010, false)}">${r.b2bVisit010}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold ${bVClass}">${formatPct(r.bVisitPct, r.hc)}</td>
             <!-- B2B Service -->
-            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bService020)}">${r.b2bService020}</td>
+            <td class="py-1.5 px-3 border-r border-slate-300 ${getZeroCountClass(r.b2bService020, false)}">${r.b2bService020}</td>
             <td class="py-1.5 px-3 border-r border-slate-300 font-bold ${bSClass}">${formatPct(r.bServPct, r.hc)}</td>
           </tr>
         `;
@@ -1939,59 +2134,35 @@
       const bvTotPct = totHC > 0 ? (totBV / totHC) : 0;
       const bsTotPct = totHC > 0 ? (totBS / totHC) : 0;
 
-      const fZero = (val, isPct = false) => {
+      const fTot = (val, isPct = false, redIfZero = false) => {
         const isZ = isPct ? (!val || val === 0) : (val === 0);
-        if (isZ) {
+        if (isZ && redIfZero) {
           return `<span class="text-rose-400 font-black">${isPct ? '0%' : 0}</span>`;
         }
-        return isPct ? `${Math.round(val * 100)}%` : val;
+        return isPct ? `${Math.round((val || 0) * 100)}%` : val;
       };
 
       tfoot.innerHTML = `
         <tr class="bg-slate-700 text-white font-black text-xs">
           <td colspan="2" class="py-2.5 px-3 border-r border-slate-600 text-left">Total</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totCalls)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totHC)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(hcTotPct, true)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totOV)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(ovTotPct, true)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totOS)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(osTotPct, true)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totBV)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(bvTotPct, true)}</td>
-          <td class="py-2.5 px-3 border-r border-slate-600">${fZero(totBS)}</td>
-          <td class="py-2.5 px-3">${fZero(bsTotPct, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totCalls, false, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totHC, false, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(hcTotPct, true, true)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totOV, false, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(ovTotPct, true, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totOS, false, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(osTotPct, true, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totBV, false, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(bvTotPct, true, false)}</td>
+          <td class="py-2.5 px-3 border-r border-slate-600">${fTot(totBS, false, false)}</td>
+          <td class="py-2.5 px-3">${fTot(bsTotPct, true, false)}</td>
         </tr>
       `;
     }
 
     function renderRawCalls() {
       const tbody = document.getElementById('tbodyRawCalls');
-      const q = state.filters.search.toLowerCase().trim();
-      const tl = state.filters.tl;
-      const b2b = state.filters.b2b;
-      const hc = state.filters.happyStatus;
-
-      const filtered = state.cleanedCalls.filter(c => {
-        if (tl !== 'ALL' && c.tlName !== tl) return false;
-        if (b2b === 'B2B' && !c.isB2B) return false;
-        if (b2b === 'B2C' && c.isB2B) return false;
-        if (hc === 'YES' && !c.isHCYes) return false;
-        if (hc === 'NOT_YES' && c.isHCYes) return false;
-
-        if (q) {
-          const match = c.so.toLowerCase().includes(q) ||
-                        c.engineerName.toLowerCase().includes(q) ||
-                        (c.rawEngineerName && c.rawEngineerName.toLowerCase().includes(q)) ||
-                        c.engineerId.toLowerCase().includes(q) ||
-                        c.tlName.toLowerCase().includes(q) ||
-                        c.productCategory.toLowerCase().includes(q) ||
-                        c.model.toLowerCase().includes(q) ||
-                        c.customerName.toLowerCase().includes(q);
-          if (!match) return false;
-        }
-        return true;
-      });
+      const filtered = getFilteredCalls(true);
 
       if (filtered.length === 0) {
         tbody.innerHTML = `<tr><td colspan="22" class="py-8 text-center text-slate-400">No calls matching criteria</td></tr>`;
@@ -2014,32 +2185,32 @@
 
         const happyBadge = c.isHCYes
           ? `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">YES</span>`
-          : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500">${c.happyCodeStatus}</span>`;
+          : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500">${escapeHtml(c.happyCodeStatus)}</span>`;
 
         html += `
           <tr class="hover:bg-blue-50/40 transition">
             <td class="py-2 px-3 border-r font-mono text-slate-400">${idx + 1}</td>
-            <td class="py-2 px-3 border-r font-mono font-bold text-blue-700">${c.so}</td>
-            <td class="py-2 px-3 border-r font-black text-blue-900 bg-blue-50">${c.tlName}</td>
-            <td class="py-2 px-3 border-r font-bold text-slate-900 bg-blue-50/40">${c.engineerName}</td>
-            <td class="py-2 px-3 border-r font-mono text-slate-700 font-semibold">${c.engineerId || '-'}</td>
-            <td class="py-2 px-3 border-r font-semibold text-indigo-900 bg-indigo-50/40">${c.productCategory}</td>
-            <td class="py-2 px-3 border-r text-slate-700">${c.product}</td>
-            <td class="py-2 px-3 border-r text-slate-500">${c.serviceType}</td>
-            <td class="py-2 px-3 border-r font-mono text-slate-700 font-medium">${c.model}</td>
-            <td class="py-2 px-3 border-r font-mono text-rose-700 bg-rose-50/30 text-right">${c.rawVisit || '-'}</td>
+            <td class="py-2 px-3 border-r font-mono font-bold text-blue-700">${escapeHtml(c.so)}</td>
+            <td class="py-2 px-3 border-r font-black text-blue-900 bg-blue-50">${escapeHtml(c.tlName)}</td>
+            <td class="py-2 px-3 border-r font-bold text-slate-900 bg-blue-50/40">${escapeHtml(c.engineerName)}</td>
+            <td class="py-2 px-3 border-r font-mono text-slate-700 font-semibold">${escapeHtml(c.engineerId || '-')}</td>
+            <td class="py-2 px-3 border-r font-semibold text-indigo-900 bg-indigo-50/40">${escapeHtml(c.productCategory)}</td>
+            <td class="py-2 px-3 border-r text-slate-700">${escapeHtml(c.product)}</td>
+            <td class="py-2 px-3 border-r text-slate-500">${escapeHtml(c.serviceType)}</td>
+            <td class="py-2 px-3 border-r font-mono text-slate-700 font-medium">${escapeHtml(c.model)}</td>
+            <td class="py-2 px-3 border-r font-mono text-rose-700 bg-rose-50/30 text-right">${escapeHtml(c.rawVisit || '-')}</td>
             <td class="py-2 px-3 border-r font-mono font-black text-amber-900 text-right bg-amber-50/40">${c.totalVisitTime}</td>
             <td class="py-2 px-3 border-r text-center">${visitBadge}</td>
-            <td class="py-2 px-3 border-r font-mono text-rose-700 bg-rose-50/30 text-right">${c.rawService || '-'}</td>
+            <td class="py-2 px-3 border-r font-mono text-rose-700 bg-rose-50/30 text-right">${escapeHtml(c.rawService || '-')}</td>
             <td class="py-2 px-3 border-r font-mono font-black text-purple-900 text-right bg-purple-50/40">${c.totalServiceTime}</td>
             <td class="py-2 px-3 border-r text-center">${serviceBadge}</td>
             <td class="py-2 px-3 border-r text-center">${b2bBadge}</td>
             <td class="py-2 px-3 border-r text-center">${happyBadge}</td>
-            <td class="py-2 px-3 border-r text-slate-600">${c.status}</td>
-            <td class="py-2 px-3 border-r max-w-[180px] truncate text-slate-700 font-medium" title="${c.reason}">${c.reason}</td>
-            <td class="py-2 px-3 border-r text-slate-800">${c.customerName}</td>
-            <td class="py-2 px-3 border-r text-slate-600">${c.branchName}</td>
-            <td class="py-2 px-3 text-slate-400 font-mono text-[11px]">${c.rawEngineerName || '-'}</td>
+            <td class="py-2 px-3 border-r text-slate-600">${escapeHtml(c.status)}</td>
+            <td class="py-2 px-3 border-r max-w-[180px] truncate text-slate-700 font-medium" title="${escapeHtml(c.reason)}">${escapeHtml(c.reason)}</td>
+            <td class="py-2 px-3 border-r text-slate-800">${escapeHtml(c.customerName)}</td>
+            <td class="py-2 px-3 border-r text-slate-600">${escapeHtml(c.branchName)}</td>
+            <td class="py-2 px-3 text-slate-400 font-mono text-[11px]">${escapeHtml(c.rawEngineerName || '-')}</td>
           </tr>
         `;
       });
@@ -2047,29 +2218,82 @@
       tbody.innerHTML = html;
     }
 
+    function renderUnknownCalls() {
+      const thead = document.getElementById('theadUnknownCalls');
+      const tbody = document.getElementById('tbodyUnknownCalls');
+      const badge = document.getElementById('unknownCallsCountBadge');
+      const q = state.filters.search.toLowerCase().trim();
+
+      const filteredUnknowns = state.unknownCalls.filter(c => {
+        if (!q) return true;
+        return (c.so && c.so.toLowerCase().includes(q)) ||
+               (c.engineerName && c.engineerName.toLowerCase().includes(q)) ||
+               (c.rawEngineerName && c.rawEngineerName.toLowerCase().includes(q)) ||
+               (c.engineerId && c.engineerId.toLowerCase().includes(q)) ||
+               (c.tlName && c.tlName.toLowerCase().includes(q)) ||
+               (c.model && c.model.toLowerCase().includes(q)) ||
+               (c.customerName && c.customerName.toLowerCase().includes(q));
+      });
+
+      if (badge) badge.textContent = `${filteredUnknowns.length} Calls`;
+
+      const fallbackHeaders = ['SO No', 'TL Name', 'EngineerName', 'EngineerId', 'Product', 'ServiceType', 'MODEL', 'TotalVisitTime', 'TotalServiceTime', 'HappyCodeVerifyStatus', 'CustomerName', 'BranchName', 'Reason'];
+      const rawHdrs = (state.rawHeaders && state.rawHeaders.length > 0) ? state.rawHeaders : fallbackHeaders;
+
+      thead.innerHTML = `<tr>
+        <th class="py-2.5 px-3 border-r border-slate-200">#</th>
+        <th class="py-2.5 px-3 border-r border-slate-200 bg-rose-100 text-rose-950 font-black">Missing Flag</th>
+        ${rawHdrs.map(h => `<th class="py-2.5 px-3 border-r border-slate-200">${escapeHtml(h)}</th>`).join('')}
+      </tr>`;
+
+      if (filteredUnknowns.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${rawHdrs.length + 2}" class="py-10 text-center text-emerald-700 font-bold bg-emerald-50/40">All loaded calls have valid TL Name and EngineerId mappings!</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      filteredUnknowns.forEach((c, idx) => {
+        let cells = [];
+        if (state.rawRows && state.rawRows[c.rawRowIndex]) {
+          cells = [...state.rawRows[c.rawRowIndex]];
+          while (cells.length < rawHdrs.length) cells.push('');
+        } else {
+          cells = [c.so, c.tlName, c.rawEngineerName || c.engineerName, c.engineerId, c.product, c.serviceType, c.model, c.rawVisit, c.rawService, c.happyCodeStatus, c.customerName, c.branchName, c.reason];
+        }
+        const reasonBadges = (c.unknownReasons || []).map(r => `<span class="inline-block px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300 text-[10px] font-bold mr-1">${escapeHtml(r)}</span>`).join('');
+        html += `<tr class="hover:bg-amber-50/40 transition border-b border-slate-200">
+          <td class="py-1.5 px-3 border-r font-mono text-slate-400">${idx + 1}</td>
+          <td class="py-1.5 px-3 border-r bg-rose-50/40">${reasonBadges}</td>
+          ${cells.map(val => `<td class="py-1.5 px-3 border-r text-slate-800 font-mono text-[11px]">${escapeHtml(val)}</td>`).join('')}
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
     function renderMinuteAudit() {
       const tbody = document.getElementById('tbodyAudit');
-      if (state.cleanedCalls.length === 0) {
+      const calls = getFilteredCalls(true);
+      if (calls.length === 0) {
         tbody.innerHTML = `<tr><td colspan="13" class="py-8 text-center text-slate-400">No calls to audit</td></tr>`;
         return;
       }
 
       let html = '';
-      state.cleanedCalls.slice(0, 150).forEach((c, idx) => {
+      calls.slice(0, 150).forEach((c, idx) => {
         html += `
           <tr class="hover:bg-slate-50 transition border-b border-slate-200">
             <td class="py-1.5 px-3 border-r font-mono text-slate-400">${idx + 1}</td>
-            <td class="py-1.5 px-3 border-r font-mono font-bold text-blue-700">${c.so}</td>
-            <td class="py-1.5 px-3 border-r font-black text-blue-900 bg-blue-50/60">${c.tlName}</td>
-            <td class="py-1.5 px-3 border-r font-bold text-slate-900 bg-blue-50/30">${c.engineerName}</td>
-            <td class="py-1.5 px-3 border-r font-mono text-slate-700">${c.engineerId || '-'}</td>
-            <td class="py-1.5 px-3 border-r font-semibold text-indigo-900 bg-indigo-50/40">${c.productCategory}</td>
-            <td class="py-1.5 px-3 border-r font-mono text-rose-700 bg-rose-50/40">${c.rawVisit || '-'}</td>
+            <td class="py-1.5 px-3 border-r font-mono font-bold text-blue-700">${escapeHtml(c.so)}</td>
+            <td class="py-1.5 px-3 border-r font-black text-blue-900 bg-blue-50/60">${escapeHtml(c.tlName)}</td>
+            <td class="py-1.5 px-3 border-r font-bold text-slate-900 bg-blue-50/30">${escapeHtml(c.engineerName)}</td>
+            <td class="py-1.5 px-3 border-r font-mono text-slate-700">${escapeHtml(c.engineerId || '-')}</td>
+            <td class="py-1.5 px-3 border-r font-semibold text-indigo-900 bg-indigo-50/40">${escapeHtml(c.productCategory)}</td>
+            <td class="py-1.5 px-3 border-r font-mono text-rose-700 bg-rose-50/40">${escapeHtml(c.rawVisit || '-')}</td>
             <td class="py-1.5 px-3 border-r font-mono font-black text-emerald-800 bg-emerald-50/40">${c.totalVisitTime}</td>
-            <td class="py-1.5 px-3 border-r font-bold">${c.visitTAT}</td>
-            <td class="py-1.5 px-3 border-r font-mono text-rose-700 bg-rose-50/40">${c.rawService || '-'}</td>
+            <td class="py-1.5 px-3 border-r font-bold">${escapeHtml(c.visitTAT)}</td>
+            <td class="py-1.5 px-3 border-r font-mono text-rose-700 bg-rose-50/40">${escapeHtml(c.rawService || '-')}</td>
             <td class="py-1.5 px-3 border-r font-mono font-black text-emerald-800 bg-emerald-50/40">${c.totalServiceTime}</td>
-            <td class="py-1.5 px-3 border-r font-bold">${c.serviceTAT}</td>
+            <td class="py-1.5 px-3 border-r font-bold">${escapeHtml(c.serviceTAT)}</td>
             <td class="py-1.5 px-3">
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">Clean Number</span>
             </td>
@@ -2079,27 +2303,87 @@
       tbody.innerHTML = html;
     }
 
-    function populateDropdowns() {
-      const sel = document.getElementById('tlFilter');
-      const cur = sel.value;
-      const tls = new Set(state.tlSummary.map(t => t.name));
-
-      sel.innerHTML = '<option value="ALL">All Team Leaders (TL)</option>';
-      Array.from(tls).sort().forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t;
-        opt.textContent = t;
-        sel.appendChild(opt);
+    function getAllTLNamesFromCalls() {
+      const preferredTLOrder = ['SANJEEV', 'SANDEEP', 'BINOD', 'HARRY', 'KHUSHI', 'RAVI', 'RAMJI', 'SUNIL', 'Jitender', 'VIKASH'];
+      const tls = Array.from(new Set(state.cleanedCalls.map(c => c.tlName || 'General')));
+      tls.sort((a, b) => {
+        const idxA = preferredTLOrder.findIndex(o => o.toLowerCase() === a.toLowerCase());
+        const idxB = preferredTLOrder.findIndex(o => o.toLowerCase() === b.toLowerCase());
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return a.localeCompare(b);
       });
-      if (cur && tls.has(cur)) sel.value = cur;
+      return tls;
+    }
+
+    function updateFilterLabels() {
+      const tlLabel = document.getElementById('tlFilterLabel');
+      const allTLs = getAllTLNamesFromCalls();
+      if (tlLabel) {
+        if (state.filters.tls === null || (allTLs.length > 0 && state.filters.tls.size === allTLs.length)) {
+          tlLabel.textContent = 'All Team Leaders (TL)';
+        } else if (state.filters.tls.size === 0) {
+          tlLabel.textContent = '0 TLs Selected';
+        } else if (state.filters.tls.size === 1) {
+          tlLabel.textContent = `TL: ${Array.from(state.filters.tls)[0]}`;
+        } else {
+          tlLabel.textContent = `${state.filters.tls.size} TLs Selected`;
+        }
+      }
+
+      const b2bLabel = document.getElementById('b2bFilterLabel');
+      if (b2bLabel) {
+        const hasB2B = state.filters.types.has('B2B');
+        const hasB2C = state.filters.types.has('B2C');
+        if (hasB2B && hasB2C) b2bLabel.textContent = 'All Types (B2B + B2C)';
+        else if (hasB2B) b2bLabel.textContent = 'B2B Calls Only';
+        else if (hasB2C) b2bLabel.textContent = 'B2C (Standard) Only';
+        else b2bLabel.textContent = '0 Types Selected';
+      }
+    }
+
+    function populateDropdowns() {
+      const container = document.getElementById('tlCheckboxList');
+      if (!container) return;
+      const allTLs = getAllTLNamesFromCalls();
+      const selected = state.filters.tls;
+
+      container.innerHTML = allTLs.map(t => {
+        const isChecked = (selected === null || selected.has(t)) ? 'checked' : '';
+        return `
+          <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer font-semibold text-slate-800">
+            <input type="checkbox" class="tl-chk rounded text-blue-600 focus:ring-blue-500" value="${escapeHtml(t)}" ${isChecked}>
+            <span>${escapeHtml(t)}</span>
+          </label>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.tl-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+          const allChks = Array.from(container.querySelectorAll('.tl-chk'));
+          const checkedVals = allChks.filter(c => c.checked).map(c => c.value);
+          state.filters.tls = (checkedVals.length === allChks.length) ? null : new Set(checkedVals);
+          updateFilterLabels();
+          calculateSummaries();
+          renderCurrentView();
+        });
+      });
+
+      updateFilterLabels();
     }
 
     // ═════════════════════════════════════════════════════════════════════════
     // DOWNLOADABLE EXCEL WITH THE EXACT SAME THEME (USING EXCELJS)
     // ═════════════════════════════════════════════════════════════════════════
-    async function exportExcelSameTheme() {
+    async function exportExcelSameTheme(summaryOnly = false) {
+      const exportCalls = getFilteredCalls(false);
       if (state.cleanedCalls.length === 0) {
         alert('No data loaded to export.');
+        return;
+      }
+      if (exportCalls.length === 0) {
+        alert('No calls match the active filters / Clear Clutter selection.');
         return;
       }
 
@@ -2114,7 +2398,6 @@
       wb.lastModifiedBy = 'Samsung SVC Operations';
       wb.created = new Date();
 
-      // Helper function to apply color to cell
       const applyCell = (cell, text, fillHex, fontColorHex, isBold = false, align = 'center') => {
         cell.value = text;
         cell.alignment = { vertical: 'middle', horizontal: align, wrapText: true };
@@ -2139,8 +2422,31 @@
         };
       };
 
+      const styleHeaderRange = (ws, refs, fillHex, fontColorHex) => {
+        refs.forEach(ref => {
+          const c = ws.getCell(ref);
+          c.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: `FF${fillHex.replace('#', '').toUpperCase()}` }
+          };
+          c.font = {
+            name: 'Calibri',
+            size: 10,
+            bold: true,
+            color: { argb: `FF${(fontColorHex || '#000000').replace('#', '').toUpperCase()}` }
+          };
+          c.border = {
+            top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+            left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+            bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+            right: { style: 'thin', color: { argb: 'FF94A3B8' } }
+          };
+        });
+      };
+
       // ─────────────────────────────────────────────────────────────────────
-      // SHEET 1: TL SUMMARY (EXACT MATCH FOR IMAGE 2)
+      // SHEET 1: TL SUMMARY (MERGED HEADERS MATCHING UI)
       // ─────────────────────────────────────────────────────────────────────
       const wsTL = wb.addWorksheet('TL Summary', {
         views: [{ showGridLines: true }],
@@ -2153,9 +2459,22 @@
       wsTL.mergeCells('I1:L1'); // B2B Calls
 
       applyCell(wsTL.getCell('A1'), 'SALT REPORT', '0A4D68', 'FFFFFF', true);
+      styleHeaderRange(wsTL, ['A1', 'A2'], '0A4D68', 'FFFFFF');
       applyCell(wsTL.getCell('B1'), 'Happy Code', '1E40AF', 'FFFFFF', true);
+      styleHeaderRange(wsTL, ['B1', 'C1', 'D1'], '1E40AF', 'FFFFFF');
       applyCell(wsTL.getCell('E1'), 'Over all Calls', 'FED7AA', '000000', true);
+      styleHeaderRange(wsTL, ['E1', 'F1', 'G1', 'H1'], 'FED7AA', '000000');
       applyCell(wsTL.getCell('I1'), 'B2B Calls', 'F5D0FE', '000000', true);
+      styleHeaderRange(wsTL, ['I1', 'J1', 'K1', 'L1'], 'F5D0FE', '000000');
+
+      // Vertical merges for Total / HC / HC %
+      wsTL.mergeCells('B2:B3');
+      wsTL.mergeCells('C2:C3');
+      wsTL.mergeCells('D2:D3');
+      applyCell(wsTL.getCell('B2'), 'Total', '60A5FA', '000000', true);
+      applyCell(wsTL.getCell('C2'), 'HC', '60A5FA', '000000', true);
+      applyCell(wsTL.getCell('D2'), 'HC %', '60A5FA', '000000', true);
+      styleHeaderRange(wsTL, ['B2', 'B3', 'C2', 'C3', 'D2', 'D3'], '60A5FA', '000000');
 
       wsTL.mergeCells('E2:F2'); // Overall Visit Time
       wsTL.mergeCells('G2:H2'); // Overall Service Time
@@ -2163,15 +2482,16 @@
       wsTL.mergeCells('K2:L2'); // B2B Service Time
 
       applyCell(wsTL.getCell('E2'), 'Visit Time', '14532D', 'FFFFFF', true);
+      styleHeaderRange(wsTL, ['E2', 'F2'], '14532D', 'FFFFFF');
       applyCell(wsTL.getCell('G2'), 'Service Time', '7C2D12', 'FFFFFF', true);
+      styleHeaderRange(wsTL, ['G2', 'H2'], '7C2D12', 'FFFFFF');
       applyCell(wsTL.getCell('I2'), 'Visit Time', '14532D', 'FFFFFF', true);
+      styleHeaderRange(wsTL, ['I2', 'J2'], '14532D', 'FFFFFF');
       applyCell(wsTL.getCell('K2'), 'Service Time', '7C2D12', 'FFFFFF', true);
+      styleHeaderRange(wsTL, ['K2', 'L2'], '7C2D12', 'FFFFFF');
 
       const tlSubHeaders = [
         { col: 'A3', text: 'TL NAME', fill: 'BAE6FD', color: '000000', align: 'left' },
-        { col: 'B3', text: 'Total', fill: '60A5FA', color: '000000' },
-        { col: 'C3', text: 'HC', fill: '60A5FA', color: '000000' },
-        { col: 'D3', text: 'HC %', fill: '60A5FA', color: '000000' },
         { col: 'E3', text: '0~10', fill: '86EFAC', color: '000000' },
         { col: 'F3', text: '0~10 %', fill: '86EFAC', color: '000000' },
         { col: 'G3', text: '0~20', fill: 'FDBA74', color: '000000' },
@@ -2181,60 +2501,64 @@
         { col: 'K3', text: '0~20', fill: 'FDBA74', color: '000000' },
         { col: 'L3', text: '0~20 %', fill: 'FDBA74', color: '000000' }
       ];
-
       tlSubHeaders.forEach(h => applyCell(wsTL.getCell(h.col), h.text, h.fill, h.color, true, h.align || 'center'));
 
       let rowIdx = 4;
-      const getHexFill = (pct, isHC = false, count = 1) => {
-        if (!count || count === 0 || !pct || pct === 0 || isNaN(pct)) return 'FCA5A5'; // Red for 0
-        const p = Math.round(pct * 100);
-        if (p === 0) return 'FCA5A5'; // Red for 0
+      const getHexFill = (pct, isHC = false, denomCount = 1) => {
         if (isHC) {
+          if (!denomCount || denomCount === 0 || !pct || pct === 0 || isNaN(pct)) return 'FCA5A5';
+          const p = Math.round(pct * 100);
+          if (p === 0) return 'FCA5A5';
           if (p >= 95) return '86EFAC';
           if (p >= 85) return 'FEF08A';
           if (p >= 50) return 'FED7AA';
           return 'FCA5A5';
         } else {
-          if (p <= 10) return '86EFAC';
+          if (!denomCount || denomCount === 0 || isNaN(pct)) return 'F8FAFC'; // Neutral when HC=0
+          const p = Math.round((pct || 0) * 100);
+          if (p <= 10) return '86EFAC'; // Lower is good
           if (p <= 25) return 'FEF08A';
           if (p <= 50) return 'FED7AA';
           return 'FCA5A5';
         }
       };
 
-      const applyCountCell = (cell, val) => {
+      const applyCountCell = (cell, val, highlightZeroRed = true) => {
         const num = Number(val) || 0;
-        if (num === 0) {
+        if (num === 0 && highlightZeroRed) {
           applyCell(cell, 0, 'FEE2E2', 'B91C1C', true);
         } else {
           applyCell(cell, num, 'FFFFFF', '000000', false);
         }
       };
 
-      const applyPctCell = (cell, pct, count, isHC = false) => {
-        const isZero = !count || count === 0 || !pct || pct === 0 || isNaN(pct);
-        const fill = getHexFill(pct, isHC, count);
-        const fontColor = isZero ? '7F1D1D' : '000000';
-        applyCell(cell, isZero ? 0 : pct, fill, fontColor, true);
+      const applyPctCell = (cell, pct, denomCount, isHC = false) => {
+        const hasDenom = denomCount > 0 && !isNaN(pct);
+        const val = hasDenom ? (pct || 0) : 0;
+        const fill = getHexFill(pct, isHC, denomCount);
+        const fontColor = (isHC && (!hasDenom || Math.round(val * 100) < 50))
+          ? '7F1D1D'
+          : (!isHC && !hasDenom ? '64748B' : '000000');
+        applyCell(cell, val, fill, fontColor, true);
         cell.numFmt = '0%';
       };
 
       state.tlSummary.forEach(r => {
         applyCell(wsTL.getCell(`A${rowIdx}`), r.name, 'F8FAFC', '000000', true, 'left');
-        applyCountCell(wsTL.getCell(`B${rowIdx}`), r.total);
-        applyCountCell(wsTL.getCell(`C${rowIdx}`), r.hc);
+        applyCountCell(wsTL.getCell(`B${rowIdx}`), r.total, true);
+        applyCountCell(wsTL.getCell(`C${rowIdx}`), r.hc, true);
         applyPctCell(wsTL.getCell(`D${rowIdx}`), r.hcPct, r.total, true);
 
-        applyCountCell(wsTL.getCell(`E${rowIdx}`), r.overallVisit010);
+        applyCountCell(wsTL.getCell(`E${rowIdx}`), r.overallVisit010, false);
         applyPctCell(wsTL.getCell(`F${rowIdx}`), r.oVisitPct, r.hc, false);
 
-        applyCountCell(wsTL.getCell(`G${rowIdx}`), r.overallService020);
+        applyCountCell(wsTL.getCell(`G${rowIdx}`), r.overallService020, false);
         applyPctCell(wsTL.getCell(`H${rowIdx}`), r.oServPct, r.hc, false);
 
-        applyCountCell(wsTL.getCell(`I${rowIdx}`), r.b2bVisit010);
+        applyCountCell(wsTL.getCell(`I${rowIdx}`), r.b2bVisit010, false);
         applyPctCell(wsTL.getCell(`J${rowIdx}`), r.bVisitPct, r.hc, false);
 
-        applyCountCell(wsTL.getCell(`K${rowIdx}`), r.b2bService020);
+        applyCountCell(wsTL.getCell(`K${rowIdx}`), r.b2bService020, false);
         applyPctCell(wsTL.getCell(`L${rowIdx}`), r.bServPct, r.hc, false);
 
         rowIdx++;
@@ -2247,42 +2571,42 @@
       const totBV = state.tlSummary.reduce((a, b) => a + b.b2bVisit010, 0);
       const totBS = state.tlSummary.reduce((a, b) => a + b.b2bService020, 0);
 
-      const applyTotalCountCell = (cell, val) => {
+      const applyTotalCountCell = (cell, val, redIfZero = false) => {
         const num = Number(val) || 0;
-        if (num === 0) {
+        if (num === 0 && redIfZero) {
           applyCell(cell, 0, '991B1B', 'FFFFFF', true);
         } else {
           applyCell(cell, num, '475569', 'FFFFFF', true);
         }
       };
 
-      const applyTotalPctCell = (cell, val, denom) => {
+      const applyTotalPctCell = (cell, val, denom, redIfZero = false) => {
         const pct = denom > 0 ? (val / denom) : 0;
         const isZero = denom === 0 || val === 0 || pct === 0;
-        if (isZero) {
+        if (isZero && redIfZero) {
           applyCell(cell, 0, '991B1B', 'FFFFFF', true);
         } else {
-          applyCell(cell, pct, '475569', 'FFFFFF', true);
+          applyCell(cell, isZero ? 0 : pct, '475569', 'FFFFFF', true);
         }
         cell.numFmt = '0%';
       };
 
       applyCell(wsTL.getCell(`A${rowIdx}`), 'Total', '475569', 'FFFFFF', true, 'left');
-      applyTotalCountCell(wsTL.getCell(`B${rowIdx}`), totCalls);
-      applyTotalCountCell(wsTL.getCell(`C${rowIdx}`), totHC);
-      applyTotalPctCell(wsTL.getCell(`D${rowIdx}`), totHC, totCalls);
+      applyTotalCountCell(wsTL.getCell(`B${rowIdx}`), totCalls, true);
+      applyTotalCountCell(wsTL.getCell(`C${rowIdx}`), totHC, true);
+      applyTotalPctCell(wsTL.getCell(`D${rowIdx}`), totHC, totCalls, true);
 
-      applyTotalCountCell(wsTL.getCell(`E${rowIdx}`), totOV);
-      applyTotalPctCell(wsTL.getCell(`F${rowIdx}`), totOV, totHC);
+      applyTotalCountCell(wsTL.getCell(`E${rowIdx}`), totOV, false);
+      applyTotalPctCell(wsTL.getCell(`F${rowIdx}`), totOV, totHC, false);
 
-      applyTotalCountCell(wsTL.getCell(`G${rowIdx}`), totOS);
-      applyTotalPctCell(wsTL.getCell(`H${rowIdx}`), totOS, totHC);
+      applyTotalCountCell(wsTL.getCell(`G${rowIdx}`), totOS, false);
+      applyTotalPctCell(wsTL.getCell(`H${rowIdx}`), totOS, totHC, false);
 
-      applyTotalCountCell(wsTL.getCell(`I${rowIdx}`), totBV);
-      applyTotalPctCell(wsTL.getCell(`J${rowIdx}`), totBV, totHC);
+      applyTotalCountCell(wsTL.getCell(`I${rowIdx}`), totBV, false);
+      applyTotalPctCell(wsTL.getCell(`J${rowIdx}`), totBV, totHC, false);
 
-      applyTotalCountCell(wsTL.getCell(`K${rowIdx}`), totBS);
-      applyTotalPctCell(wsTL.getCell(`L${rowIdx}`), totBS, totHC);
+      applyTotalCountCell(wsTL.getCell(`K${rowIdx}`), totBS, false);
+      applyTotalPctCell(wsTL.getCell(`L${rowIdx}`), totBS, totHC, false);
 
       wsTL.columns = [
         { width: 16 }, { width: 10 }, { width: 10 }, { width: 11 },
@@ -2292,7 +2616,7 @@
       wsTL.eachRow({ includeEmpty: false }, (r) => { r.height = 22; });
 
       // ─────────────────────────────────────────────────────────────────────
-      // SHEET 2: ENG SUMMARY (EXACT MATCH FOR IMAGE 3)
+      // SHEET 2: ENG SUMMARY (MERGED HEADERS MATCHING UI)
       // ─────────────────────────────────────────────────────────────────────
       const wsEng = wb.addWorksheet('Eng Summary', {
         views: [{ showGridLines: true }],
@@ -2305,9 +2629,29 @@
       wsEng.mergeCells('J1:M1'); // B2B Calls
 
       applyCell(wsEng.getCell('A1'), 'SALT REPORT', '0A4D68', 'FFFFFF', true);
+      styleHeaderRange(wsEng, ['A1', 'B1'], '0A4D68', 'FFFFFF');
       applyCell(wsEng.getCell('C1'), 'Happy Code', '1E40AF', 'FFFFFF', true);
+      styleHeaderRange(wsEng, ['C1', 'D1', 'E1'], '1E40AF', 'FFFFFF');
       applyCell(wsEng.getCell('F1'), 'Over all Calls', 'FED7AA', '000000', true);
+      styleHeaderRange(wsEng, ['F1', 'G1', 'H1', 'I1'], 'FED7AA', '000000');
       applyCell(wsEng.getCell('J1'), 'B2B Calls', 'F5D0FE', '000000', true);
+      styleHeaderRange(wsEng, ['J1', 'K1', 'L1', 'M1'], 'F5D0FE', '000000');
+
+      // Vertical merges for ENG NAME, TL NAME, Total, HC, HC %
+      wsEng.mergeCells('A2:A3');
+      wsEng.mergeCells('B2:B3');
+      wsEng.mergeCells('C2:C3');
+      wsEng.mergeCells('D2:D3');
+      wsEng.mergeCells('E2:E3');
+
+      applyCell(wsEng.getCell('A2'), 'ENG NAME', 'BAE6FD', '000000', true, 'left');
+      applyCell(wsEng.getCell('B2'), 'TL NAME', 'BAE6FD', '000000', true, 'left');
+      styleHeaderRange(wsEng, ['A2', 'A3', 'B2', 'B3'], 'BAE6FD', '000000');
+
+      applyCell(wsEng.getCell('C2'), 'Total', '60A5FA', '000000', true);
+      applyCell(wsEng.getCell('D2'), 'HC', '60A5FA', '000000', true);
+      applyCell(wsEng.getCell('E2'), 'HC %', '60A5FA', '000000', true);
+      styleHeaderRange(wsEng, ['C2', 'C3', 'D2', 'D3', 'E2', 'E3'], '60A5FA', '000000');
 
       wsEng.mergeCells('F2:G2');
       wsEng.mergeCells('H2:I2');
@@ -2315,16 +2659,15 @@
       wsEng.mergeCells('L2:M2');
 
       applyCell(wsEng.getCell('F2'), 'Visit Time', '14532D', 'FFFFFF', true);
+      styleHeaderRange(wsEng, ['F2', 'G2'], '14532D', 'FFFFFF');
       applyCell(wsEng.getCell('H2'), 'Service Time', '7C2D12', 'FFFFFF', true);
+      styleHeaderRange(wsEng, ['H2', 'I2'], '7C2D12', 'FFFFFF');
       applyCell(wsEng.getCell('J2'), 'Visit Time', '14532D', 'FFFFFF', true);
+      styleHeaderRange(wsEng, ['J2', 'K2'], '14532D', 'FFFFFF');
       applyCell(wsEng.getCell('L2'), 'Service Time', '7C2D12', 'FFFFFF', true);
+      styleHeaderRange(wsEng, ['L2', 'M2'], '7C2D12', 'FFFFFF');
 
       const engSubHeaders = [
-        { col: 'A3', text: 'ENG NAME', fill: 'BAE6FD', color: '000000', align: 'left' },
-        { col: 'B3', text: 'TL NAME', fill: 'BAE6FD', color: '000000', align: 'left' },
-        { col: 'C3', text: 'Total', fill: '60A5FA', color: '000000' },
-        { col: 'D3', text: 'HC', fill: '60A5FA', color: '000000' },
-        { col: 'E3', text: 'HC %', fill: '60A5FA', color: '000000' },
         { col: 'F3', text: '0~10', fill: '86EFAC', color: '000000' },
         { col: 'G3', text: '0~10 %', fill: '86EFAC', color: '000000' },
         { col: 'H3', text: '0~20', fill: 'FDBA74', color: '000000' },
@@ -2340,20 +2683,20 @@
       state.engSummary.forEach(r => {
         applyCell(wsEng.getCell(`A${eRowIdx}`), r.engName, 'F8FAFC', '000000', true, 'left');
         applyCell(wsEng.getCell(`B${eRowIdx}`), r.tlName, 'FFFFFF', '000000', false, 'left');
-        applyCountCell(wsEng.getCell(`C${eRowIdx}`), r.total);
-        applyCountCell(wsEng.getCell(`D${eRowIdx}`), r.hc);
+        applyCountCell(wsEng.getCell(`C${eRowIdx}`), r.total, true);
+        applyCountCell(wsEng.getCell(`D${eRowIdx}`), r.hc, true);
         applyPctCell(wsEng.getCell(`E${eRowIdx}`), r.hcPct, r.total, true);
 
-        applyCountCell(wsEng.getCell(`F${eRowIdx}`), r.overallVisit010);
+        applyCountCell(wsEng.getCell(`F${eRowIdx}`), r.overallVisit010, false);
         applyPctCell(wsEng.getCell(`G${eRowIdx}`), r.oVisitPct, r.hc, false);
 
-        applyCountCell(wsEng.getCell(`H${eRowIdx}`), r.overallService020);
+        applyCountCell(wsEng.getCell(`H${eRowIdx}`), r.overallService020, false);
         applyPctCell(wsEng.getCell(`I${eRowIdx}`), r.oServPct, r.hc, false);
 
-        applyCountCell(wsEng.getCell(`J${eRowIdx}`), r.b2bVisit010);
+        applyCountCell(wsEng.getCell(`J${eRowIdx}`), r.b2bVisit010, false);
         applyPctCell(wsEng.getCell(`K${eRowIdx}`), r.bVisitPct, r.hc, false);
 
-        applyCountCell(wsEng.getCell(`L${eRowIdx}`), r.b2bService020);
+        applyCountCell(wsEng.getCell(`L${eRowIdx}`), r.b2bService020, false);
         applyPctCell(wsEng.getCell(`M${eRowIdx}`), r.bServPct, r.hc, false);
 
         eRowIdx++;
@@ -2361,21 +2704,21 @@
 
       wsEng.mergeCells(`A${eRowIdx}:B${eRowIdx}`);
       applyCell(wsEng.getCell(`A${eRowIdx}`), 'Total', '475569', 'FFFFFF', true, 'left');
-      applyTotalCountCell(wsEng.getCell(`C${eRowIdx}`), totCalls);
-      applyTotalCountCell(wsEng.getCell(`D${eRowIdx}`), totHC);
-      applyTotalPctCell(wsEng.getCell(`E${eRowIdx}`), totHC, totCalls);
+      applyTotalCountCell(wsEng.getCell(`C${eRowIdx}`), totCalls, true);
+      applyTotalCountCell(wsEng.getCell(`D${eRowIdx}`), totHC, true);
+      applyTotalPctCell(wsEng.getCell(`E${eRowIdx}`), totHC, totCalls, true);
 
-      applyTotalCountCell(wsEng.getCell(`F${eRowIdx}`), totOV);
-      applyTotalPctCell(wsEng.getCell(`G${eRowIdx}`), totOV, totHC);
+      applyTotalCountCell(wsEng.getCell(`F${eRowIdx}`), totOV, false);
+      applyTotalPctCell(wsEng.getCell(`G${eRowIdx}`), totOV, totHC, false);
 
-      applyTotalCountCell(wsEng.getCell(`H${eRowIdx}`), totOS);
-      applyTotalPctCell(wsEng.getCell(`I${eRowIdx}`), totOS, totHC);
+      applyTotalCountCell(wsEng.getCell(`H${eRowIdx}`), totOS, false);
+      applyTotalPctCell(wsEng.getCell(`I${eRowIdx}`), totOS, totHC, false);
 
-      applyTotalCountCell(wsEng.getCell(`J${eRowIdx}`), totBV);
-      applyTotalPctCell(wsEng.getCell(`K${eRowIdx}`), totBV, totHC);
+      applyTotalCountCell(wsEng.getCell(`J${eRowIdx}`), totBV, false);
+      applyTotalPctCell(wsEng.getCell(`K${eRowIdx}`), totBV, totHC, false);
 
-      applyTotalCountCell(wsEng.getCell(`L${eRowIdx}`), totBS);
-      applyTotalPctCell(wsEng.getCell(`M${eRowIdx}`), totBS, totHC);
+      applyTotalCountCell(wsEng.getCell(`L${eRowIdx}`), totBS, false);
+      applyTotalPctCell(wsEng.getCell(`M${eRowIdx}`), totBS, totHC, false);
 
       wsEng.columns = [
         { width: 22 }, { width: 14 }, { width: 10 }, { width: 10 }, { width: 11 },
@@ -2385,124 +2728,122 @@
       wsEng.eachRow({ includeEmpty: false }, (r) => { r.height = 22; });
 
       // ─────────────────────────────────────────────────────────────────────
-      // SHEET 3: RAW (GRAVITY CENTER DATA + CLEANED NO-CLEANUP POLICY)
+      // SHEET 3: RAW (EXCLUDES CLUTTER & RESPECTS ACTIVE FILTERS; SKIPPED IF summaryOnly)
       // ─────────────────────────────────────────────────────────────────────
-      const wsRaw = wb.addWorksheet('RAW', {
-        views: [{ showGridLines: true }],
-        properties: { defaultRowHeight: 22 }
-      });
+      if (!summaryOnly) {
+        const wsRaw = wb.addWorksheet('RAW', {
+          views: [{ showGridLines: true }],
+          properties: { defaultRowHeight: 22 }
+        });
 
-      const defaultRawHeaders = [
-        'SvId', 'SONo', 'EngineerName', 'EngineerId', 'Product', 'ServiceType', 'MODEL',
-        'PostedDate', 'PostedTime', 'AppointmentDate', 'AppointmentTime', 'RescheduleDate',
-        'RescheduleTime', 'RescheduleRemarks', 'STATUS', 'ActionName', 'CurrentLatitude',
-        'CurrentLongitude', 'StartTime', 'EndTime', 'CallStartdate', 'CallEnddate',
-        'ServiceStartDate', 'ServiceStartTime', 'TotalVisitTime', 'TotalServiceTime',
-        'CustomerName', 'RescheduleBy Customer/Engineer', 'Remarks', 'BranchName', 'ASC_CODE',
-        'ASC_Name', 'Engineer Rating', 'OTP Sent Date', 'OTP Verification Date',
-        'HappyCodeVerifyStatus', 'HappyCode', 'HasEngineerConnectedSmartThingsApp', 'Reason',
-        'Is SF+ Device', 'Is device have SF+Smart lock', 'SF+ Smart lock Status', 'SF+ ClickCount'
-      ];
-
-      const origHeaders = (state.rawHeaders && state.rawHeaders.length > 0) ? state.rawHeaders : defaultRawHeaders;
-      const appendedHeaders = [
-        'TL Name',
-        'Eng Name',
-        'Product Category',
-        'Trimmed TotalVisitTime',
-        'Visit TAT Bucket',
-        'Trimmed TotalServiceTime',
-        'Service TAT Bucket',
-        'Happy Code Verified?',
-        'B2B Flag',
-        'Reason'
-      ];
-
-      const fullHeaderRow = [...origHeaders, ...appendedHeaders];
-      const hRow = wsRaw.addRow(fullHeaderRow);
-      hRow.height = 22;
-
-      const tlColNum = origHeaders.length + 1;
-      const engColNum = origHeaders.length + 2;
-
-      hRow.eachCell((cell, colNum) => {
-        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-        if (colNum === tlColNum || colNum === engColNum) {
-          // Gravity Center Core Headers: Bold Samsung Navy Highlight
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A4D68' } };
-          cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-        } else if (colNum <= origHeaders.length) {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
-          cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-        } else {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0369A1' } };
-          cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-        }
-        cell.border = {
-          top: { style: 'thin', color: { argb: 'FF64748B' } },
-          bottom: { style: 'medium', color: { argb: 'FF0F172A' } },
-          left: { style: 'thin', color: { argb: 'FF64748B' } },
-          right: { style: 'thin', color: { argb: 'FF64748B' } }
-        };
-      });
-
-      // Populate data rows: Original raw data untouched + appended audit calculations with centered gravity
-      state.cleanedCalls.forEach(c => {
-        let origCells = [];
-        if (state.rawRows && state.rawRows[c.rawRowIndex]) {
-          origCells = [...state.rawRows[c.rawRowIndex]];
-          while (origCells.length < origHeaders.length) origCells.push('');
-        } else {
-          origCells = [
-            c.so, c.so, c.rawEngineerName || c.engineerName, c.engineerId, c.product, c.serviceType,
-            c.model, '', '', '', '', '', '', '', c.status, c.status, '', '', '', '', '', '', '', '',
-            c.rawVisit, c.rawService, c.customerName, '', c.reason, c.branchName, '9225951',
-            'F1 INFO SOLUTIONS & SERVICES P LTD', 'Not Yet Rated', '', '', c.happyCodeStatus,
-            c.isHCYes ? '6958' : '', '', c.reason, 'no', 'no', '', '0'
-          ];
-        }
-
-        const addedCells = [
-          c.tlName,
-          c.engineerName,
-          c.productCategory,
-          c.totalVisitTime,
-          c.visitTAT,
-          c.totalServiceTime,
-          c.serviceTAT,
-          c.isHCYes ? 'YES' : 'NO',
-          c.isB2B ? 'B2B' : 'Standard',
-          c.reason
+        const defaultRawHeaders = [
+          'SvId', 'SONo', 'EngineerName', 'EngineerId', 'Product', 'ServiceType', 'MODEL',
+          'PostedDate', 'PostedTime', 'AppointmentDate', 'AppointmentTime', 'RescheduleDate',
+          'RescheduleTime', 'RescheduleRemarks', 'STATUS', 'ActionName', 'CurrentLatitude',
+          'CurrentLongitude', 'StartTime', 'EndTime', 'CallStartdate', 'CallEnddate',
+          'ServiceStartDate', 'ServiceStartTime', 'TotalVisitTime', 'TotalServiceTime',
+          'CustomerName', 'RescheduleBy Customer/Engineer', 'Remarks', 'BranchName', 'ASC_CODE',
+          'ASC_Name', 'Engineer Rating', 'OTP Sent Date', 'OTP Verification Date',
+          'HappyCodeVerifyStatus', 'HappyCode', 'HasEngineerConnectedSmartThingsApp', 'Reason',
+          'Is SF+ Device', 'Is device have SF+Smart lock', 'SF+ Smart lock Status', 'SF+ ClickCount'
         ];
 
-        const row = wsRaw.addRow([...origCells, ...addedCells]);
-        row.font = { name: 'Calibri', size: 10 };
-        row.height = 22;
+        const origHeaders = (state.rawHeaders && state.rawHeaders.length > 0) ? state.rawHeaders : defaultRawHeaders;
+        const appendedHeaders = [
+          'TL Name',
+          'Eng Name',
+          'Product Category',
+          'Trimmed TotalVisitTime',
+          'Visit TAT Bucket',
+          'Trimmed TotalServiceTime',
+          'Service TAT Bucket',
+          'Happy Code Verified?',
+          'B2B Flag',
+          'Reason'
+        ];
 
-        // Set centered alignment as Gravity Center for all data cells
-        row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+        const fullHeaderRow = [...origHeaders, ...appendedHeaders];
+        const hRow = wsRaw.addRow(fullHeaderRow);
+        hRow.height = 22;
+
+        const tlColNum = origHeaders.length + 1;
+        const engColNum = origHeaders.length + 2;
+
+        hRow.eachCell((cell, colNum) => {
+          cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
           if (colNum === tlColNum || colNum === engColNum) {
-            // Gravity Center Core Columns: High-contrast soft blue background + bold text
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0F2FE' } };
-            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0C2340' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A4D68' } };
+            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+          } else if (colNum <= origHeaders.length) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
           } else {
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0369A1' } };
+            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
           }
           cell.border = {
-            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-            right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            top: { style: 'thin', color: { argb: 'FF64748B' } },
+            bottom: { style: 'medium', color: { argb: 'FF0F172A' } },
+            left: { style: 'thin', color: { argb: 'FF64748B' } },
+            right: { style: 'thin', color: { argb: 'FF64748B' } }
           };
         });
-      });
 
-      wsRaw.columns = fullHeaderRow.map((h, i) => {
-        if (i + 1 === tlColNum || i + 1 === engColNum) return { width: 18 };
-        return { width: Math.max(h.length + 3, 13) };
-      });
-      wsRaw.eachRow({ includeEmpty: false }, (r) => { r.height = 22; });
+        exportCalls.forEach(c => {
+          let origCells = [];
+          if (state.rawRows && state.rawRows[c.rawRowIndex]) {
+            origCells = [...state.rawRows[c.rawRowIndex]];
+            while (origCells.length < origHeaders.length) origCells.push('');
+          } else {
+            origCells = [
+              c.so, c.so, c.rawEngineerName || c.engineerName, c.engineerId, c.product, c.serviceType,
+              c.model, '', '', '', '', '', '', '', c.status, c.status, '', '', '', '', '', '', '', '',
+              c.rawVisit, c.rawService, c.customerName, '', c.reason, c.branchName, '9225951',
+              'F1 INFO SOLUTIONS & SERVICES P LTD', 'Not Yet Rated', '', '', c.happyCodeStatus,
+              c.isHCYes ? '6958' : '', '', c.reason, 'no', 'no', '', '0'
+            ];
+          }
+
+          const addedCells = [
+            c.tlName,
+            c.engineerName,
+            c.productCategory,
+            c.totalVisitTime,
+            c.visitTAT,
+            c.totalServiceTime,
+            c.serviceTAT,
+            c.isHCYes ? 'YES' : 'NO',
+            c.isB2B ? 'B2B' : 'Standard',
+            c.reason
+          ];
+
+          const row = wsRaw.addRow([...origCells, ...addedCells]);
+          row.font = { name: 'Calibri', size: 10 };
+          row.height = 22;
+
+          row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+            if (colNum === tlColNum || colNum === engColNum) {
+              cell.alignment = { vertical: 'middle', horizontal: 'center' };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0F2FE' } };
+              cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0C2340' } };
+            } else {
+              cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            }
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            };
+          });
+        });
+
+        wsRaw.columns = fullHeaderRow.map((h, i) => {
+          if (i + 1 === tlColNum || i + 1 === engColNum) return { width: 18 };
+          return { width: Math.max(h.length + 3, 13) };
+        });
+        wsRaw.eachRow({ includeEmpty: false }, (r) => { r.height = 22; });
+      }
 
       // Generate binary workbook and download
       const buffer = await wb.xlsx.writeBuffer();
@@ -2510,7 +2851,10 @@
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Samsung_SALT_Report_Summary_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      a.download = summaryOnly
+        ? `Samsung_SALT_Summary_Only_${dateStamp}.xlsx`
+        : `Samsung_SALT_Report_Summary_${dateStamp}.xlsx`;
       a.click();
       window.URL.revokeObjectURL(url);
     }
@@ -2527,9 +2871,23 @@
         state.engSummary.forEach(r => {
           tsv += `${r.engName}\t${r.tlName}\t${r.total}\t${r.hc}\t${formatPct(r.hcPct, r.total)}\t${r.overallVisit010}\t${formatPct(r.oVisitPct, r.hc)}\t${r.overallService020}\t${formatPct(r.oServPct, r.hc)}\t${r.b2bVisit010}\t${formatPct(r.bVisitPct, r.hc)}\t${r.b2bService020}\t${formatPct(r.bServPct, r.hc)}\n`;
         });
+      } else if (state.activeTab === 'unknownCalls') {
+        const fallbackHeaders = ['SO No', 'TL Name', 'EngineerName', 'EngineerId', 'Product', 'ServiceType', 'MODEL', 'TotalVisitTime', 'TotalServiceTime', 'HappyCodeVerifyStatus', 'CustomerName', 'BranchName', 'Reason'];
+        const rawHdrs = (state.rawHeaders && state.rawHeaders.length > 0) ? state.rawHeaders : fallbackHeaders;
+        tsv = ['Missing Flag', ...rawHdrs].join('\t') + '\n';
+        state.unknownCalls.forEach(c => {
+          let cells = [];
+          if (state.rawRows && state.rawRows[c.rawRowIndex]) {
+            cells = [...state.rawRows[c.rawRowIndex]];
+            while (cells.length < rawHdrs.length) cells.push('');
+          } else {
+            cells = [c.so, c.tlName, c.rawEngineerName || c.engineerName, c.engineerId, c.product, c.serviceType, c.model, c.rawVisit, c.rawService, c.happyCodeStatus, c.customerName, c.branchName, c.reason];
+          }
+          tsv += [(c.unknownReasons || []).join(', '), ...cells].join('\t') + '\n';
+        });
       } else {
         tsv = 'SO No\tTL Name\tEng Name\tEngineerId\tProduct Category\tProduct\tModel\tRaw Visit Time\tTrimmed Visit\tVisit TAT\tRaw Service Time\tTrimmed Service\tService TAT\tB2B\tHappy Code\tReason\n';
-        state.cleanedCalls.slice(0, 500).forEach(c => {
+        getFilteredCalls(true).slice(0, 500).forEach(c => {
           tsv += `${c.so}\t${c.tlName}\t${c.engineerName}\t${c.engineerId}\t${c.productCategory}\t${c.product}\t${c.model}\t${c.rawVisit}\t${c.totalVisitTime}\t${c.visitTAT}\t${c.rawService}\t${c.totalServiceTime}\t${c.serviceTAT}\t${c.isB2B ? 'B2B' : 'Standard'}\t${c.isHCYes ? 'YES' : 'NO'}\t${c.reason}\n`;
         });
       }
@@ -2544,7 +2902,7 @@
     // ═════════════════════════════════════════════════════════════════════════
     // DEMO DATA GENERATORS
     // ═════════════════════════════════════════════════════════════════════════
-    // 1. Full Demo Data matching 832 calls / 10 TLs from Image 2
+    // 1. Full Demo Data matching 832 calls / 10 TLs
     function loadFullDemoData() {
       const tlSpecs = [
         { name: 'SANJEEV', total: 72, hc: 69, ov10: 6, os20: 4, bv10: 0, bs20: 0, engineers: ['AMAN PRAJAPATI', 'Keshav Prasad Pandey', 'DEEPAK KUMRAR', 'MUKESH KUMAR', 'TEJVEER SAINI', 'VIKAS PRAJAPATI', 'SHIVAM VERMA'] },
@@ -2563,7 +2921,6 @@
       let globalSo = 4441130000;
 
       tlSpecs.forEach(tl => {
-        let remainingHC = tl.hc;
         let remOV10 = tl.ov10;
         let remOS20 = tl.os20;
         let remBV10 = tl.bv10;
@@ -2573,7 +2930,7 @@
           globalSo++;
           const isHC = i < tl.hc;
           const eng = tl.engineers[i % tl.engineers.length];
-          
+
           let visitMins = 25;
           let serviceMins = 45;
           let isB2B = false;
@@ -2616,6 +2973,10 @@
             rawEngineerName: eng,
             engineerId: `84860${(1000 + i).toString()}`,
             tlName: tl.name,
+            vlookupFound: true,
+            hasExplicitTL: true,
+            isUnknownCall: false,
+            unknownReasons: [],
             productCategory: isB2B ? 'Display / B2B' : 'TV / AV',
             product: prod,
             serviceType: isB2B ? 'B2B Installation' : 'In Home',
@@ -2633,15 +2994,18 @@
             customerName: `Customer ${globalSo.toString().slice(-4)}`,
             branchName: 'Gurgaon',
             reason: isHC ? 'Close' : 'Customer not available',
-            rawRowIndex: i
+            rawRowIndex: calls.length
           });
         }
       });
 
+      state.rawHeaders = [];
+      state.rawRows = [];
       state.cleanedCalls = calls;
+      state.filters.tls = null;
       document.getElementById('rawFileBadge').textContent = '832 Samsung calls loaded';
-      calculateSummaries();
       populateDropdowns();
+      calculateSummaries();
       renderCurrentView();
     }
 
@@ -2651,7 +3015,7 @@
 97860161\t4441139132\tSandeep Sharma\t8486099074\tMonitor\tIn Home\tLH50QHCEBGCXXL\t22 Aug 2026\t20:00\t17 Oct 2026\t13:50\t28 Aug 2026\t02:10\tpp\tClose\tClose\t28.39739\t77.0717473\t13:34\t15:25\t17 Oct 2026\t17 Oct 2026\t17 Oct 2026\t14:48\t74 Minute\t37 Minute\tParamveer\tEngineer\tok\tGurgaon\t9225951\tF1 INFO SOLUTIONS & SERVICES P LTD\tNot Yet Rated\t17 Oct 2026\t17 Oct 2026\tYes\t6958\t\t\tno\tno\t\t0
 100324082\t4444133163\tLALIT \t8486268408\tTelevision\tInitial Installation\tUA55M2EHAULXL\t15 Oct 2026\t20:35\t18 Oct 2026\t17:00\t\t\t\tClose\tClose\t28.5045768\t77.031151\t19:20\t19:20\t18 Oct 2026\t18 Oct 2026\t18 Oct 2026\t19:20\t0 Minute\t0 Minute\tShubhangiDhapodkar\t\tok\tGurgaon\t9225951\tF1 INFO SOLUTIONS & SERVICES P LTD\tNot Yet Rated\t18 Oct 2026\t18 Oct 2026\tYes\t4097\t\t\tno\tno\t\t0
 100292303\t4444121363\tKRISHAN AC\t8486222858\tRefrigrator\tInitial Installation\tRT40H28U3FHL\t15 Oct 2026\t11:00\t18 Oct 2026\t11:00\t\t\t\tClose\tClose\t28.4028299\t76.9635006\t11:33\t14:06\t18 Oct 2026\t18 Oct 2026\t18 Oct 2026\t11:49\t16 Minute\t137 Minute\tGautam\t\tdone\tGurgaon\t9225951\tF1 INFO SOLUTIONS & SERVICES P LTD\tNot Yet Rated\t18 Oct 2026\t18 Oct 2026\tYes\t1281\t\t\tno\tno\t\t0
-100170001\t4444135306\tMOHIT\t8486268711\tWashing Machine\tInitial Installation\WW80T504DAX1TL\t15 Oct 2026\t13:00\t17 Oct 2026\t14:00\t\t\t\tClose\tClose\t28.4482872\t77.0510285\t11:18\t12:33\t17 Oct 2026\t17 Oct 2026\t17 Oct 2026\t11:18\t0 Minute\t75 Minute\tHarshvardhan Singh\t\tdone\tGurgaon\t9225951\tF1 INFO SOLUTIONS & SERVICES P LTD\tNot Yet Rated\t17 Oct 2026\t17 Oct 2026\tYes\t4595\t\t\tno\tno\t\t0
+100170001\t4444135306\tMOHIT\t8486268711\tWashing Machine\tInitial Installation\tWW80T504DAX1TL\t15 Oct 2026\t13:00\t17 Oct 2026\t14:00\t\t\t\tClose\tClose\t28.4482872\t77.0510285\t11:18\t12:33\t17 Oct 2026\t17 Oct 2026\t17 Oct 2026\t11:18\t0 Minute\t75 Minute\tHarshvardhan Singh\t\tdone\tGurgaon\t9225951\tF1 INFO SOLUTIONS & SERVICES P LTD\tNot Yet Rated\t17 Oct 2026\t17 Oct 2026\tYes\t4595\t\t\tno\tno\t\t0
 100248295\t4444227782\tMOHD ASIF\t8486268069\tRefrigrator\tInitial Installation\tRS76CG80X0S9HL\t16 Oct 2026\t11:00\t18 Oct 2026\t15:00\t\t\t\tClose\tClose\t28.4842636\t77.085551\t14:51\t15:32\t18 Oct 2026\t18 Oct 2026\t18 Oct 2026\t14:53\t2 Minute\t39 Minute\tLTCOLRSVASHISHT\t\tok\tGurgaon\t9225951\tF1 INFO SOLUTIONS & SERVICES P LTD\tNot Yet Rated\t18 Oct 2026\t18 Oct 2026\tYes\t3270\t\t\tno\tno\t\t0
 100251972\t4444238570\tUMA SHANKAR\t8486266015\tRefrigrator\tInitial Installation\tRS76CG8003B1HL\t16 Oct 2026\t11:00\t17 Oct 2026\t17:20\t\t\t\tClose\tClose\t28.4243628\t77.0632826\t15:26\t16:24\t17 Oct 2026\t17 Oct 2026\t17 Oct 2026\t15:44\t18 Minute\t40 Minute\tAmit\t\tok\tGurgaon\t9225951\tF1 INFO SOLUTIONS & SERVICES P LTD\tNot Yet Rated\t17 Oct 2026\t17 Oct 2026\tYes\t6082\t\t\tno\tno\t\t0`;
 
@@ -2722,19 +3086,23 @@
       const tabTL = document.getElementById('tabBtnTLSummary');
       const tabEng = document.getElementById('tabBtnEngineerSummary');
       const tabCalls = document.getElementById('tabBtnRawCalls');
+      const tabUnknown = document.getElementById('tabBtnUnknownCalls');
       const tabAudit = document.getElementById('tabBtnMinuteAudit');
 
       const viewTL = document.getElementById('viewTLSummary');
       const viewEng = document.getElementById('viewEngineerSummary');
       const viewCalls = document.getElementById('viewRawCalls');
+      const viewUnknown = document.getElementById('viewUnknownCalls');
       const viewAudit = document.getElementById('viewMinuteAudit');
 
       function switchTab(tab) {
         state.activeTab = tab;
-        [tabTL, tabEng, tabCalls, tabAudit].forEach(b => {
-          b.className = 'tab-btn px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition';
+        [tabTL, tabEng, tabCalls, tabUnknown, tabAudit].forEach(b => {
+          if (b) b.className = 'tab-btn px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition';
         });
-        [viewTL, viewEng, viewCalls, viewAudit].forEach(v => v.classList.add('hidden'));
+        [viewTL, viewEng, viewCalls, viewUnknown, viewAudit].forEach(v => {
+          if (v) v.classList.add('hidden');
+        });
 
         if (tab === 'tlSummary') {
           tabTL.className = 'tab-btn active px-3.5 py-2 rounded-lg bg-white text-cyan-900 shadow-sm transition';
@@ -2748,6 +3116,10 @@
           tabCalls.className = 'tab-btn active px-3.5 py-2 rounded-lg bg-white text-cyan-900 shadow-sm transition';
           viewCalls.classList.remove('hidden');
           document.getElementById('currentViewLabel').textContent = 'Raw & Cleaned Calls';
+        } else if (tab === 'unknownCalls') {
+          tabUnknown.className = 'tab-btn active px-3.5 py-2 rounded-lg bg-white text-cyan-900 shadow-sm transition';
+          viewUnknown.classList.remove('hidden');
+          document.getElementById('currentViewLabel').textContent = 'Unknown Calls';
         } else if (tab === 'minuteAudit') {
           tabAudit.className = 'tab-btn active px-3.5 py-2 rounded-lg bg-white text-cyan-900 shadow-sm transition';
           viewAudit.classList.remove('hidden');
@@ -2760,26 +3132,80 @@
       tabTL.addEventListener('click', () => switchTab('tlSummary'));
       tabEng.addEventListener('click', () => switchTab('engineerSummary'));
       tabCalls.addEventListener('click', () => switchTab('rawCalls'));
+      if (tabUnknown) tabUnknown.addEventListener('click', () => switchTab('unknownCalls'));
       tabAudit.addEventListener('click', () => switchTab('minuteAudit'));
 
-      // Filter Inputs
+      // Multi-select Dropdown Popovers (TL & B2B/B2C)
+      const tlFilterBtn = document.getElementById('tlFilterBtn');
+      const tlFilterMenu = document.getElementById('tlFilterMenu');
+      const b2bFilterBtn = document.getElementById('b2bFilterBtn');
+      const b2bFilterMenu = document.getElementById('b2bFilterMenu');
+
+      tlFilterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        b2bFilterMenu.classList.add('hidden');
+        tlFilterMenu.classList.toggle('hidden');
+      });
+
+      b2bFilterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        tlFilterMenu.classList.add('hidden');
+        b2bFilterMenu.classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!document.getElementById('tlMultiDropdown').contains(e.target)) {
+          tlFilterMenu.classList.add('hidden');
+        }
+        if (!document.getElementById('b2bMultiDropdown').contains(e.target)) {
+          b2bFilterMenu.classList.add('hidden');
+        }
+      });
+
+      document.getElementById('btnSelectAllTL').addEventListener('click', () => {
+        state.filters.tls = null;
+        document.querySelectorAll('#tlCheckboxList .tl-chk').forEach(c => { c.checked = true; });
+        updateFilterLabels();
+        calculateSummaries();
+        renderCurrentView();
+      });
+
+      document.getElementById('btnClearAllTL').addEventListener('click', () => {
+        state.filters.tls = new Set();
+        document.querySelectorAll('#tlCheckboxList .tl-chk').forEach(c => { c.checked = false; });
+        updateFilterLabels();
+        calculateSummaries();
+        renderCurrentView();
+      });
+
+      document.querySelectorAll('#b2bFilterMenu .b2b-type-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+          const next = new Set();
+          document.querySelectorAll('#b2bFilterMenu .b2b-type-chk').forEach(c => {
+            if (c.checked) next.add(c.value);
+          });
+          state.filters.types = next;
+          updateFilterLabels();
+          calculateSummaries();
+          renderCurrentView();
+        });
+      });
+
+      // Search & Happy Code & Clear Clutter Filters
       document.getElementById('searchInput').addEventListener('input', (e) => {
         state.filters.search = e.target.value;
         renderCurrentView();
       });
 
-      document.getElementById('tlFilter').addEventListener('change', (e) => {
-        state.filters.tl = e.target.value;
-        renderCurrentView();
-      });
-
-      document.getElementById('b2bFilter').addEventListener('change', (e) => {
-        state.filters.b2b = e.target.value;
-        renderCurrentView();
-      });
-
       document.getElementById('happyFilter').addEventListener('change', (e) => {
         state.filters.happyStatus = e.target.value;
+        calculateSummaries();
+        renderCurrentView();
+      });
+
+      document.getElementById('chkClearClutter').addEventListener('change', (e) => {
+        state.filters.clearClutter = !!e.target.checked;
+        calculateSummaries();
         renderCurrentView();
       });
 
@@ -2788,23 +3214,32 @@
       document.getElementById('btnLoadPromptSample').addEventListener('click', loadSampleFromPrompt);
       document.getElementById('btnResetAll').addEventListener('click', () => {
         state.cleanedCalls = [];
+        state.filteredCalls = [];
+        state.unknownCalls = [];
         state.tlSummary = [];
         state.engSummary = [];
         state.rawRows = [];
         state.rawHeaders = [];
+        state.filters.tls = null;
         document.getElementById('rawFileBadge').textContent = 'No file chosen';
+        populateDropdowns();
         calculateSummaries();
         renderCurrentView();
       });
 
       document.getElementById('btnReloadManpower').addEventListener('click', async () => {
         await loadManpower();
-        calculateSummaries();
-        renderCurrentView();
+        if (state.rawRows && state.rawRows.length > 0 && state.rawHeaders && state.rawHeaders.length > 0) {
+          processRawMatrix([state.rawHeaders, ...state.rawRows]);
+        } else {
+          calculateSummaries();
+          renderCurrentView();
+        }
         alert('Manpower synced successfully!');
       });
 
-      document.getElementById('btnExportStyledExcel').addEventListener('click', exportExcelSameTheme);
+      document.getElementById('btnExportStyledExcel').addEventListener('click', () => exportExcelSameTheme(false));
+      document.getElementById('btnExportSummaryOnly').addEventListener('click', () => exportExcelSameTheme(true));
       document.getElementById('btnCopyTableTSV').addEventListener('click', copyTableTSV);
     });
   </script>
