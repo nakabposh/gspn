@@ -362,8 +362,8 @@
     { key: 'app_date', header: 'App Date', width: 14, align: 'center', formula: r => formatStandardDate(r.app_date) },
     { key: 'app_time', header: 'App Time', width: 12, align: 'center', formula: r => formatStandardTime(r.app_time) },
     { key: 'service_type', header: 'Service Type', width: 20, align: 'left', formula: r => convertServiceType(r.service_type) },
-    { key: 'status', header: 'Status', width: 20, align: 'left', formula: r => r.status || 'Open' },
-    { key: 'reason', header: 'Reason', width: 26, align: 'left', formula: r => r.reason || '' },
+    { key: 'status', header: 'Status', width: 20, align: 'left', formula: r => String(r.status || '').replace(/\s+/g, ' ').trim() },
+    { key: 'reason', header: 'Reason', width: 26, align: 'left', formula: r => String(r.reason || '').replace(/\s+/g, ' ').trim() },
     { key: 'master_reason', header: 'Master Reason', width: 22, align: 'left', formula: r => {
       if (r.master_reason) return r.master_reason;
       if (typeof window !== 'undefined' && window.GSPN_CONTEXT && typeof window.GSPN_CONTEXT.getReasonBySubReason === 'function') {
@@ -402,17 +402,113 @@
    */
   function mapHeaderRowToKeys(headers) {
     return headers.map(h => {
-      const clean = String(h || '').toUpperCase().trim();
+      const clean = String(h || '').replace(/\s+/g, ' ').toUpperCase().trim();
       return HEADER_TO_KEY[clean] || clean;
     });
   }
 
+  const KNOWN_SERVICE_TYPES = [
+    'INITIAL INSTALLATION', 'IN-HOME', 'IN HOME', 'DEMONSTRATION',
+    'STOCK REPAIR', 'CUSTOMER CARE', 'PICK-UP SERVICE', 'PICK-UP',
+    'PICK UP', 'CARRY IN', 'CARRY-IN', 'RETURN HANDLING', 'IH', 'CI', 'PU'
+  ];
+
+  function isKnownServiceType(val) {
+    return KNOWN_SERVICE_TYPES.includes(String(val || '').replace(/\s+/g, ' ').toUpperCase().trim());
+  }
+
   /**
-   * Splits string by tab or multiple consecutive spaces
+   * Parses TSV/space-delimited text into a 2D array while preserving leading/empty tabs
+   * and collapsing embedded newlines inside quoted cells (Excel CSV/TSV exports).
    */
-  function splitTokens(line) {
-    if (line.includes('\t')) return line.split('\t').map(s => s.trim());
-    return line.split(/\s{2,}/).map(s => s.trim());
+  function parseDelimitedGrid(rawText) {
+    const text = String(rawText || '');
+    if (text.includes('\t')) {
+      const rows = [];
+      let row = [];
+      let field = '';
+      let inQuotes = false;
+      for (let idx = 0; idx < text.length; idx++) {
+        const ch = text[idx];
+        if (inQuotes) {
+          if (ch === '"' && text[idx + 1] === '"') {
+            field += '"';
+            idx++;
+          } else if (ch === '"') {
+            inQuotes = false;
+          } else {
+            field += ch;
+          }
+        } else {
+          if (ch === '"' && field.length === 0) {
+            inQuotes = true;
+          } else if (ch === '\t') {
+            row.push(field.replace(/\s+/g, ' ').trim());
+            field = '';
+          } else if (ch === '\r') {
+            continue;
+          } else if (ch === '\n') {
+            row.push(field.replace(/\s+/g, ' ').trim());
+            if (row.some(c => c.length > 0)) rows.push(row);
+            row = [];
+            field = '';
+          } else {
+            field += ch;
+          }
+        }
+      }
+      row.push(field.replace(/\s+/g, ' ').trim());
+      if (row.some(c => c.length > 0)) rows.push(row);
+      return rows;
+    }
+    return text
+      .split(/\r?\n/)
+      .filter(l => l.trim().length > 0)
+      .map(line => line.trim().split(/\s{2,}/).map(s => s.replace(/\s+/g, ' ').trim()));
+  }
+
+  /**
+   * Maps Row 2 cells to targetObj using header2Keys with Service Type anchor alignment
+   * so both 9-column browser copy-paste and 14-column Excel exports with merged cells align 1-to-1.
+   */
+  function applySecondaryRow(tokens2, header2Keys, hasExplicitHeader2, targetObj) {
+    if (!tokens2 || tokens2.length === 0) return;
+
+    const h2STypeIdx = header2Keys.indexOf('service_type');
+    const h2CustIdx = header2Keys.indexOf('customer_name');
+    const foundSTIdx = tokens2.findIndex(c => isKnownServiceType(c));
+
+    let offset2 = 0;
+    if (h2STypeIdx !== -1) {
+      if (!isKnownServiceType(tokens2[h2STypeIdx])) {
+        if (foundSTIdx !== -1) {
+          offset2 = foundSTIdx - h2STypeIdx;
+        } else if (h2CustIdx > 0 && !tokens2[h2CustIdx] && tokens2[0] && !/^\d+$/.test(tokens2[0])) {
+          offset2 = -h2CustIdx;
+        }
+      }
+    } else if (h2CustIdx > 0 && !tokens2[h2CustIdx] && tokens2[0] && !/^\d+$/.test(tokens2[0])) {
+      offset2 = -h2CustIdx;
+    }
+
+    if (hasExplicitHeader2 || foundSTIdx !== -1) {
+      header2Keys.forEach((key, idx) => {
+        if (!key) return;
+        const tIdx = idx + offset2;
+        const val = (tIdx >= 0 && tIdx < tokens2.length) ? String(tokens2[tIdx] || '').replace(/\s+/g, ' ').trim() : '';
+        if (key === 'status' || key === 'reason') {
+          targetObj[key] = val;
+        } else if (val) {
+          targetObj[key] = val;
+        }
+      });
+    } else {
+      extractSecondaryTokensHeuristically(tokens2, targetObj);
+    }
+
+    if (!targetObj.service_type && targetObj.status === undefined && targetObj.reason === undefined) {
+      extractSecondaryTokensHeuristically(tokens2, targetObj);
+    }
   }
 
   /**
@@ -473,30 +569,37 @@
       return parseHtmlSource(trimmed, options);
     }
 
-    const lines = trimmed.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    if (lines.length === 0) {
+    const grid = parseDelimitedGrid(rawInput);
+    if (grid.length === 0) {
       return { format, records: [], simpleRecords: [], rawRecords: [], errors: [] };
     }
 
     // Inspect headers
     let header1Keys = [];
     let header2Keys = [];
+    let hasExplicitHeader2 = false;
+    let isSingleRowHeader = false;
     let dataStartIdx = 0;
 
-    for (let i = 0; i < Math.min(lines.length, 6); i++) {
-      const tokens = splitTokens(lines[i]);
-      const mapped = mapHeaderRowToKeys(tokens);
+    for (let i = 0; i < Math.min(grid.length, 6); i++) {
+      const mapped = mapHeaderRowToKeys(grid[i]);
       if (mapped.includes('service_order_no')) {
         header1Keys = mapped;
         dataStartIdx = Math.max(dataStartIdx, i + 1);
-      } else if (mapped.includes('customer_name') || mapped.includes('city') || mapped.includes('service_type')) {
+        if (mapped.includes('status') || mapped.includes('reason') || mapped.includes('service_type')) {
+          isSingleRowHeader = true;
+        }
+      } else if (mapped.includes('customer_name') || mapped.includes('city') || mapped.includes('service_type') || mapped.includes('status') || mapped.includes('reason')) {
         header2Keys = mapped;
+        hasExplicitHeader2 = true;
+        isSingleRowHeader = false;
         dataStartIdx = Math.max(dataStartIdx, i + 1);
       }
     }
 
     // Set default keys if headers weren't pasted
-    const isBulk = format === 'MANAGEMENT_BULK_2ROW' || (!header1Keys.includes('assigned_time') && header1Keys.length <= 10 && header1Keys.length > 0);
+    const hasTimeInData = grid.slice(dataStartIdx, dataStartIdx + 4).some(row => row.some(c => /^\d{1,2}:\d{2}:\d{2}$/.test(c)));
+    const isBulk = !hasTimeInData && (format === 'MANAGEMENT_BULK_2ROW' || (!header1Keys.includes('assigned_time') && header1Keys.length <= 10 && header1Keys.length > 0 && !isSingleRowHeader));
 
     if (header1Keys.length === 0) {
       if (isBulk) {
@@ -516,33 +619,24 @@
 
     // Map column indices to keys based on header rows
     const colKeyMap1 = {};
-    const colKeyMap2 = {};
-
     if (header1Keys.length > 0) {
       header1Keys.forEach((key, idx) => {
         if (key) colKeyMap1[idx] = key;
       });
     }
 
-    if (header2Keys.length > 0) {
-      header2Keys.forEach((key, idx) => {
-        if (key) colKeyMap2[idx] = key;
-      });
-    }
-
-    // Iterate through data lines
+    // Iterate through data rows
     let i = dataStartIdx;
-    while (i < lines.length) {
-      const line1 = lines[i];
-      const tokens1 = line1.split('\t').map(s => s.trim());
+    while (i < grid.length) {
+      const tokens1 = grid[i];
 
-      // Check if line1 has an SO number
+      // Check if row has an SO number
       const soIdx = tokens1.findIndex(t => /\b4\d{9}\b/.test(t) || /^\d{10}\s*(Edit|View)?$/i.test(t));
-      
+
       if (soIdx !== -1 || format === 'SINGLE_LINE_GRID') {
         const rawItem = {};
 
-        if (tokens1.length >= 18) {
+        if (isSingleRowHeader || tokens1.length >= 18) {
           // Single-line TSV format
           tokens1.forEach((val, idx) => {
             const key = colKeyMap1[idx] || (idx < STANDARD_28_COLUMNS.length ? STANDARD_28_COLUMNS[idx].key : `col_${idx}`);
@@ -555,28 +649,18 @@
             if (key) rawItem[key] = val;
           });
 
-          // Check line 2 for row pair
-          if (i + 1 < lines.length) {
-            const line2 = lines[i + 1];
-            // Don't consume next line if it is itself another service order row
-            const nextSo = line2.split('\t').some(t => /\b4\d{9}\b/.test(t));
+          // Check row 2 for row pair
+          if (i + 1 < grid.length) {
+            const tokens2 = grid[i + 1];
+            const nextSo = tokens2.some(t => /\b4\d{9}\b/.test(t) || /^\d{10}\s*(Edit|View)?$/i.test(t));
             if (!nextSo) {
-              const tokens2 = line2.split('\t').map(s => s.trim());
-              tokens2.forEach((val, idx) => {
-                const key = colKeyMap2[idx];
-                if (key && val) rawItem[key] = val;
-              });
-
-              // Self-healing fallback if header2 alignment missed
-              if (!rawItem.customer_name && !rawItem.service_type) {
-                extractSecondaryTokensHeuristically(tokens2.filter(Boolean), rawItem);
-              }
+              applySecondaryRow(tokens2, header2Keys, hasExplicitHeader2, rawItem);
               i++; // Consumed secondary row
             }
           }
         }
 
-        // Clean SO number and normalize fields
+        // Clean SO number and normalize fields (preserve exact Status & Reason)
         const cleanSo = cleanServiceOrderNumber(rawItem.service_order_no || rawItem.asc_job_no);
         if (cleanSo) {
           rawItem.service_order_no = cleanSo;
@@ -585,6 +669,8 @@
           rawItem.city = String(rawItem.city || '').toUpperCase().trim();
           rawItem.service_type = convertServiceType(rawItem.service_type);
           rawItem.warranty_status = normalizeWarrantyStatus(rawItem.warranty_status, rawItem.service_type);
+          rawItem.status = String(rawItem.status || '').replace(/\s+/g, ' ').trim();
+          rawItem.reason = String(rawItem.reason || '').replace(/\s+/g, ' ').trim();
 
           records.push(rawItem);
         }
@@ -612,7 +698,7 @@
       service_type: rec.service_type || '—',
       model: rec.model || '—',
       serial_no: rec.serial_no || '—',
-      status: rec.status || 'Open',
+      status: rec.status || '—',
       reason: rec.reason || '—',
       city: rec.city || '—',
       warranty_status: rec.warranty_status
@@ -638,21 +724,28 @@
 
     let header1Keys = [];
     let header2Keys = [];
+    let hasExplicitHeader2 = false;
+    let isSingleRowHeader = false;
 
     // Find headers
     rows.slice(0, 4).forEach(r => {
-      const texts = Array.from(r.querySelectorAll('th, td')).map(c => c.textContent.trim());
+      const texts = Array.from(r.querySelectorAll('th, td')).map(c => c.textContent.replace(/\s+/g, ' ').trim());
       const mapped = mapHeaderRowToKeys(texts);
       if (mapped.includes('service_order_no')) {
         header1Keys = mapped;
-      } else if (mapped.includes('customer_name') || mapped.includes('service_type')) {
+        if (mapped.includes('status') || mapped.includes('reason') || mapped.includes('service_type')) {
+          isSingleRowHeader = true;
+        }
+      } else if (mapped.includes('customer_name') || mapped.includes('service_type') || mapped.includes('status') || mapped.includes('reason')) {
         header2Keys = mapped;
+        hasExplicitHeader2 = true;
+        isSingleRowHeader = false;
       }
     });
 
     let i = 0;
     while (i < rows.length) {
-      const cells1 = Array.from(rows[i].querySelectorAll('th, td')).map(c => c.textContent.trim());
+      const cells1 = Array.from(rows[i].querySelectorAll('th, td')).map(c => c.textContent.replace(/\s+/g, ' ').trim());
       const soCandidate = cells1.find(txt => /\b4\d{9}\b/.test(txt) || /^\d{10}\s*(Edit|View)?$/i.test(txt));
 
       if (soCandidate) {
@@ -661,17 +754,18 @@
           if (idx < cells1.length) rawItem[k] = cells1[idx];
         });
 
-        // Inspect row 2
-        if (i + 1 < rows.length) {
-          const cells2 = Array.from(rows[i + 1].querySelectorAll('th, td')).map(c => c.textContent.trim());
-          if (header2Keys.length > 0) {
-            header2Keys.forEach((k, idx) => {
-              if (idx < cells2.length) rawItem[k] = cells2[idx];
-            });
-          } else {
-            extractSecondaryTokensHeuristically(cells2.filter(Boolean), rawItem);
+        // Inspect row 2 when not single-row header
+        if (!isSingleRowHeader && i + 1 < rows.length) {
+          const cells2 = Array.from(rows[i + 1].querySelectorAll('th, td')).map(c => c.textContent.replace(/\s+/g, ' ').trim());
+          const nextSo = cells2.some(txt => /\b4\d{9}\b/.test(txt) || /^\d{10}\s*(Edit|View)?$/i.test(txt));
+          if (!nextSo) {
+            if (header2Keys.length > 0) {
+              applySecondaryRow(cells2, header2Keys, hasExplicitHeader2, rawItem);
+            } else {
+              extractSecondaryTokensHeuristically(cells2, rawItem);
+            }
+            i++;
           }
-          i++;
         }
 
         const cleanSo = cleanServiceOrderNumber(rawItem.service_order_no || rawItem.asc_job_no);
@@ -682,6 +776,8 @@
           rawItem.city = String(rawItem.city || '').toUpperCase().trim();
           rawItem.service_type = convertServiceType(rawItem.service_type);
           rawItem.warranty_status = normalizeWarrantyStatus(rawItem.warranty_status, rawItem.service_type);
+          rawItem.status = String(rawItem.status || '').replace(/\s+/g, ' ').trim();
+          rawItem.reason = String(rawItem.reason || '').replace(/\s+/g, ' ').trim();
 
           records.push(rawItem);
         }
@@ -707,7 +803,7 @@
       service_type: rec.service_type || '—',
       model: rec.model || '—',
       serial_no: rec.serial_no || '—',
-      status: rec.status || 'Open',
+      status: rec.status || '—',
       reason: rec.reason || '—',
       city: rec.city || '—',
       warranty_status: rec.warranty_status
@@ -729,12 +825,6 @@
     const dateIdx = tokens.findIndex(t => /^\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}$/.test(t));
     if (dateIdx !== -1) {
       targetObj.app_date = tokens[dateIdx];
-      if (dateIdx === 1) {
-        targetObj.city = tokens[0];
-      } else if (dateIdx >= 2) {
-        targetObj.customer_name = tokens[0];
-        targetObj.city = tokens[1];
-      }
     }
 
     // Find time
@@ -743,20 +833,31 @@
       targetObj.app_time = tokens[timeIdx];
     }
 
-    // Find known service types
-    const knownTypes = ['INITIAL INSTALLATION', 'IN-HOME', 'DEMONSTRATION', 'STOCK REPAIR', 'CUSTOMER CARE', 'PICK-UP SERVICE', 'CARRY IN'];
-    const sTypeIdx = tokens.findIndex(t => knownTypes.includes(t.toUpperCase()));
+    // Find known service types (preserving empty cells so sTypeIdx + 1 is Status and sTypeIdx + 2 is Reason)
+    const sTypeIdx = tokens.findIndex(t => isKnownServiceType(t));
+    const preLimit = dateIdx !== -1 ? dateIdx : (sTypeIdx !== -1 ? sTypeIdx : tokens.length);
+
+    if (!targetObj.customer_name) {
+      for (let k = 0; k < preLimit; k++) {
+        const v = String(tokens[k] || '').trim();
+        if (v && !/^\d+$/.test(v)) {
+          targetObj.customer_name = v;
+          break;
+        }
+      }
+    }
+    if (!targetObj.city && dateIdx > 0) {
+      const v = String(tokens[dateIdx - 1] || '').trim();
+      if (v && v !== targetObj.customer_name && v !== '-' && !/^\d/.test(v)) {
+        targetObj.city = v;
+      }
+    }
+
     if (sTypeIdx !== -1) {
       targetObj.service_type = tokens[sTypeIdx];
-      if (!targetObj.customer_name && sTypeIdx >= 2) {
-        targetObj.customer_name = tokens[0];
-        targetObj.city = tokens[1];
-      } else if (!targetObj.city && sTypeIdx >= 1) {
-        targetObj.city = tokens[0];
-      }
-      if (sTypeIdx + 1 < tokens.length) targetObj.status = tokens[sTypeIdx + 1];
-      if (sTypeIdx + 2 < tokens.length) targetObj.reason = tokens[sTypeIdx + 2];
-      if (sTypeIdx + 3 < tokens.length) targetObj.b2b = tokens[sTypeIdx + 3];
+      targetObj.status = (sTypeIdx + 1 < tokens.length) ? String(tokens[sTypeIdx + 1] || '').trim() : '';
+      targetObj.reason = (sTypeIdx + 2 < tokens.length) ? String(tokens[sTypeIdx + 2] || '').trim() : '';
+      if (sTypeIdx + 3 < tokens.length && tokens[sTypeIdx + 3]) targetObj.b2b = String(tokens[sTypeIdx + 3]).trim();
     }
   }
 

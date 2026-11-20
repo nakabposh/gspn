@@ -810,42 +810,42 @@
   // --- SEPARATE TABBED PREVIEW MODAL ---
   function renderPreviewRawTable(records, slotTitle, showMatchCol = false) {
     if (!records || records.length === 0) {
-      return `<div class="py-12 text-center text-slate-400 text-xs">No calls in ${slotTitle}.</div>`;
+      return `<div class="flex-1 flex items-center justify-center py-12 bg-white border border-slate-200 rounded-xl text-slate-400 text-xs">No calls in ${slotTitle}.</div>`;
     }
     const rowsHtml = records.map((r, i) => `
       <tr class="hover:bg-slate-50 border-b border-slate-200 text-xs">
-        <td class="p-2 text-slate-500 font-mono whitespace-nowrap">${i + 1}</td>
-        <td class="p-2 font-mono font-bold text-blue-700 whitespace-nowrap">${r.so}</td>
-        <td class="p-2 font-mono text-slate-700 whitespace-nowrap">${r.model}</td>
-        <td class="p-2 font-bold text-slate-900 whitespace-nowrap">${r.product}</td>
-        <td class="p-2 font-semibold text-slate-700 whitespace-nowrap">${getCallCategory(r.svcType)}</td>
-        <td class="p-2 whitespace-nowrap">${r.svcType}</td>
-        <td class="p-2 whitespace-nowrap">${r.status || '-'}</td>
-        <td class="p-2 whitespace-nowrap">${r.wty || '-'}</td>
-        ${showMatchCol ? `<td class="p-2 whitespace-nowrap font-bold ${r.vlookupStatus === '#N/A' ? 'text-rose-700 bg-rose-50' : 'text-emerald-700'}">${r.vlookupStatus || '-'}</td>` : ''}
-        <td class="p-2 whitespace-nowrap">${r.customer || '-'}</td>
-        <td class="p-2 whitespace-nowrap">${r.city || '-'}</td>
-        <td class="p-2 text-slate-500 whitespace-nowrap">${r.sourceFile || ''}</td>
+        <td class="px-3 py-2 text-slate-500 font-mono whitespace-nowrap">${i + 1}</td>
+        <td class="px-3 py-2 font-mono font-bold text-blue-700 whitespace-nowrap">${r.so}</td>
+        <td class="px-3 py-2 font-mono text-slate-700 whitespace-nowrap">${r.model}</td>
+        <td class="px-3 py-2 font-bold text-slate-900 whitespace-nowrap">${r.product}</td>
+        <td class="px-3 py-2 font-semibold text-slate-700 whitespace-nowrap">${getCallCategory(r.svcType)}</td>
+        <td class="px-3 py-2 whitespace-nowrap">${r.svcType}</td>
+        <td class="px-3 py-2 whitespace-nowrap">${r.status || '-'}</td>
+        <td class="px-3 py-2 whitespace-nowrap">${r.wty || '-'}</td>
+        ${showMatchCol ? `<td class="px-3 py-2 whitespace-nowrap font-bold ${r.vlookupStatus === '#N/A' ? 'text-rose-700 bg-rose-50' : 'text-emerald-700'}">${r.vlookupStatus || '-'}</td>` : ''}
+        <td class="px-3 py-2 whitespace-nowrap">${r.customer || '-'}</td>
+        <td class="px-3 py-2 whitespace-nowrap">${r.city || '-'}</td>
+        <td class="px-3 py-2 text-slate-500 whitespace-nowrap">${r.sourceFile || ''}</td>
       </tr>
     `).join('');
 
     return `
-      <div class="border border-slate-200 rounded-xl overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead class="bg-slate-100 text-slate-800 text-[11px] font-bold uppercase sticky top-0 border-b border-slate-300">
+      <div class="flex-1 min-h-0 border border-slate-300 rounded-xl bg-white shadow-sm" style="overflow: auto; max-height: 58vh;">
+        <table class="text-left border-collapse" style="width: max-content; min-width: 100%;">
+          <thead class="bg-slate-100 text-slate-800 text-[11px] font-bold uppercase sticky top-0 z-10 border-b border-slate-300 shadow-sm">
             <tr>
-              <th class="p-2 whitespace-nowrap">#</th>
-              <th class="p-2 whitespace-nowrap">Tracking / SO</th>
-              <th class="p-2 whitespace-nowrap">Model Code</th>
-              <th class="p-2 whitespace-nowrap">Product</th>
-              <th class="p-2 whitespace-nowrap">Group</th>
-              <th class="p-2 whitespace-nowrap">Service Type</th>
-              <th class="p-2 whitespace-nowrap">Status</th>
-              <th class="p-2 whitespace-nowrap">Wty</th>
-              ${showMatchCol ? '<th class="p-2 whitespace-nowrap">Club VLOOKUP</th>' : ''}
-              <th class="p-2 whitespace-nowrap">Customer</th>
-              <th class="p-2 whitespace-nowrap">City</th>
-              <th class="p-2 whitespace-nowrap">Source File</th>
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">#</th>
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">Tracking / SO</th>
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">Model Code</th>
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">Product</th>
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">Group</th>
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">Service Type</th>
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">Status</th>
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">Wty</th>
+              ${showMatchCol ? '<th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">Club VLOOKUP</th>' : ''}
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">Customer</th>
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">City</th>
+              <th class="px-3 py-2.5 bg-slate-100 whitespace-nowrap">Source File</th>
             </tr>
           </thead>
           <tbody>${rowsHtml}</tbody>
@@ -899,13 +899,13 @@
       bodyEl.innerHTML = renderPreviewRawTable(data.currentWithMatch, 'Current Open', true);
     } else if (tab === 'decline') {
       const banner = `
-        <div class="mb-3 px-3.5 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex flex-wrap items-center justify-between gap-2">
+        <div class="mb-3 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex flex-wrap items-center justify-between gap-2 shrink-0">
           <span><strong>Decline Calls Logic:</strong> Club Data = Morning Open (${data.rawCounts.mrng}) + InFlow (${data.rawCounts.flow}) &rarr; VLOOKUP against Current Open (${data.rawCounts.current}). <strong>${data.rawCounts.decline}</strong> #N/A calls added into Flow.</span>
         </div>
       `;
       bodyEl.innerHTML = banner + renderPreviewRawTable(data.declineRecords, 'Decline Calls (#N/A vs Club Data)', true);
     } else {
-      bodyEl.innerHTML = `<div class="p-4 overflow-x-auto">${buildSummaryTableHtml(data)}</div>`;
+      bodyEl.innerHTML = `<div class="flex-1 min-h-0 p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm" style="overflow: auto; max-height: 58vh;">${buildSummaryTableHtml(data)}</div>`;
     }
   }
 

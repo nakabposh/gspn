@@ -1208,16 +1208,59 @@
       const trimmed = rawText.trim();
       const cutoff = cutoffDateStr || pageState[getActiveTabKey()].cutoffDate;
 
+      // Parse TSV/text respecting quoted multiline cells and preserving leading/empty tabs
+      function parseDelimitedGrid(text) {
+        if (text.includes('\t')) {
+          const rows = [];
+          let row = [];
+          let field = '';
+          let inQuotes = false;
+          for (let idx = 0; idx < text.length; idx++) {
+            const ch = text[idx];
+            if (inQuotes) {
+              if (ch === '"' && text[idx + 1] === '"') {
+                field += '"';
+                idx++;
+              } else if (ch === '"') {
+                inQuotes = false;
+              } else {
+                field += ch;
+              }
+            } else {
+              if (ch === '"' && field.length === 0) {
+                inQuotes = true;
+              } else if (ch === '\t') {
+                row.push(field.replace(/\s+/g, ' ').trim());
+                field = '';
+              } else if (ch === '\r') {
+                continue;
+              } else if (ch === '\n') {
+                row.push(field.replace(/\s+/g, ' ').trim());
+                if (row.some(c => c.length > 0)) rows.push(row);
+                row = [];
+                field = '';
+              } else {
+                field += ch;
+              }
+            }
+          }
+          row.push(field.replace(/\s+/g, ' ').trim());
+          if (row.some(c => c.length > 0)) rows.push(row);
+          return rows;
+        }
+        const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+        return lines.map(line => splitLineFields(line));
+      }
+
       // Extract 2D matrix of cell texts
       let rawGrid = [];
       if (/<table[\s>]/i.test(trimmed) || /<tr[\s>]/i.test(trimmed)) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(trimmed, 'text/html');
         const trs = Array.from(doc.querySelectorAll('tr'));
-        rawGrid = trs.map(tr => Array.from(tr.querySelectorAll('td, th')).map(c => c.textContent.trim()));
+        rawGrid = trs.map(tr => Array.from(tr.querySelectorAll('td, th')).map(c => c.textContent.replace(/\s+/g, ' ').trim()));
       } else {
-        const lines = trimmed.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        rawGrid = lines.map(line => splitLineFields(line));
+        rawGrid = parseDelimitedGrid(rawText);
       }
 
       if (rawGrid.length === 0) return [];
@@ -1255,9 +1298,10 @@
           });
         }
 
-        // Check if row matches Header 2
-        if ((rowStr.includes('customer') || rowStr.includes('city') || rowStr.includes('app date') || rowStr.includes('service type')) &&
-            (rowStr.includes('status') || rowStr.includes('reason') || rowStr.includes('service type'))) {
+        // Check if row matches Header 2 (or is a single-row header containing Status/Reason)
+        if (((rowStr.includes('customer') || rowStr.includes('city') || rowStr.includes('app date') || rowStr.includes('service type')) &&
+            (rowStr.includes('status') || rowStr.includes('reason') || rowStr.includes('service type'))) ||
+            (header1Idx === r && (rowStr.includes('status') || rowStr.includes('reason')))) {
           header2Idx = r;
           h2Map = {};
           row.forEach((colName, cIdx) => {
@@ -1267,10 +1311,10 @@
             else if (clean.includes('apptime')) h2Map.appTime = cIdx;
             else if (clean.includes('appdate') || clean.includes('appointment')) h2Map.appDate = cIdx;
             else if (clean.includes('servicetype') || clean.includes('svctype')) h2Map.serviceType = cIdx;
-            else if (clean === 'status') h2Map.status = cIdx;
-            else if (clean.includes('reason') || clean.includes('remark')) h2Map.reason = cIdx;
+            else if (clean === 'status' || (clean.includes('status') && !clean.includes('wty') && !clean.includes('warranty'))) h2Map.status = cIdx;
+            else if (clean.includes('riskreason') || clean.includes('riskremark')) h2Map.riskReason = cIdx;
+            else if (clean === 'reason' || (clean.includes('reason') && !clean.includes('main') && !clean.includes('master')) || clean.includes('remark')) h2Map.reason = cIdx;
             else if (clean === 'b2b') h2Map.b2b = cIdx;
-            else if (clean.includes('riskreason')) h2Map.riskReason = cIdx;
           });
         }
       }
@@ -1306,7 +1350,8 @@
 
         // Row 2 is the next row
         let row2 = (i + 1 < rawGrid.length) ? rawGrid[i + 1] : [];
-        const isSingleRow = row2.some(val => /^\d{10}$/.test(val) || /^\d{10}\s*(Edit|View)?$/i.test(val));
+        const isSingleRowHeader = (header1Idx !== -1 && header2Idx === header1Idx);
+        const isSingleRow = isSingleRowHeader || row2.some(val => /^\d{10}$/.test(val) || /^\d{10}\s*(Edit|View)?$/i.test(val));
         if (isSingleRow) {
           row2 = [];
         }
@@ -1329,10 +1374,13 @@
         let appDate = '';
         let appTime = '';
         let sType = 'IN-HOME';
-        let status = 'Open';
+        let status = '';
         let reason = '';
         let b2b = '';
         let riskReason = '';
+
+        const knownSTypes = ['INITIAL INSTALLATION', 'IN-HOME', 'IN HOME', 'DEMONSTRATION', 'STOCK REPAIR', 'CUSTOMER CARE', 'PICK-UP SERVICE', 'PICK-UP', 'PICK UP', 'CARRY IN', 'CARRY-IN', 'RETURN HANDLING', 'IH', 'CI', 'PU'];
+        const isKnownSType = (val) => knownSTypes.includes(String(val || '').toUpperCase().trim());
 
         // Extract Row 1 from Header Map if available
         if (h1Map) {
@@ -1350,21 +1398,40 @@
           if (h1Map.highPriority !== undefined && row1[h1Map.highPriority]) highPriority = String(row1[h1Map.highPriority] || 'Normal').trim();
         }
 
-        // Extract Row 2 from Header Map if available (handling optional leading blank offset)
-        if (h2Map && row2.length > 0) {
+        // Extract Row 2 (or Single-Row) from Header Map if available
+        const h2TargetRow = (isSingleRowHeader && h2Map) ? row1 : row2;
+        let hasMappedStatusOrReason = false;
+
+        if (h2Map && h2TargetRow.length > 0) {
           let offset2 = 0;
-          if (h2Map.custName !== undefined && h2Map.custName > 0) {
-            const atIndex = String(row2[h2Map.custName] || '').trim();
-            const atZero = String(row2[0] || '').trim();
-            if (!atIndex && atZero && !/^\d+$/.test(atZero)) {
-              offset2 = -h2Map.custName;
+          if (h2TargetRow === row2) {
+            if (h2Map.serviceType !== undefined) {
+              const directST = String(row2[h2Map.serviceType] || '').trim();
+              if (!isKnownSType(directST)) {
+                const foundSTIdx = row2.findIndex(c => isKnownSType(c));
+                if (foundSTIdx !== -1) {
+                  offset2 = foundSTIdx - h2Map.serviceType;
+                } else if (h2Map.custName !== undefined && h2Map.custName > 0) {
+                  const atIndex = String(row2[h2Map.custName] || '').trim();
+                  const atZero = String(row2[0] || '').trim();
+                  if (!atIndex && atZero && !/^\d+$/.test(atZero)) {
+                    offset2 = -h2Map.custName;
+                  }
+                }
+              }
+            } else if (h2Map.custName !== undefined && h2Map.custName > 0) {
+              const atIndex = String(row2[h2Map.custName] || '').trim();
+              const atZero = String(row2[0] || '').trim();
+              if (!atIndex && atZero && !/^\d+$/.test(atZero)) {
+                offset2 = -h2Map.custName;
+              }
             }
           }
 
           const getH2Cell = (key) => {
             if (h2Map[key] === undefined) return '';
             const idx = h2Map[key] + offset2;
-            return (idx >= 0 && idx < row2.length) ? String(row2[idx] || '').trim() : '';
+            return (idx >= 0 && idx < h2TargetRow.length) ? String(h2TargetRow[idx] || '').trim() : '';
           };
 
           if (getH2Cell('custName')) custName = getH2Cell('custName');
@@ -1372,14 +1439,20 @@
           if (getH2Cell('appDate')) appDate = formatStandardDateStr(getH2Cell('appDate'));
           if (getH2Cell('appTime')) appTime = getH2Cell('appTime');
           if (getH2Cell('serviceType')) sType = getH2Cell('serviceType');
-          if (getH2Cell('status')) status = getH2Cell('status');
-          if (getH2Cell('reason')) reason = getH2Cell('reason');
+          if (h2Map.status !== undefined) {
+            status = getH2Cell('status');
+            hasMappedStatusOrReason = true;
+          }
+          if (h2Map.reason !== undefined) {
+            reason = getH2Cell('reason');
+            hasMappedStatusOrReason = true;
+          }
           if (getH2Cell('b2b')) b2b = getH2Cell('b2b');
           if (getH2Cell('riskReason')) riskReason = getH2Cell('riskReason');
         }
 
-        // Fallback / Content-Based Heuristic Extraction
-        if (!created || !model || !status || status === 'Open') {
+        // Fallback / Content-Based Heuristic Extraction (when headers were not provided or columns missing)
+        if (!created || !model || !hasMappedStatusOrReason) {
           let colAfterSo = soIdxInRow + 1;
           if (row1[colAfterSo] && /^edit$/i.test(row1[colAfterSo])) colAfterSo++;
           const candAscJob = (row1[colAfterSo] && !/^\d{1,2}[.\/-]/.test(row1[colAfterSo])) ? cleanTrackingNumber(row1[colAfterSo]) : cleanSo;
@@ -1424,63 +1497,73 @@
             if (wtyCand) wty = String(wtyCand).trim();
           }
 
-          if (row2.length > 0) {
+          if (row2.length > 0 && !hasMappedStatusOrReason) {
             let row2Date = '';
+            let row2DateIdx = -1;
             let row2Time = '';
-            row2.forEach(c => {
+            row2.forEach((c, idx) => {
               const s = String(c || '').trim();
-              if (/^\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}$/.test(s)) row2Date = s;
-              if (/^\d{1,2}:\d{2}(?::\d{2})?$/.test(s)) row2Time = s;
+              if (row2DateIdx === -1 && /^\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}$/.test(s)) {
+                row2Date = s;
+                row2DateIdx = idx;
+              }
+              if (!row2Time && /^\d{1,2}:\d{2}(?::\d{2})?$/.test(s)) row2Time = s;
             });
 
             if (!appDate && row2Date) appDate = (row2Date === '00.00.0000' || row2Date === '00/00/0000') ? '' : formatStandardDateStr(row2Date);
             if (!appTime && row2Time) appTime = row2Time === '00:00:00' ? '' : row2Time;
 
-            const knownSTypes = ['INITIAL INSTALLATION', 'IN-HOME', 'DEMONSTRATION', 'STOCK REPAIR', 'CUSTOMER CARE', 'PICK-UP SERVICE', 'CARRY IN', 'RETURN HANDLING'];
-            const foundSType = row2.find(c => knownSTypes.includes(String(c || '').toUpperCase().trim()));
-            if (foundSType) sType = foundSType.trim();
-
-            if (!custName && row2[0] && !/^\d+$/.test(row2[0])) custName = row2[0].trim();
-            if (!custName && row2[1] && !/^\d+$/.test(row2[1])) custName = row2[1].trim();
-
-            if (!city && row2.length >= 2) {
-              const cCand = row2.find((c, idx) => {
-                if (idx === 0) return false;
-                const s = String(c || '').trim();
-                if (!s || s === '-' || s === '00.00.0000' || /^\d{1,2}[.\/-]/.test(s) || /^\d{1,2}:\d{2}/.test(s)) return false;
-                if (knownSTypes.includes(s.toUpperCase())) return false;
-                if (s === 'Pending' || s === 'Goods Delivered' || s === 'Completed' || s === 'Acknowledged') return false;
-                return /^[A-Za-z\s.-]+$/.test(s) && s !== custName;
-              });
-              if (cCand) city = cCand.trim();
+            const sTypeIdx = row2.findIndex(c => isKnownSType(c));
+            if (sTypeIdx !== -1) {
+              sType = String(row2[sTypeIdx] || '').trim();
+              // Exact Management Lite / Bulk positional mapping after Service Type: [Service Type, Status, Reason, B2B, (Risk Reason)]
+              status = (sTypeIdx + 1 < row2.length) ? String(row2[sTypeIdx + 1] || '').trim() : '';
+              reason = (sTypeIdx + 2 < row2.length) ? String(row2[sTypeIdx + 2] || '').trim() : '';
+              if (!b2b && sTypeIdx + 3 < row2.length) b2b = String(row2[sTypeIdx + 3] || '').trim();
             }
 
-            const nonDateNonTypes = row2.filter((c) => {
-              const s = String(c || '').trim();
-              if (!s || s === '-' || s === '00.00.0000' || s === '00:00:00') return false;
-              if (/^\d{1,2}[.\/-]/.test(s) || /^\d{1,2}:\d{2}/.test(s)) return false;
-              if (s === custName || s === city) return false;
-              if (knownSTypes.includes(s.toUpperCase())) return false;
-              return true;
-            });
+            const preLimit = row2DateIdx !== -1 ? row2DateIdx : (sTypeIdx !== -1 ? sTypeIdx : row2.length);
+            if (!custName) {
+              for (let k = 0; k < preLimit; k++) {
+                const v = String(row2[k] || '').trim();
+                if (v && !/^\d+$/.test(v)) { custName = v; break; }
+              }
+            }
+            if (!city && preLimit >= 2) {
+              // City sits immediately before App Date (or after Customer Name before Service Type)
+              const cityIdx = row2DateIdx > 0 ? row2DateIdx - 1 : -1;
+              if (cityIdx >= 0) {
+                const v = String(row2[cityIdx] || '').trim();
+                if (v && v !== custName && v !== '-' && !/^\d/.test(v)) city = v;
+              }
+            }
 
-            if (nonDateNonTypes.length >= 1 && (!status || status === 'Open')) status = nonDateNonTypes[0];
-            if (nonDateNonTypes.length >= 2 && !reason) reason = nonDateNonTypes[1];
-            if (nonDateNonTypes.length >= 3 && !b2b) b2b = nonDateNonTypes[2];
+            // Only fall back to scanning tokens if Service Type was not found at all
+            if (sTypeIdx === -1) {
+              const nonDateNonTypes = row2.filter((c) => {
+                const s = String(c || '').trim();
+                if (!s || s === '-' || s === '00.00.0000' || s === '00:00:00') return false;
+                if (/^\d{1,2}[.\/-]/.test(s) || /^\d{1,2}:\d{2}/.test(s)) return false;
+                if (s === custName || s === city) return false;
+                if (isKnownSType(s)) return false;
+                return true;
+              });
+              if (nonDateNonTypes.length >= 1 && !status) status = nonDateNonTypes[0];
+              if (nonDateNonTypes.length >= 2 && !reason) reason = nonDateNonTypes[1];
+              if (nonDateNonTypes.length >= 3 && !b2b) b2b = nonDateNonTypes[2];
+            }
           }
         }
 
-        // Clean & Normalize
+        // Clean & Normalize (Preserve exact uploaded Status & Reason)
         const normCreated = created || assigned || formatStandardDateStr(new Date());
         const normAssigned = assigned || normCreated;
         const normModel = model || 'UNKNOWN';
         const normSType = convertServiceType(sType);
         const normWtyCode = getWarrantyCode(wty);
-        const cleanReason = String(reason || '').trim();
-        const cleanStatus = String(status || '').trim();
-        // [Permanent Rule] IF REASON WAS EMPTY OR NULL, JUST PUT THE "Status" Values
-        const normReason = cleanReason ? cleanReason : (cleanStatus ? cleanStatus : 'Pending');
-        const masterReason = lookupMasterReason(normReason, cleanStatus);
+        const cleanReason = String(reason || '').replace(/\s+/g, ' ').trim();
+        const cleanStatus = String(status || '').replace(/\s+/g, ' ').trim();
+        const masterReason = lookupMasterReason(cleanReason, cleanStatus);
         const age = calcAging(normCreated, cutoff); // [Permanent Rule] STRICTLY FROM CREATED DATE ONLY!
         const tat = getTATBucket(age); // [Permanent Rule] STRICTLY FROM CREATED DATE ONLY!
 
@@ -1517,9 +1600,9 @@
           appDate: appDate,
           app_date: appDate,
           appTime: appTime,
-          status: cleanStatus || 'Pending',
-          reason: normReason, // If reason was empty/null, put the Status value!
-          subReason: normReason,
+          status: cleanStatus,
+          reason: cleanReason,
+          subReason: cleanReason,
           masterReason: masterReason,
           mainReason: masterReason,
           voc: voc,
@@ -3328,11 +3411,10 @@ Amit Verma\tDelhi\t16-05-2026\t11:00:00\tIN-HOME\tEngineer Assigned\tCustomer Re
                     r.customerName = r.customerName || r['Customer Name'] || r.customer_name || '';
                     r.city = r.city || r['City'] || bName;
                     r.appDate = r.appDate || r['App Date'] || r.app_date || '';
-                    r.status = r.status || r['Status'] || 'Open';
-                    // [Permanent Rule] If Reason was empty or null, put the Status value
-                    const rsn = String(r.reason || r['Reason'] || r['Reason / Remarks'] || '').trim();
-                    const st = String(r.status || '').trim();
-                    r.reason = rsn ? rsn : (st ? st : 'Pending');
+                    const rawSt = r.status !== undefined ? r.status : (r['Status'] !== undefined ? r['Status'] : '');
+                    const rawRsn = r.reason !== undefined ? r.reason : (r['Reason'] !== undefined ? r['Reason'] : (r['Reason / Remarks'] || ''));
+                    r.status = String(rawSt || '').replace(/\s+/g, ' ').trim();
+                    r.reason = String(rawRsn || '').replace(/\s+/g, ' ').trim();
                     r.subReason = r.reason;
                     r.masterReason = lookupMasterReason(r.reason, r.status);
                     r.mainReason = r.masterReason;
